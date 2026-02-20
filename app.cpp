@@ -55,23 +55,24 @@ bool App::init() {
         // TODO: add error checking!
         glfwInit();
 
+
         // open window (GL canvas) with no special properties
         // https://www.glfw.org/docs/latest/quick.html#quick_create_window
         // TODO: add error checking!
         window = glfwCreateWindow(800, 600, "OpenGL context", NULL, NULL);
         glfwMakeContextCurrent(window);
 
+        glfwSetWindowUserPointer(window, this);
+
         // init glew
         // http://glew.sourceforge.net/basic.html
         // TODO: add error checking!
+
         glewInit();
         wglewInit();
 
         if (!GLEW_ARB_direct_state_access)
             throw std::runtime_error("No DSA :-(");
-
-
-        //TODO: get info about your GL context    
 
         //Init debug
         if (GLEW_ARB_debug_output) {
@@ -82,11 +83,22 @@ bool App::init() {
             //glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
             std::cout << "GL_DEBUG enabled." << std::endl;
-        } else
+        } else {
             std::cout << "GL_DEBUG NOT SUPPORTED!" << std::endl;
+        }
+
+        // for current GL context switch vsync
+        if (vsync)
+            glfwSwapInterval(1);          // Set V-Sync ON.
+        else
+            glfwSwapInterval(0);          // Set V-Sync OFF.
+
+        //TODO: get info about your GL context    
     }
 
     init_assets();
+
+    init_callbacks();
 
     return 0;
 }
@@ -170,7 +182,15 @@ int App::run() {
         std::cerr << "Uniform location is not found in active shader program. Did you forget to activate it?\n";
     }
 
+    auto start = std::chrono::steady_clock::now();
+    auto end = std::chrono::steady_clock::now();
+    auto last_print = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::chrono::duration<double> since_last_report;
+
     while (!glfwWindowShouldClose(window)) {
+        start = std::chrono::steady_clock::now();
+
         // clear canvas
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -187,18 +207,73 @@ int App::run() {
         // poll events, call callbacks, flip back<->front buffer
         glfwPollEvents();
         glfwSwapBuffers(window);
+
+        end = std::chrono::steady_clock::now();
+        elapsed_seconds = end - start;
+        since_last_report = end - last_print;
+        if (since_last_report.count() > 1) {
+            glfwSetWindowTitle(window, std::format("fps: {0:.0f}", 1.0 / elapsed_seconds.count()).c_str());
+            last_print = end;
+        }
     }
 
     return 0;
 }
 
 
-App::~App() {
+void App::init_callbacks() {
+    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+        {
+            auto* app = static_cast<App*>(glfwGetWindowUserPointer(window));
+            if (app)
+                app->key_callback(key, scancode, action, mods);
+        });
+    //glfwSetFramebufferSizeCallback(window, fbsize_callback);
+    //glfwSetMouseButtonCallback(window, mouse_button_callback);
+    //glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset)
+    {
+        auto* app = static_cast<App*>(glfwGetWindowUserPointer(window));
+        if (app)
+            app->scroll_callback(xoffset, yoffset);
+        });
+}
 
+void App::error_callback(int error, const char* description) {
+    std::cerr << "Error: " << description << std::endl;
+}
+
+void App::scroll_callback(double xoffset, double yoffset) {
+    if (yoffset > 0.0) {
+        std::cout << "wheel up...\n";
+    }
+}
+
+void App::key_callback(int key, int scancode, int action, int mods) {
+    if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
+        switch (key) {
+        case GLFW_KEY_ESCAPE:
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            break;
+        case GLFW_KEY_V:
+            // TODO: toggle VSync on-off by glfwSwapInterval(...)
+            // hint: create bool variable in App class to remember last choice...
+            vsync = !vsync;
+            glfwSwapInterval((vsync ? 1 : 0));
+
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+
+
+App::~App() {
     //new stuff: cleanup GL data
     glDeleteProgram(shader_prog_ID);
     glDeleteBuffers(1, &VBO_ID);
     glDeleteVertexArrays(1, &VAO_ID);
 
 }
-
