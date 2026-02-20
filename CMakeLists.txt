@@ -24,11 +24,10 @@ find_package(OpenCV  CONFIG  REQUIRED)
 # endif()
 
 set(PROJECT_SOURCES
-    main.cpp
     app.cpp
-    settings.cpp
-    settings.hpp
     gl_err_callback.cpp
+    main.cpp
+    settings.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})

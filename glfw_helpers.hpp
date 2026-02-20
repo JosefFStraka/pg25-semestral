@@ -48,5 +48,5 @@ do {\
 
 #define GL_PRINT_FLAG(flags, flag) \
 [flags](){\
-    std::cout << #flag << ":" << ((flags & flag) ? "YES" : "NO") << std::endl;\
+    std::cout << #flag << ": " << ((flags & flag) ? "YES" : "NO") << std::endl;\
 }();

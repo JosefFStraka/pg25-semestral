@@ -1,13 +1,13 @@
 #pragma once
 
-#include "assets.hpp"
-#include "settings.hpp"
-
 #include <vector>
 #include <chrono>
 
-#include <GLFW/glfw3.h>
+#include "assets.hpp"
+#include "settings.hpp"
+#include "colors.hpp"
 
+#include <GLFW/glfw3.h>
 
 class App {
 public:

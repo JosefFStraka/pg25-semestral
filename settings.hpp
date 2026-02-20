@@ -1,5 +1,4 @@
-#ifndef __settings_hpp__
-#define __settings_hpp__
+#pragma once 
 
 #include <string>
 #include <map>
@@ -40,4 +39,3 @@ namespace settings {
         return 0;
     }
 }
-#endif

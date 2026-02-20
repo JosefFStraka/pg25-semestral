@@ -56,12 +56,15 @@ bool App::init() {
     // GL init
     {
         glfwSetErrorCallback(glfw_error_callback);
-
         // init glfw
         // https://www.glfw.org/documentation.html
         if (!glfwInit()) {
             throw new std::exception("glfwInit failed!");
         }
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         if (app_settings.window_pos_x != -1 || app_settings.window_pos_y != -1) {
             glfwWindowHint(GLFW_POSITION_X, app_settings.window_pos_x);
@@ -73,7 +76,7 @@ bool App::init() {
         window = glfwCreateWindow(app_settings.window_width, app_settings.window_height, "OpenGL context", NULL, NULL);
         if (!window) {
             glfwTerminate();
-            throw new std::exception("glfwCreateWindow failed!");
+            throw new std::runtime_error("glfwCreateWindow failed!");
         }
 
         glfwMakeContextCurrent(window);
@@ -195,21 +198,30 @@ int App::run() {
         std::cerr << "Uniform location is not found in active shader program. Did you forget to activate it?\n";
     }
 
+    glClearColor(0, 0, 0, 1);
+
     auto start = std::chrono::steady_clock::now();
     auto end = start;
-    auto last_print = start;
     std::chrono::duration<double> elapsed_seconds = end - start;
-    std::chrono::duration<double> since_last_report;
-
+    double last_report_time = 0.0;
+    double delta_time = 0.0;
+    double last_time = 0.0;
     while (!glfwWindowShouldClose(window)) {
+        double time_now = glfwGetTime();
+        delta_time = time_now - last_time;
+        last_time = time_now;
+
         start = std::chrono::steady_clock::now();
 
         // clear canvas
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        HSL data = HSL((int)(glfwGetTime() * (360 / 5)) % 360, 1.f, 0.5f);
+        RGB value = HSLToRGB(data);
+
         //set uniform parameter for shader
         // (try to change the color in key callback)          
-        glUniform4f(uniform_color_location, r, g, b, a);
+        glUniform4f(uniform_color_location, value.R / 255.f, value.G / 255.f, value.B / 255.f, a);
 
         //bind 3d object data
         glBindVertexArray(VAO_ID);
@@ -223,12 +235,11 @@ int App::run() {
 
         end = std::chrono::steady_clock::now();
         elapsed_seconds = end - start;
-        since_last_report = end - last_print;
-        if (since_last_report.count() > 0.05) {
+        if (time_now - last_report_time > 0.05) {
+            last_report_time = time_now;
             const auto fps = 1.0 / elapsed_seconds.count();
             const auto vsync_status = (app_settings.vsync ? "ON " : "OFF");
-            glfwSetWindowTitle(window, std::format("OpenGL Window | VSync: {} | FPS: {:5.0f}", vsync_status, fps).c_str());
-            last_print = end;
+            glfwSetWindowTitle(window, std::format("OpenGL Window | VSync: {} | FPS: {:4.0f}", vsync_status, fps).c_str());
         }
     }
 
@@ -297,8 +308,9 @@ void App::fbsize_callback(int width, int height) {
     app_settings.window_width = width;
     app_settings.window_height = height;
 }
-void App::window_pos_callback(int xpos, int ypos) {\
-    std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
+void App::window_pos_callback(int xpos, int ypos) {
+    \
+        std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
     app_settings.window_pos_x = xpos;
     app_settings.window_pos_y = ypos;
 }
