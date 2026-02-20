@@ -24,7 +24,13 @@ find_package(OpenCV  CONFIG  REQUIRED)
 # endif()
 
 set(PROJECT_SOURCES
-    helloworld.cpp
+    #helloworld.cpp
+    assets.hpp
+    gl_err_callback.h
+    app.hpp
+    gl_err_callback.cpp
+    app.cpp
+    main.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
