@@ -6,11 +6,6 @@
 
 #include "app.hpp"
 
-App::App() {
-    // default constructor
-    // nothing to do here (so far...)
-    std::cout << "Constructed...\n";
-}
 //
 // WARNING:
 // In general, you can NOT freely reorder includes!
@@ -41,14 +36,22 @@ App::App() {
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
-#include "assets.hpp"
 #include "gl_err_callback.h"
 #include "glfw_helpers.hpp"
 
 //---------------------------------------------------------------------
 
+App::App() {
+    // default constructor
+    // nothing to do here (so far...)
+    std::cout << "Constructed...\n";
+}
+
 bool App::init() {
+
+    if (!settings::load("settings.json", app_settings)) {
+        std::cout << "Settings file settings.json doesnt exist" << std::endl;
+    }
 
     // GL init
     {
@@ -60,10 +63,14 @@ bool App::init() {
             throw new std::exception("glfwInit failed!");
         }
 
+        if (app_settings.window_pos_x != -1 || app_settings.window_pos_y != -1) {
+            glfwWindowHint(GLFW_POSITION_X, app_settings.window_pos_x);
+            glfwWindowHint(GLFW_POSITION_Y, app_settings.window_pos_y);
+        }
 
         // open window (GL canvas) with no special properties
         // https://www.glfw.org/docs/latest/quick.html#quick_create_window
-        window = glfwCreateWindow(800, 600, "OpenGL context", NULL, NULL);
+        window = glfwCreateWindow(app_settings.window_width, app_settings.window_height, "OpenGL context", NULL, NULL);
         if (!window) {
             glfwTerminate();
             throw new std::exception("glfwCreateWindow failed!");
@@ -97,7 +104,7 @@ bool App::init() {
         }
 
         // for current GL context set vsync
-        glfwSwapInterval(vsync);
+        glfwSwapInterval(app_settings.vsync);
 
         print_gl_info();
     }
@@ -217,8 +224,10 @@ int App::run() {
         end = std::chrono::steady_clock::now();
         elapsed_seconds = end - start;
         since_last_report = end - last_print;
-        if (since_last_report.count() > 0.1) {
-            glfwSetWindowTitle(window, std::format("fps: {0:.0f}", 1.0 / elapsed_seconds.count()).c_str());
+        if (since_last_report.count() > 0.05) {
+            const auto fps = 1.0 / elapsed_seconds.count();
+            const auto vsync_status = (app_settings.vsync ? "ON " : "OFF");
+            glfwSetWindowTitle(window, std::format("OpenGL Window | VSync: {} | FPS: {:5.0f}", vsync_status, fps).c_str());
             last_print = end;
         }
     }
@@ -255,31 +264,16 @@ void App::print_gl_info() {
 }
 
 void App::init_callbacks() {
-    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-        {
-            auto* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-            if (app)
-                app->key_callback(key, scancode, action, mods);
-        });
-    //glfwSetFramebufferSizeCallback(window, fbsize_callback);
-    //glfwSetMouseButtonCallback(window, mouse_button_callback);
-    //glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset)
-        {
-            auto* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-            if (app)
-                app->scroll_callback(xoffset, yoffset);
-        });
+    glfwSetKeyCallback(window, GlfwBinder<&App::key_callback>::callback);
+    glfwSetFramebufferSizeCallback(window, GlfwBinder<&App::fbsize_callback>::callback);
+    glfwSetWindowPosCallback(window, GlfwBinder<&App::window_pos_callback>::callback);
+    glfwSetMouseButtonCallback(window, GlfwBinder<&App::mouse_button_callback>::callback);
+    glfwSetCursorPosCallback(window, GlfwBinder<&App::cursor_position_callback>::callback);
+    glfwSetScrollCallback(window, GlfwBinder<&App::scroll_callback>::callback);
 }
 
 void App::error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
-}
-
-void App::scroll_callback(double xoffset, double yoffset) {
-    if (yoffset > 0.0) {
-        std::cout << "wheel up...\n";
-    }
 }
 
 void App::key_callback(int key, int scancode, int action, int mods) {
@@ -289,9 +283,8 @@ void App::key_callback(int key, int scancode, int action, int mods) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             break;
         case GLFW_KEY_V:
-            vsync = !vsync;
-            glfwSwapInterval((vsync ? 1 : 0));
-            std::cout << "VSync: " << (vsync ? "1" : "0") << std::endl;
+            app_settings.vsync = !app_settings.vsync;
+            glfwSwapInterval((app_settings.vsync ? 1 : 0));
             break;
         default:
             break;
@@ -299,9 +292,31 @@ void App::key_callback(int key, int scancode, int action, int mods) {
     }
 }
 
-
+void App::fbsize_callback(int width, int height) {
+    std::cout << "fbsize_callback: width " << width << ", height " << height << std::endl;
+    app_settings.window_width = width;
+    app_settings.window_height = height;
+}
+void App::window_pos_callback(int xpos, int ypos) {\
+    std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
+    app_settings.window_pos_x = xpos;
+    app_settings.window_pos_y = ypos;
+}
+void App::mouse_button_callback(int button, int action, int mods) {
+    std::cout << "mouse_button_callback: button " << button << ", action " << action << ", mods " << mods << std::endl;
+}
+void App::cursor_position_callback(double xpos, double ypos) {
+    //std::cout << "cursor_position_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
+}
+void App::scroll_callback(double xoffset, double yoffset) {
+    if (yoffset > 0.0) {
+        std::cout << "wheel up...\n";
+    }
+}
 
 App::~App() {
+    settings::save("settings.json", app_settings);
+
     //new stuff: cleanup GL data
     glDeleteProgram(shader_prog_ID);
     glDeleteBuffers(1, &VBO_ID);

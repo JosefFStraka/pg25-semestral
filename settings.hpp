@@ -1,0 +1,43 @@
+#ifndef __settings_hpp__
+#define __settings_hpp__
+
+#include <string>
+#include <map>
+#include <fstream>
+
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
+namespace settings {
+    namespace app_settings {
+        struct AppSettings {
+            int window_width = 800;
+            int window_height = 600;
+            int window_pos_x = -1;
+            int window_pos_y = -1;
+            bool vsync = true;
+        };
+
+        void to_json(json& j, const AppSettings& as);
+        void from_json(const json& j, AppSettings& as);
+    }
+
+    template <typename T>
+    int load(std::string path, T& data) {
+        if (!std::filesystem::exists(path)) {
+            return 1;
+        }
+        std::ifstream i(path);
+        data = json::parse(i);
+        return 0;
+    }
+    template <typename T>
+    int save(std::string path, T& data) {
+        json j = data;
+        std::ofstream o(path);
+        o << j.dump(4) << std::endl;
+        return 0;
+    }
+}
+#endif

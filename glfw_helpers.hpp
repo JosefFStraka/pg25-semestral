@@ -3,16 +3,18 @@
 #include <GLFW/glfw3.h>
 #endif
 
-template<typename T, typename Func>
-auto glfw_member_callback(Func func) {
-    return [func](GLFWwindow* window, auto... args)
+template <auto Method>
+struct GlfwBinder
+{
+    template <typename... Args>
+    static void callback(GLFWwindow* window, Args... args)
+    {
+        if (auto* app = static_cast<App*>(glfwGetWindowUserPointer(window)))
         {
-            T* instance = static_cast<T*>(glfwGetWindowUserPointer(window));
-            if (instance) {
-                (instance->*func)(args...);
-            }
-        };
-}
+            (app->*Method)(args...);
+        }
+    }
+};
 
 #define GLEW_CHECK(err, name) \
 do {\
