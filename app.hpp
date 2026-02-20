@@ -7,7 +7,11 @@
 #include "settings.hpp"
 #include "colors.hpp"
 
+#include <GL/glew.h> 
+#include <GL/wglew.h> 
 #include <GLFW/glfw3.h>
+
+class AppImGui;
 
 class App {
 public:
@@ -17,6 +21,7 @@ public:
     bool init(void);
     void init_assets(void);
     void init_callbacks(void);
+    void init_imgui(void);
     int run(void);
 
     void print_gl_info(void);
@@ -30,10 +35,11 @@ public:
     void cursor_position_callback(double xpos, double ypos);
     void scroll_callback(double xoffset, double yoffset);
 
+    settings::app_settings::AppSettings app_settings;
 private:
     GLFWwindow* window;
 
-    settings::app_settings::AppSettings app_settings;
+    AppImGui* imgui;
 
     GLuint shader_prog_ID{ 0 };
     GLuint VBO_ID{ 0 };

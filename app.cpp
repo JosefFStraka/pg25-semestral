@@ -1,10 +1,5 @@
-// icp.cpp 
-// author: JJ
-
-#include <iostream>
-#include <opencv2/opencv.hpp>
-
 #include "app.hpp"
+#include "app_imgui.hpp"
 
 //
 // WARNING:
@@ -98,6 +93,10 @@ bool App::init() {
             glDebugMessageCallback(MessageCallback, 0);
             glEnable(GL_DEBUG_OUTPUT);
 
+#ifndef DEBUG
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+#endif
+
             //default is asynchronous debug output, use this to simulate glGetError() functionality
             //glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
@@ -106,15 +105,19 @@ bool App::init() {
             std::cout << "GL_DEBUG NOT SUPPORTED!" << std::endl;
         }
 
-        // for current GL context set vsync
-        glfwSwapInterval(app_settings.vsync);
-
         print_gl_info();
     }
 
     init_assets();
 
+    //our callbacks before imgui
     init_callbacks();
+
+    imgui = new AppImGui(this, window);
+    imgui->init();
+
+    // for current GL context set vsync
+    glfwSwapInterval(app_settings.vsync);
 
     return 0;
 }
@@ -198,6 +201,8 @@ int App::run() {
         std::cerr << "Uniform location is not found in active shader program. Did you forget to activate it?\n";
     }
 
+    bool show_demo_window = true;
+
     glClearColor(0, 0, 0, 1);
 
     auto start = std::chrono::steady_clock::now();
@@ -212,6 +217,10 @@ int App::run() {
         last_time = time_now;
 
         start = std::chrono::steady_clock::now();
+
+        glfwPollEvents();
+
+        imgui->new_frame();
 
         // clear canvas
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -229,8 +238,10 @@ int App::run() {
         // draw all VAO data
         glDrawArrays(GL_TRIANGLES, 0, triangle_vertices.size());
 
-        // poll events, call callbacks, flip back<->front buffer
-        glfwPollEvents();
+        //render gui after our stuff
+        imgui->gui(delta_time);
+        imgui->render();
+
         glfwSwapBuffers(window);
 
         end = std::chrono::steady_clock::now();
@@ -293,6 +304,18 @@ void App::key_callback(int key, int scancode, int action, int mods) {
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             break;
+        case GLFW_KEY_INSERT:
+            imgui->imgui_open = !imgui->imgui_open;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (imgui->capture_keyboard()) return;
+
+    if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
+        switch (key) {
         case GLFW_KEY_V:
             app_settings.vsync = !app_settings.vsync;
             glfwSwapInterval((app_settings.vsync ? 1 : 0));
@@ -309,18 +332,22 @@ void App::fbsize_callback(int width, int height) {
     app_settings.window_height = height;
 }
 void App::window_pos_callback(int xpos, int ypos) {
-    \
-        std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
+    std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
     app_settings.window_pos_x = xpos;
     app_settings.window_pos_y = ypos;
 }
 void App::mouse_button_callback(int button, int action, int mods) {
+    if (imgui->capture_mouse()) return;
+
     std::cout << "mouse_button_callback: button " << button << ", action " << action << ", mods " << mods << std::endl;
 }
 void App::cursor_position_callback(double xpos, double ypos) {
+    if (imgui->capture_mouse()) return;
     //std::cout << "cursor_position_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
 }
 void App::scroll_callback(double xoffset, double yoffset) {
+    if (imgui->capture_mouse()) return;
+
     if (yoffset > 0.0) {
         std::cout << "wheel up...\n";
     }
@@ -333,5 +360,4 @@ App::~App() {
     glDeleteProgram(shader_prog_ID);
     glDeleteBuffers(1, &VBO_ID);
     glDeleteVertexArrays(1, &VAO_ID);
-
 }

@@ -12,7 +12,8 @@ find_package(glm            CONFIG  REQUIRED)
 find_package(GLEW                   REQUIRED)
 find_package(glfw3          CONFIG  REQUIRED)
 find_package(nlohmann_json  CONFIG  REQUIRED)
-find_package(OpenCV  CONFIG  REQUIRED)
+find_package(OpenCV         CONFIG  REQUIRED)
+find_package(imgui          CONFIG  REQUIRED)
 
 #find_package(Stb            REQUIRED)
 #find_path(STB_INCLUDE_DIR "stb_image.h")
@@ -24,6 +25,7 @@ find_package(OpenCV  CONFIG  REQUIRED)
 # endif()
 
 set(PROJECT_SOURCES
+    app_imgui.cpp
     app.cpp
     gl_err_callback.cpp
     main.cpp
@@ -38,10 +40,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glm::glm
     nlohmann_json::nlohmann_json
     ${OpenCV_LIBS}
+    imgui::imgui
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${OpenCV_INCLUDE_DIRS}
+    ImGui-GLFW-OpenGL3
 #    ${Stb_INCLUDE_DIR}
 )

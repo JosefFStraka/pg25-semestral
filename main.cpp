@@ -1,6 +1,3 @@
-// icp.cpp 
-// author: JJ
-
 #include <iostream>
 
 #include "app.hpp"
