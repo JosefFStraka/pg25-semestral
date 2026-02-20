@@ -22,6 +22,7 @@ App::App() {
 #include <chrono>
 #include <stack>
 #include <random>
+#include <format>
 
 // OpenCV (does not depend on GL)
 #include <opencv2\opencv.hpp>
@@ -43,6 +44,7 @@ App::App() {
 
 #include "assets.hpp"
 #include "gl_err_callback.h"
+#include "glfw_helpers.hpp"
 
 //---------------------------------------------------------------------
 
@@ -50,26 +52,33 @@ bool App::init() {
 
     // GL init
     {
+        glfwSetErrorCallback(glfw_error_callback);
+
         // init glfw
         // https://www.glfw.org/documentation.html
-        // TODO: add error checking!
-        glfwInit();
+        if (!glfwInit()) {
+            throw new std::exception("glfwInit failed!");
+        }
 
 
         // open window (GL canvas) with no special properties
         // https://www.glfw.org/docs/latest/quick.html#quick_create_window
-        // TODO: add error checking!
         window = glfwCreateWindow(800, 600, "OpenGL context", NULL, NULL);
-        glfwMakeContextCurrent(window);
+        if (!window) {
+            glfwTerminate();
+            throw new std::exception("glfwCreateWindow failed!");
+        }
 
+        glfwMakeContextCurrent(window);
         glfwSetWindowUserPointer(window, this);
 
         // init glew
         // http://glew.sourceforge.net/basic.html
-        // TODO: add error checking!
-
-        glewInit();
-        wglewInit();
+        GLenum err;
+        err = glewInit();
+        GLEW_CHECK(err, "glewInit");
+        err = wglewInit();
+        GLEW_CHECK(err, "wglewInit");
 
         if (!GLEW_ARB_direct_state_access)
             throw std::runtime_error("No DSA :-(");
@@ -87,13 +96,10 @@ bool App::init() {
             std::cout << "GL_DEBUG NOT SUPPORTED!" << std::endl;
         }
 
-        // for current GL context switch vsync
-        if (vsync)
-            glfwSwapInterval(1);          // Set V-Sync ON.
-        else
-            glfwSwapInterval(0);          // Set V-Sync OFF.
+        // for current GL context set vsync
+        glfwSwapInterval(vsync);
 
-        //TODO: get info about your GL context    
+        print_gl_info();
     }
 
     init_assets();
@@ -183,8 +189,8 @@ int App::run() {
     }
 
     auto start = std::chrono::steady_clock::now();
-    auto end = std::chrono::steady_clock::now();
-    auto last_print = std::chrono::steady_clock::now();
+    auto end = start;
+    auto last_print = start;
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::chrono::duration<double> since_last_report;
 
@@ -211,7 +217,7 @@ int App::run() {
         end = std::chrono::steady_clock::now();
         elapsed_seconds = end - start;
         since_last_report = end - last_print;
-        if (since_last_report.count() > 1) {
+        if (since_last_report.count() > 0.1) {
             glfwSetWindowTitle(window, std::format("fps: {0:.0f}", 1.0 / elapsed_seconds.count()).c_str());
             last_print = end;
         }
@@ -220,6 +226,33 @@ int App::run() {
     return 0;
 }
 
+void App::print_gl_info() {
+
+    GL_PRINT_STRING(GL_VENDOR);
+    GL_PRINT_STRING(GL_RENDERER);
+    GL_PRINT_STRING(GL_VERSION);
+    GL_PRINT_STRING(GL_SHADING_LANGUAGE_VERSION);
+
+    GL_PRINT_NUMBER(GL_MAJOR_VERSION);
+    GL_PRINT_NUMBER(GL_MINOR_VERSION);
+
+    GLint myint;
+    glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &myint);
+
+    if (myint & GL_CONTEXT_CORE_PROFILE_BIT) {
+        std::cout << "We are using CORE profile\n";
+    } else if (myint & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) {
+        std::cout << "We are using COMPATIBILITY profile\n";
+    } else {
+        //throw std::runtime_error("What??");
+    }
+
+    glGetIntegerv(GL_CONTEXT_FLAGS, &myint);
+    GL_PRINT_FLAG(myint, GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT);
+    GL_PRINT_FLAG(myint, GL_CONTEXT_FLAG_DEBUG_BIT);
+    GL_PRINT_FLAG(myint, GL_CONTEXT_FLAG_ROBUST_ACCESS_BIT);
+    GL_PRINT_FLAG(myint, GL_CONTEXT_FLAG_NO_ERROR_BIT);
+}
 
 void App::init_callbacks() {
     glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -232,10 +265,10 @@ void App::init_callbacks() {
     //glfwSetMouseButtonCallback(window, mouse_button_callback);
     //glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset)
-    {
-        auto* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-        if (app)
-            app->scroll_callback(xoffset, yoffset);
+        {
+            auto* app = static_cast<App*>(glfwGetWindowUserPointer(window));
+            if (app)
+                app->scroll_callback(xoffset, yoffset);
         });
 }
 
@@ -256,11 +289,9 @@ void App::key_callback(int key, int scancode, int action, int mods) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             break;
         case GLFW_KEY_V:
-            // TODO: toggle VSync on-off by glfwSwapInterval(...)
-            // hint: create bool variable in App class to remember last choice...
             vsync = !vsync;
             glfwSwapInterval((vsync ? 1 : 0));
-
+            std::cout << "VSync: " << (vsync ? "1" : "0") << std::endl;
             break;
         default:
             break;

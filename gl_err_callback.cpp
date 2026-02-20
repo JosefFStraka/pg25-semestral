@@ -1,5 +1,10 @@
 #include <iostream>
+#include <format>
 #include "gl_err_callback.h"
+
+void glfw_error_callback(int error, const char* description) {
+	std::cout << std::format("GLFW Error: {}", description) << std::endl;
+}
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {

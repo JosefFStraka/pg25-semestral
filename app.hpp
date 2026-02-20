@@ -18,6 +18,8 @@ public:
     void init_callbacks(void);
     int run(void);
 
+    void print_gl_info(void);
+
     void error_callback(int error, const char* description);
     void scroll_callback(double xoffset, double yoffset);
     void key_callback(int key, int scancode, int action, int mods);
