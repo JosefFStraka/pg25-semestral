@@ -49,7 +49,7 @@ App::App() {
 
 bool App::init() {
 
-    if (!settings::load("settings.json", app_settings)) {
+    if (settings::load("settings.json", app_settings)) {
         std::cout << "Settings file settings.json doesnt exist" << std::endl;
     }
 
