@@ -1,0 +1,76 @@
+#include "app.hpp"
+
+#include <iostream>
+//#include <GL/glew.h> 
+//#include <GL/wglew.h> 
+
+#include <GLFW/glfw3.h>
+
+#include "gl_err_callback.h"
+#include "glfw_helpers.hpp"
+
+void App::init_callbacks() {
+    glfwSetKeyCallback(window, GlfwBinder<&App::key_callback>::callback);
+    glfwSetFramebufferSizeCallback(window, GlfwBinder<&App::fbsize_callback>::callback);
+    glfwSetWindowPosCallback(window, GlfwBinder<&App::window_pos_callback>::callback);
+    glfwSetMouseButtonCallback(window, GlfwBinder<&App::mouse_button_callback>::callback);
+    glfwSetCursorPosCallback(window, GlfwBinder<&App::cursor_position_callback>::callback);
+    glfwSetScrollCallback(window, GlfwBinder<&App::scroll_callback>::callback);
+}
+
+void App::key_callback(int key, int scancode, int action, int mods) {
+    if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
+        switch (key) {
+        case GLFW_KEY_ESCAPE:
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            break;
+		case GLFW_KEY_D:
+			imgui->imgui_open = !imgui->imgui_open;
+			break;
+        default:
+            break;
+        }
+    }
+
+    //if (imgui->capture_keyboard()) return;
+
+    if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
+        switch (key) {
+        case GLFW_KEY_V:
+			// Vsync on/off
+			app_settings.vsync = !app_settings.vsync;
+			glfwSwapInterval(app_settings.vsync);
+			std::cout << "VSync: " << app_settings.vsync << "\n";
+			break;
+        default:
+            break;
+        }
+    }
+}
+
+void App::fbsize_callback(int width, int height) {
+    std::cout << "fbsize_callback: width " << width << ", height " << height << std::endl;
+    app_settings.window_width = width;
+    app_settings.window_height = height;
+}
+void App::window_pos_callback(int xpos, int ypos) {
+    std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
+    app_settings.window_pos_x = xpos;
+    app_settings.window_pos_y = ypos;
+}
+void App::mouse_button_callback(int button, int action, int mods) {
+    if (imgui->capture_mouse()) return;
+
+    std::cout << "mouse_button_callback: button " << button << ", action " << action << ", mods " << mods << std::endl;
+}
+void App::cursor_position_callback(double xpos, double ypos) {
+    if (imgui->capture_mouse()) return;
+    //std::cout << "cursor_position_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
+}
+void App::scroll_callback(double xoffset, double yoffset) {
+    if (imgui->capture_mouse()) return;
+
+    if (yoffset > 0.0) {
+        std::cout << "wheel up...\n";
+    }
+}

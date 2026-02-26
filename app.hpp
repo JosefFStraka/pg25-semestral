@@ -1,17 +1,16 @@
 #pragma once
 
-#include <vector>
 #include <chrono>
+#include <vector>
 
 #include "assets.hpp"
 #include "settings.hpp"
 #include "colors.hpp"
+#include "app_imgui.hpp"
 
 #include <GL/glew.h> 
 #include <GL/wglew.h> 
 #include <GLFW/glfw3.h>
-
-class AppImGui;
 
 class App {
 public:
@@ -19,10 +18,15 @@ public:
     ~App();
 
     bool init(void);
+    int run(void);
+    void gui(void);
+private:
+    void init_glfw(void);
+    void init_glew(void);
+    void init_gl_debug(void);
+    void init_imgui(void);
     void init_assets(void);
     void init_callbacks(void);
-    void init_imgui(void);
-    int run(void);
 
     void print_gl_info(void);
 
@@ -35,11 +39,10 @@ public:
     void cursor_position_callback(double xpos, double ypos);
     void scroll_callback(double xoffset, double yoffset);
 
-    settings::app_settings::AppSettings app_settings;
-private:
-    GLFWwindow* window;
 
+    GLFWwindow* window;
     AppImGui* imgui;
+    settings::app_settings::AppSettings app_settings;
 
     GLuint shader_prog_ID{ 0 };
     GLuint VBO_ID{ 0 };
@@ -51,5 +54,4 @@ private:
         {{0.5f, -0.5f,  0.0f}},
         {{-0.5f, -0.5f,  0.0f}}
     };
-
 };

@@ -7,8 +7,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-AppImGui::AppImGui( App* a, GLFWwindow* w) {
-    app = a;
+AppImGui::AppImGui(GLFWwindow* w) {
     window = w;
 }
 
@@ -26,12 +25,12 @@ void AppImGui::init() {
 
     // Setup modern rounded design
     ImGuiStyle& style = ImGui::GetStyle();
-    style.WindowRounding    = 3.0f;
-    style.FrameRounding     = 3.0f;
-    style.PopupRounding     = 3.0f;
+    style.WindowRounding = 3.0f;
+    style.FrameRounding = 3.0f;
+    style.PopupRounding = 3.0f;
     style.ScrollbarRounding = 3.0f;
-    style.GrabRounding      = 3.0f;
-    style.TabRounding       = 3.0f;
+    style.GrabRounding = 3.0f;
+    style.TabRounding = 3.0f;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -45,39 +44,32 @@ void AppImGui::new_frame() {
     ImGui::NewFrame();
 }
 
-void AppImGui::gui(double delta_time) {
-    //Main gui implementaion
-    if (imgui_open) {
-        ImGui::SetNextWindowPos(ImVec2(24, 24));
-        
-        const ImGuiWindowFlags flags = 
-            ImGuiWindowFlags_NoMove | 
-            ImGuiWindowFlags_NoResize | 
-            ImGuiWindowFlags_NoCollapse | 
-            ImGuiWindowFlags_NoBackground | 
-            ImGuiWindowFlags_NoTitleBar;
+void AppImGui::gui_begin() {
+    ImGui::SetNextWindowPos(ImVec2(24, 24));
+    ImGui::SetNextWindowSize(ImVec2(0.f, 0.f)); //autofit
 
-        ImGui::Begin("Main Menu", &imgui_open, flags); 
-        {
-            if (ImGui::Checkbox("VSync", &app->app_settings.vsync)) {
-                glfwSwapInterval(app->app_settings.vsync);
-            }
-            ImGui::Checkbox("Debug Window", &debug_window_open);
-        }
-        ImGui::End();
+    const ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoBackground |
+        ImGuiWindowFlags_NoTitleBar;
 
-        if (debug_window_open) {
-            ImGui::ShowDemoWindow(&debug_window_open);
-        }
+    ImGui::Begin("Main Menu", &imgui_open, flags);
+}
+
+void AppImGui::gui_end() {
+    ImGui::Checkbox("Debug Window", &debug_window_open);
+    ImGui::End();
+
+    if (debug_window_open) {
+        ImGui::ShowDemoWindow(&debug_window_open);
     }
 }
 
 void AppImGui::render() {
     //Render
     ImGui::Render();
-    int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
-    glViewport(0, 0, display_w, display_h);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 

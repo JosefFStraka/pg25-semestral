@@ -1,17 +1,17 @@
 #pragma once
 
 struct GLFWwindow;
-class App;
 
 class AppImGui {
 public:
-    AppImGui(App* a, GLFWwindow* w);
+    AppImGui(GLFWwindow* w);
     ~AppImGui();
 
     void init();
     void new_frame();
     void poll();
-    void gui(double delta_time);
+    void gui_begin();
+    void gui_end();
     void render();
 
     bool capture_mouse();
@@ -21,5 +21,4 @@ public:
     bool debug_window_open = false;
 private:
     GLFWwindow* window = nullptr;
-    App* app = nullptr;
 };

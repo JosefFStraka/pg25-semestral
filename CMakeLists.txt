@@ -27,6 +27,7 @@ find_package(imgui          CONFIG  REQUIRED)
 set(PROJECT_SOURCES
     app_imgui.cpp
     app.cpp
+    callbacks.cpp
     gl_err_callback.cpp
     main.cpp
     settings.cpp
