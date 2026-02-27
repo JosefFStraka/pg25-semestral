@@ -7,6 +7,7 @@
 #include "settings.hpp"
 #include "colors.hpp"
 #include "app_imgui.hpp"
+#include "fps_meter.hpp"
 
 #include <GL/glew.h> 
 #include <GL/wglew.h> 
@@ -56,6 +57,8 @@ private:
     GLFWwindow* window;
     AppImGui* imgui;
     settings::app_settings::AppSettings app_settings;
+    
+    fps_meter FPS;
 
     GLuint shader_prog_ID{ 0 };
     GLuint VBO_ID{ 0 };
