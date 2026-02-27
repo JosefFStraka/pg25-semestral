@@ -7,6 +7,9 @@ namespace settings {
     namespace app_settings {
         void to_json(json& j, const AppSettings& as) {
             j = json{
+                TO(fullscreen),
+                TO(gui_always_enabled),
+                TO(gui_enabled),
                 TO(vsync),
                 TO(window_height),
                 TO(window_pos_x),
@@ -16,6 +19,9 @@ namespace settings {
         }
 
         void from_json(const json& j, AppSettings& as) {
+            FROM(fullscreen);
+            FROM(gui_always_enabled);
+            FROM(gui_enabled);
             FROM(vsync);
             FROM(window_height);
             FROM(window_pos_x);

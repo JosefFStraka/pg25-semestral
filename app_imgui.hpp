@@ -17,7 +17,6 @@ public:
     bool capture_mouse();
     bool capture_keyboard();
 
-    bool imgui_open = false;
     bool debug_window_open = false;
 private:
     GLFWwindow* window = nullptr;

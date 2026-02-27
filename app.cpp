@@ -51,9 +51,9 @@ bool App::init() {
 
         init_assets();
 
-        init_imgui();
-
         init_callbacks();
+
+        init_imgui();
 
         // When all is loaded, show the window.
         glfwShowWindow(window);
@@ -106,7 +106,7 @@ void App::init_glfw(void) {
     glfwMakeContextCurrent(window);
 
     // disable mouse cursor
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // GLFW callbacks registration
     init_callbacks();
@@ -222,8 +222,8 @@ int App::run() {
         // animation related
         double frame_begin_timepoint = now;
         double previous_frame_render_time{};
-        double render_time_minimum{DBL_MAX};
-        double render_time_maximum{-DBL_MAX};
+        double render_time_minimum{ DBL_MAX };
+        double render_time_maximum{ -DBL_MAX };
 
         /* Typical game loop:
 
@@ -253,15 +253,28 @@ int App::run() {
 
         while (!glfwWindowShouldClose(window)) {
 
+            bool should_draw_gui = app_settings.gui_enabled || app_settings.gui_always_enabled;
             // ImGui prepare render (only if required)
-            if (imgui->imgui_open) {
+            if (should_draw_gui) {
                 imgui->new_frame();
                 imgui->gui_begin();
+                if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
+                    ImGui::BeginDisabled();
+                }
                 {
                     ImGui::Text("FPS: %.1f (%.1f - %.1f)", FPS, FPSmin, FPSmax);
                     if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
-                        glfwSwapInterval(this->app_settings.vsync);
+                        set_vsync(this->app_settings.vsync);
                     }
+                    if (ImGui::Checkbox("Fullscreen", &this->app_settings.fullscreen)) {
+                        set_fullscreen(app_settings.fullscreen);
+                    }
+                    ImGui::Checkbox("GUI always active", &this->app_settings.gui_always_enabled);
+
+                    ImGui::Checkbox("Debug Window", &imgui->debug_window_open);
+                }
+                if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
+                    ImGui::EndDisabled();
                 }
                 imgui->gui_end();
             }
@@ -290,18 +303,18 @@ int App::run() {
             //}
 
             HSL data = HSL((int)(glfwGetTime() * (360 / 5)) % 360, 1.f, 0.5f);
-            RGB value = HSLToRGB(data);        
+            RGB value = HSLToRGB(data);
             glUniform4f(uniform_color_location, value.R / 255.f, value.G / 255.f, value.B / 255.f, 1.f);
             glBindVertexArray(VAO_ID);
             glDrawArrays(GL_TRIANGLES, 0, triangle_vertices.size());
 
             // ImGui display
-            if (imgui->imgui_open) {
+            if (should_draw_gui) {
                 imgui->render();
             }
 
             glfwSwapBuffers(window);
-            
+
             glfwPollEvents();
 
             // Time/FPS measurement
@@ -327,7 +340,7 @@ int App::run() {
                 fps_counter_frames = 0;
                 render_time_minimum = DBL_MAX;
                 render_time_maximum = -DBL_MAX;
-                std::cout << "\r[FPS]" << FPS << "     "; // Compare: FPS with/without ImGUI
+                //std::cout << "\r[FPS]" << FPS << "     "; // Compare: FPS with/without ImGUI
             }
         }
     }
@@ -372,9 +385,52 @@ void App::error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
 }
 
+int saved_refresh_rate = -1;
+void App::set_fullscreen(bool value) {
+    app_settings.fullscreen = value;
+
+    if (app_settings.fullscreen) {
+        auto monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+        saved_window_pos_x = app_settings.window_pos_x;
+        saved_window_pos_y = app_settings.window_pos_y;
+        saved_window_width = app_settings.window_width;
+        saved_window_height = app_settings.window_height;
+
+        saved_refresh_rate = mode->refreshRate;
+
+        glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+    } else {
+        glfwSetWindowMonitor(window, NULL, saved_window_pos_x, saved_window_pos_y, saved_window_width, saved_window_height, NULL);
+    }
+
+    std::cout << "Fullscreen: " << app_settings.fullscreen << "\n";
+}
+
+void App::set_gui_enabled(bool value) {
+    app_settings.gui_enabled = value;
+
+    if (app_settings.gui_enabled) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+
+    std::cout << "GUI: " << app_settings.gui_enabled << "\n";
+}
+
+void App::set_vsync(bool value) {
+    app_settings.vsync = value;
+    glfwSwapInterval(app_settings.vsync);
+    std::cout << "VSync: " << app_settings.vsync << "\n";
+}
+
 App::~App() {
     settings::save("settings.json", app_settings);
 
+    delete imgui;
+    
     //new stuff: cleanup GL data
     glDeleteProgram(shader_prog_ID);
     glDeleteBuffers(1, &VBO_ID);

@@ -55,11 +55,10 @@ void AppImGui::gui_begin() {
         ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoTitleBar;
 
-    ImGui::Begin("Main Menu", &imgui_open, flags);
+    ImGui::Begin("Main Menu", nullptr, flags);
 }
 
 void AppImGui::gui_end() {
-    ImGui::Checkbox("Debug Window", &debug_window_open);
     ImGui::End();
 
     if (debug_window_open) {

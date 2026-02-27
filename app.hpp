@@ -39,6 +39,19 @@ private:
     void cursor_position_callback(double xpos, double ypos);
     void scroll_callback(double xoffset, double yoffset);
 
+    void set_fullscreen(bool value);
+    void set_gui_enabled(bool value);
+    void set_vsync(bool value);
+
+    double last_cursor_pos_x{};
+    double last_cursor_pos_y{};
+    double saved_cursor_pos_x{};
+    double saved_cursor_pos_y{};
+
+    int saved_window_pos_x{};
+    int saved_window_pos_y{};
+    int saved_window_width{};
+    int saved_window_height{};
 
     GLFWwindow* window;
     AppImGui* imgui;

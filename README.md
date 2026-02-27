@@ -29,9 +29,6 @@ Hotovo ale OpenCV je vcpkg
 > 05a - modern
 
 - [x] 06 callbacks
-
-> Jo, lambda
-
 - [x] 07 VSync
 
 ### Cv3
@@ -44,12 +41,12 @@ Hotovo ale OpenCV je vcpkg
 
 - [x] Hidden window during startup
 
-- [ ] Mouse cursor catch
+- [x] Mouse cursor catch
 
 #### Task 2
 
-- [ ] Implement Full-screeen mode toggle
+- [x] Implement Full-screeen mode toggle
 
-- [ ] Properly save and restore window position and size, including multimonitor setup.
+- [x] Properly save and restore window position and size, including multimonitor setup.
 
-> Tak napůl hotovo, pozice se nějak tak načítá a ukládá - použít jako návod
+> Nevim co je multimonitor

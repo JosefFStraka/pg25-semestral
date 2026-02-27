@@ -24,9 +24,9 @@ void App::key_callback(int key, int scancode, int action, int mods) {
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             break;
-		case GLFW_KEY_D:
-			imgui->imgui_open = !imgui->imgui_open;
-			break;
+        case GLFW_KEY_D:
+            set_gui_enabled(!app_settings.gui_enabled);
+            break;
         default:
             break;
         }
@@ -37,11 +37,12 @@ void App::key_callback(int key, int scancode, int action, int mods) {
     if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
         switch (key) {
         case GLFW_KEY_V:
-			// Vsync on/off
-			app_settings.vsync = !app_settings.vsync;
-			glfwSwapInterval(app_settings.vsync);
-			std::cout << "VSync: " << app_settings.vsync << "\n";
-			break;
+            // Vsync on/off
+            set_vsync(!app_settings.vsync);
+            break;
+        case GLFW_KEY_F:
+            set_fullscreen(!app_settings.fullscreen);
+            break;
         default:
             break;
         }
@@ -65,6 +66,9 @@ void App::mouse_button_callback(int button, int action, int mods) {
 }
 void App::cursor_position_callback(double xpos, double ypos) {
     if (imgui->capture_mouse()) return;
+
+    last_cursor_pos_x = xpos;
+    last_cursor_pos_y = ypos;
     //std::cout << "cursor_position_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
 }
 void App::scroll_callback(double xoffset, double yoffset) {
