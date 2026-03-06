@@ -6,7 +6,6 @@
 #include <random>
 #include <format>
 
-#include <opencv2\opencv.hpp>
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GLFW/glfw3.h>
