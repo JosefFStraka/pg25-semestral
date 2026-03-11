@@ -19,21 +19,17 @@
 
 //---------------------------------------------------------------------
 
-App::App()
-{
+App::App() {
     // default constructor
     // nothing to do here (so far...)
     std::cout << "Constructed...\n";
 }
 
-bool App::init()
-{
-    try
-    {
+bool App::init() {
+    try {
         std::cout << "Current working directory: " << std::filesystem::current_path().generic_string() << '\n';
 
-        if (settings::load("settings.json", app_settings))
-        {
+        if (settings::load("settings.json", app_settings)) {
             std::cout << "Settings file settings.json doesnt exist" << std::endl;
         }
 
@@ -61,8 +57,7 @@ bool App::init()
         // When all is loaded, show the window.
         glfwShowWindow(window);
     }
-    catch (std::exception const &e)
-    {
+    catch (std::exception const& e) {
         std::cerr << "Init failed : " << e.what() << std::endl;
         throw;
     }
@@ -70,21 +65,18 @@ bool App::init()
     return true;
 }
 
-void App::init_imgui(void)
-{
+void App::init_imgui(void) {
     imgui = new AppImGui(window);
     imgui->init();
     std::cout << "ImGUI version: " << ImGui::GetVersion() << "\n";
 }
 
-void App::init_glfw(void)
-{
+void App::init_glfw(void) {
 
     /* Initialize the library */
     glfwSetErrorCallback(glfw_error_callback);
 
-    if (!glfwInit())
-    {
+    if (!glfwInit()) {
         throw std::runtime_error("GLFW can not be initialized.");
     }
 
@@ -96,16 +88,14 @@ void App::init_glfw(void)
     // open window, but hidden - it will be enabled later, after asset initialization
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-    if (app_settings.window_pos_x != -1 || app_settings.window_pos_y != -1)
-    {
+    if (app_settings.window_pos_x != -1 || app_settings.window_pos_y != -1) {
         glfwWindowHint(GLFW_POSITION_X, app_settings.window_pos_x);
         glfwWindowHint(GLFW_POSITION_Y, app_settings.window_pos_y);
     }
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(800, 600, "ICP", nullptr, nullptr);
-    if (!window)
-    {
+    if (!window) {
         throw std::runtime_error("GLFW window can not be created.");
     }
 
@@ -121,8 +111,7 @@ void App::init_glfw(void)
     init_callbacks();
 }
 
-void App::init_glew()
-{
+void App::init_glew() {
     // init glew
     // http://glew.sourceforge.net/basic.html
     GLenum err;
@@ -135,10 +124,8 @@ void App::init_glew()
         throw std::runtime_error("No DSA :-(");
 }
 
-void App::init_gl_debug(void)
-{
-    if (GLEW_ARB_debug_output)
-    {
+void App::init_gl_debug(void) {
+    if (GLEW_ARB_debug_output) {
         glDebugMessageCallback(MessageCallback, 0);
         glEnable(GL_DEBUG_OUTPUT);
 
@@ -150,83 +137,38 @@ void App::init_gl_debug(void)
         // glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
         std::cout << "GL_DEBUG enabled." << std::endl;
-    }
-    else
-    {
+    } else {
         std::cout << "GL_DEBUG NOT SUPPORTED!" << std::endl;
     }
 }
 
-void App::init_assets(void)
-{
+void App::init_assets(void) {
     //
     // Initialize pipeline: compile, link and use shaders
     //
 
     // SHADERS - define & compile & link
-    const char *vertex_shader =
-        "#version 460 core\n"
-        "in vec3 attribute_Position;"
-        "void main() {"
-        "  gl_Position = vec4(attribute_Position, 1.0);"
-        "}";
+    // const char *vertex_shader =
+    //     "#version 460 core\n"
+    //     "in vec3 attribute_Position;"
+    //     "void main() {"
+    //     "  gl_Position = vec4(attribute_Position, 1.0);"
+    //     "}";
 
-    const char *fragment_shader =
-        "#version 460 core\n"
-        "uniform vec4 uniform_Color;"
-        "out vec4 FragColor;"
-        "void main() {"
-        "  FragColor = uniform_Color;"
-        "}";
+    // const char *fragment_shader =
+    //     "#version 460 core\n"
+    //     "uniform vec4 uniform_Color;"
+    //     "out vec4 FragColor;"
+    //     "void main() {"
+    //     "  FragColor = uniform_Color;"
+    //     "}";
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    shader_prog_ID = glCreateProgram();
-    glAttachShader(shader_prog_ID, fs);
-    glAttachShader(shader_prog_ID, vs);
-    glLinkProgram(shader_prog_ID);
-
-    // now we can delete shader parts (they can be reused, if you have more shaders)
-    // the final shader program already linked and stored separately
-    glDetachShader(shader_prog_ID, fs);
-    glDetachShader(shader_prog_ID, vs);
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    //
-    // Create and load data into GPU using OpenGL DSA (Direct State Access)
-    //
-
-    // Create VAO + data description (similar to container)
-    glCreateVertexArrays(1, &VAO_ID);
-
-    GLint position_attrib_location = glGetAttribLocation(shader_prog_ID, "attribute_Position");
-
-    vertex some_vertex;
-
-    glEnableVertexArrayAttrib(VAO_ID, position_attrib_location);
-    // glVertexArrayAttribFormat(VAO_ID, position_attrib_location, vertex.position.length(), GL_FLOAT, GL_FALSE, offsetof(vertex, position));
-    glVertexArrayAttribFormat(VAO_ID, position_attrib_location, some_vertex.position.length(), GL_FLOAT, GL_FALSE, offsetof(vertex, position));
-    glVertexArrayAttribBinding(VAO_ID, position_attrib_location, 0); // (GLuint vaobj, GLuint attribindex, GLuint bindingindex)
-
-    // Create and fill data
-    glCreateBuffers(1, &VBO_ID);
-    glNamedBufferData(VBO_ID, triangle_vertices.size() * sizeof(vertex), triangle_vertices.data(), GL_STATIC_DRAW);
-
-    // Connect together
-    glVertexArrayVertexBuffer(VAO_ID, 0, VBO_ID, 0, sizeof(vertex)); // (GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride)
+    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("path_to.vert", "path_to.frag"));
+    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("path_to.vert", "rainbow.frag"));
 }
 
-int App::run()
-{
-    try
-    {
+int App::run() {
+    try {
         /* Typical game loop:
 
                 // INIT: Initial positions and state
@@ -239,22 +181,12 @@ int App::run()
                     // POLL: Poll events, dispatch
                 }
         */
+        auto current_shader = shader_library.at("simple_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
-        // Activate shader program. There is only one program, so activation can be out of the loop.
-        // In more realistic scenarios, you will activate different shaders for different 3D objects.
-        glUseProgram(shader_prog_ID);
-
-        // Get uniform location in GPU program. This will not change, so it can be moved out of the game loop.
-        GLint uniform_color_location = glGetUniformLocation(shader_prog_ID, "uniform_Color");
-        if (uniform_color_location == -1)
-        {
-            std::cerr << "Uniform location is not found in active shader program. Did you forget to activate it?\n";
-        }
 
         glClearColor(0, 0, 0, 1);
 
-        while (!glfwWindowShouldClose(window))
-        {
+        while (!glfwWindowShouldClose(window)) {
 
             bool should_draw_gui = app_settings.gui_enabled || app_settings.gui_always_enabled;
             // ImGui prepare render (only if required)
@@ -307,8 +239,9 @@ int App::run()
 
             HSL data = HSL((int)(glfwGetTime() * (360 / 5)) % 360, 1.f, 0.5f);
             RGB value = HSLToRGB(data);
-            glUniform4f(uniform_color_location, value.R / 255.f, value.G / 255.f, value.B / 255.f, 1.f);
-            glBindVertexArray(VAO_ID);
+        
+            current_shader->use();
+            current_shader->setUniform("color", glm::vec3(value.R, value.G, value.B));
             glDrawArrays(GL_TRIANGLES, 0, triangle_vertices.size());
 
             // ImGui display
@@ -321,14 +254,14 @@ int App::run()
             glfwPollEvents();
 
             // FPS
-            if (FPS.is_updated()) // display new value only once per interval (default = 1.0s)
+            if (FPS.is_updated()) { // display new value only once per interval (default = 1.0s)
                 std::cout << "FPS: " << FPS.get_current() << " (min: " << FPS.get_min() << ", max: " << FPS.get_max() << ")" << std::endl;
+            }
 
             FPS.update();
         }
     }
-    catch (std::exception const &e)
-    {
+    catch (std::exception const& e) {
         std::cerr << "App failed : " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
@@ -336,8 +269,7 @@ int App::run()
     return EXIT_SUCCESS;
 }
 
-void App::print_gl_info()
-{
+void App::print_gl_info() {
 
     GL_PRINT_STRING(GL_VENDOR);
     GL_PRINT_STRING(GL_RENDERER);
@@ -350,16 +282,11 @@ void App::print_gl_info()
     GLint myint;
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &myint);
 
-    if (myint & GL_CONTEXT_CORE_PROFILE_BIT)
-    {
+    if (myint & GL_CONTEXT_CORE_PROFILE_BIT) {
         std::cout << "We are using CORE profile\n";
-    }
-    else if (myint & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)
-    {
+    } else if (myint & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) {
         std::cout << "We are using COMPATIBILITY profile\n";
-    }
-    else
-    {
+    } else {
         // throw std::runtime_error("What??");
     }
 
@@ -370,8 +297,7 @@ void App::print_gl_info()
     GL_PRINT_FLAG(myint, GL_CONTEXT_FLAG_NO_ERROR_BIT);
 }
 
-void App::error_callback(int error, const char *description)
-{
+void App::error_callback(int error, const char* description) {
     std::cerr << "Error: " << description << std::endl;
 }
 
@@ -420,9 +346,4 @@ App::~App() {
     settings::save("settings.json", app_settings);
 
     delete imgui;
-    
-    //new stuff: cleanup GL data
-    glDeleteProgram(shader_prog_ID);
-    glDeleteBuffers(1, &VBO_ID);
-    glDeleteVertexArrays(1, &VAO_ID);
 }

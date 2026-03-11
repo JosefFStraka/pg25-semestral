@@ -23,7 +23,9 @@ set(PROJECT_SOURCES
     callbacks.cpp
     gl_err_callback.cpp
     main.cpp
+    meshgen.cpp
     settings.cpp
+    ShaderProgram.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})

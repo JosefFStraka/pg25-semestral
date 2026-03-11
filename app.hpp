@@ -8,6 +8,7 @@
 #include "colors.hpp"
 #include "app_imgui.hpp"
 #include "fps_meter.hpp"
+#include "ShaderProgram.hpp"
 
 #include <GL/glew.h> 
 #include <GL/wglew.h> 
@@ -60,9 +61,7 @@ private:
     
     fps_meter FPS;
 
-    GLuint shader_prog_ID{ 0 };
-    GLuint VBO_ID{ 0 };
-    GLuint VAO_ID{ 0 };
+    std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> shader_library;
 
     std::vector<vertex> triangle_vertices =
     {
