@@ -8,13 +8,21 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//vertex description
-struct vertex {
+//Vertex description
+struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoords;
 
-    bool operator == (const vertex& v1) const {
+    Vertex() : Vertex(glm::vec3()) {}
+
+    Vertex(glm::vec3 position) {
+        this->position = position;
+        normal = glm::vec3();
+        texCoords = glm::vec3();
+    }
+
+    bool operator == (const Vertex& v1) const {
         return (position == v1.position
             && normal == v1.normal
             && texCoords == v1.texCoords);

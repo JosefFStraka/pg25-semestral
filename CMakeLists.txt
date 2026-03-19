@@ -26,6 +26,7 @@ set(PROJECT_SOURCES
     meshgen.cpp
     settings.cpp
     ShaderProgram.cpp
+    OBJloader.cpp
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})

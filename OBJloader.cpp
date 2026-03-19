@@ -61,9 +61,9 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 			for (int i = 0; i < 3; i++) {
 				GLuint currentIndex;
 				Vertex currentVertex;
-				currentVertex.Position = temp_vertices[vertexIndex[i]-1]; // OBJ array start from 1
-				currentVertex.Normal = temp_normals[normalIndex[i]-1];
-				currentVertex.TexCoords = temp_uvs[uvIndex[i]-1];
+				currentVertex.position = temp_vertices[vertexIndex[i]-1]; // OBJ array start from 1
+				currentVertex.normal = temp_normals[normalIndex[i]-1];
+				currentVertex.texCoords = temp_uvs[uvIndex[i]-1];
 
                 // avoid duplicit vertices
 				auto t = std::find_if(vertices.begin(),

@@ -1,15 +1,12 @@
 #include <vector>
 
-#include "Mesh.hpp"
-
-struct vertex {
-    glm::vec3 position;
-};
+#include "assets.hpp"
+#include "meshgen.hpp"
 
 // Created by JJ, based on https://www.cs.umd.edu/gvil/papers/av_ts.pdf
 // Unit cube
 Mesh generateCube() {
-    std::vector<vertex> V{
+    std::vector<Vertex> V{
         {{1, 1, 0}}, // [00]
         {{0, 1, 0}}, // [01]
         {{1, 1, 1}}, // [02]
@@ -20,7 +17,7 @@ Mesh generateCube() {
         {{1, 0, 1}}, // [07]
     };
     
-    std::vector<uint> I{0, 1, 4, 5, 6, 1, 3, 0, 2, 4, 7, 6, 2, 3};
+    std::vector<GLuint> I{0, 1, 4, 5, 6, 1, 3, 0, 2, 4, 7, 6, 2, 3};
         
     return Mesh(V, I, GL_TRIANGLE_STRIP);
 }
@@ -36,8 +33,8 @@ Mesh generateCube() {
  */
   
 Mesh generateSphere(unsigned int sectors, unsigned int rings) {
-    std::vector<vertex> V{};
-    std::vector<uint> I{};
+    std::vector<Vertex> V{};
+    std::vector<GLuint> I{};
     
     // Ensure the number of sectors wraps around nicely
     unsigned int totalSectors = sectors + 1;

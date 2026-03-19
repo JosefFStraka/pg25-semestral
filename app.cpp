@@ -16,6 +16,7 @@
 #include "glfw_helpers.hpp"
 
 #include "imgui.h"
+#include "meshgen.hpp"
 
 //---------------------------------------------------------------------
 
@@ -80,6 +81,7 @@ void App::init_glfw(void) {
         throw std::runtime_error("GLFW can not be initialized.");
     }
 
+
     // try to open OpenGL
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -143,28 +145,85 @@ void App::init_gl_debug(void) {
 }
 
 void App::init_assets(void) {
-    //
-    // Initialize pipeline: compile, link and use shaders
-    //
 
-    // SHADERS - define & compile & link
-    // const char *vertex_shader =
-    //     "#version 460 core\n"
-    //     "in vec3 attribute_Position;"
-    //     "void main() {"
-    //     "  gl_Position = vec4(attribute_Position, 1.0);"
-    //     "}";
+    // all shaders: load, compile, link, initialize params, place to library
+    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_core.frag", false));
+    shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_uniform.frag", false));
+    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/rainbow.frag", false));
 
-    // const char *fragment_shader =
-    //     "#version 460 core\n"
-    //     "uniform vec4 uniform_Color;"
-    //     "out vec4 FragColor;"
-    //     "void main() {"
-    //     "  FragColor = uniform_Color;"
-    //     "}";
 
-    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("path_to.vert", "path_to.frag"));
-    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("path_to.vert", "rainbow.frag"));
+    {
+        std::vector<Vertex> V{
+        {{1, 1, 0}}, // [00]
+        {{0, 1, 0}}, // [01]
+        {{1, 1, 1}}, // [02]
+        {{0, 1, 1}}, // [03]
+        {{1, 0, 0}}, // [04]
+        {{0, 0, 0}}, // [05]
+        {{0, 0, 1}}, // [06]
+        {{1, 0, 1}}, // [07]
+        };
+
+        std::vector<GLuint> I{ 0, 1, 4, 5, 6, 1, 3, 0, 2, 4, 7, 6, 2, 3 };
+
+        mesh_library.emplace("cube", std::make_shared<Mesh>(V, I, GL_TRIANGLE_STRIP));
+    }
+
+    //mesh library: meshes, that can be shared by multiple models
+
+    //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
+    //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
+
+    // load mesh from .OBJ
+    {
+        std::filesystem::path filename = "../resources/teapot_tri_vnt.obj"; // or loaded from JSON etc...
+
+        if (!std::filesystem::exists(filename)) {
+            throw std::runtime_error("File does not exist: " + filename.string());
+        } else {
+            std::vector<Vertex> vertices;
+            std::vector<GLuint> indices;
+            if (!loadOBJ(filename, vertices, indices)) {
+                throw std::runtime_error("Loading failed: " + filename.string());
+            }
+
+            mesh_library.emplace("loadedFromFile", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
+        }
+    }
+    {
+        std::filesystem::path filename = "../resources/04/2d_obj_samples/triangle.obj"; // or loaded from JSON etc...
+
+        if (!std::filesystem::exists(filename)) {
+            throw std::runtime_error("File does not exist: " + filename.string());
+        } else {
+            std::vector<Vertex> vertices;
+            std::vector<GLuint> indices;
+            if (!loadOBJ(filename, vertices, indices)) {
+                throw std::runtime_error("Loading failed: " + filename.string());
+            }
+
+            mesh_library.emplace("triangle", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
+        }
+    }
+
+    // model: load model file, assign shader used to draw a model, put to scene
+    // Model my_model = Model("resources/objects/hierarchical.obj", shader_library.at("simple_shader"));
+    // scene.emplace("my_first_object", my_model);
+
+    Model m_triangle;
+    m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_shader"));
+    scene.emplace("m_triangle", m_triangle);
+
+    Model m_cube;
+    m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
+    scene.emplace("m_cube", m_cube);
+
+    // reuse mesh and shader data to construct complex model
+    Model m;
+    m.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
+    // m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
+    m.addMesh(mesh_library.at("loadedFromFile"), shader_library.at("rainbow"));
+    scene.emplace("my_complex_object", m);
 }
 
 int App::run() {
@@ -181,10 +240,11 @@ int App::run() {
                     // POLL: Poll events, dispatch
                 }
         */
-        auto current_shader = shader_library.at("simple_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
+        auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
         glClearColor(0, 0, 0, 1);
+        double last_time = -1 / 60.0;
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -208,7 +268,35 @@ int App::run() {
                     ImGui::Checkbox("GUI always active", &this->app_settings.gui_always_enabled);
 
                     ImGui::Checkbox("Debug Window", &imgui->debug_window_open);
+
+                    if (ImGui::CollapsingHeader("Scene")) {
+                        size_t i = 0;
+                        for (auto const& pair : scene) {
+                            {
+                                // Here we use PushID() to generate a unique base ID, and then the "" used as TreeNode id won't conflict.
+                                // An alternative to using 'PushID() + TreeNode("", ...)' to generate a unique ID is to use 'TreeNode((void*)(intptr_t)i, ...)',
+                                // aka generate a dummy pointer-sized value to be hashed. The demo below uses that technique. Both are fine.
+                                ImGui::PushID(i);
+                                auto const name = pair.first;
+                                auto const model = pair.second;
+                                if (ImGui::TreeNode("", name.c_str())) {
+                                    ImGui::Text("pivot_position: {%d %d %d}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
+                                    ImGui::Text("eulerAngles: {%d %d %d}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
+                                    ImGui::Text("scale: {%d %d %d}", model.scale.x, model.scale.y, model.scale.z);
+                                    ImGui::Text("mashes: %d", model.meshes.size());
+                                    ImGui::TreePop();
+                                }
+                                ImGui::PopID();
+                                i++;
+                            }
+                            
+                            // for (auto const& pair : scene) {
+                            //     ImGui::BulletText();
+                            // }
+                        }
+                    }
                 }
+
                 if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
                     ImGui::EndDisabled();
                 }
@@ -220,29 +308,21 @@ int App::run() {
             //         nothing here so far...
             //
 
-            //
-            // RENDER: GL drawCalls
-            //
-
-            // Clear OpenGL canvas, both color buffer and Z-buffer
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            // drawCalls to render whole scene
-            // for (auto& [name, model] : scene) {
-            // example: set uniform for specific model
-            // if (name == "triangle") {
-            //	model.shader.setUniform("uniform_Color", glm::vec4(glm::sin((float(glfwGetTime()))), g, b, a));
-            //}
-
-            //	model.draw();
-            //}
-
             HSL data = HSL((int)(glfwGetTime() * (360 / 5)) % 360, 1.f, 0.5f);
             RGB value = HSLToRGB(data);
-        
-            current_shader->use();
-            current_shader->setUniform("color", glm::vec3(value.R, value.G, value.B));
-            glDrawArrays(GL_TRIANGLES, 0, triangle_vertices.size());
+            simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R, value.G, value.B, 1.f));
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            auto now = glfwGetTime();
+            double delta = now - last_time;
+            last_time = now;
+
+            for (auto const& pair : scene) {
+                Model model = pair.second;
+                model.update(delta);
+                model.draw();
+            }
 
             // ImGui display
             if (should_draw_gui) {
@@ -253,10 +333,9 @@ int App::run() {
 
             glfwPollEvents();
 
-            // FPS
-            if (FPS.is_updated()) { // display new value only once per interval (default = 1.0s)
-                std::cout << "FPS: " << FPS.get_current() << " (min: " << FPS.get_min() << ", max: " << FPS.get_max() << ")" << std::endl;
-            }
+            // if (FPS.is_updated()) { // display new value only once per interval (default = 1.0s)
+            //     std::cout << "FPS: " << FPS.get_current() << " (min: " << FPS.get_min() << ", max: " << FPS.get_max() << ")" << std::endl;
+            // }
 
             FPS.update();
         }
@@ -319,6 +398,12 @@ void App::set_fullscreen(bool value) {
         glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
     } else {
         glfwSetWindowMonitor(window, NULL, saved_window_pos_x, saved_window_pos_y, saved_window_width, saved_window_height, NULL);
+    }
+
+    if (app_settings.gui_enabled) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     std::cout << "Fullscreen: " << app_settings.fullscreen << "\n";

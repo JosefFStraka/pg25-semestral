@@ -25,31 +25,29 @@ public:
     Mesh() = delete;
 
     // Simple mesh from vertices
-    Mesh(std::vector<vertex> const& vertices, GLenum primitive_type) : primitive_type_{ primitive_type } {
+    Mesh(std::vector<Vertex> const& vertices, GLenum primitive_type) : primitive_type_{ primitive_type } {
         glCreateVertexArrays(1, &vao_);
         
-        glVertexArrayAttribFormat(vao_, attribute_location_position, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(vertex, position));
+        glVertexArrayAttribFormat(vao_, attribute_location_position, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
         glVertexArrayAttribBinding(vao_, attribute_location_position, 0);
         glEnableVertexArrayAttrib(vao_, attribute_location_position);
 
-        glVertexArrayAttribFormat(vao_, attribute_location_position, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(vertex, normal));
-        glVertexArrayAttribBinding(vao_, attribute_location_position, 0);
-        glEnableVertexArrayAttrib(vao_, attribute_location_position);
+        glVertexArrayAttribFormat(vao_, attribute_location_normal, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+        glVertexArrayAttribBinding(vao_, attribute_location_normal, 0);
+        glEnableVertexArrayAttrib(vao_, attribute_location_normal);
 
-        glVertexArrayAttribFormat(vao_, attribute_location_position, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(vertex, texCoords));
-        glVertexArrayAttribBinding(vao_, attribute_location_position, 0);
-        glEnableVertexArrayAttrib(vao_, attribute_location_position);
+        glVertexArrayAttribFormat(vao_, attribute_location_texture_coords, glm::vec2::length(), GL_FLOAT, GL_FALSE, offsetof(Vertex, texCoords));
+        glVertexArrayAttribBinding(vao_, attribute_location_texture_coords, 0);
+        glEnableVertexArrayAttrib(vao_, attribute_location_texture_coords);
 
         glCreateBuffers(1, &vbo_);
-        glNamedBufferData(vbo_, vertices.size() * sizeof(vertex), vertices.data(), GL_STATIC_DRAW);
+        glNamedBufferData(vbo_, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
-        glVertexArrayVertexBuffer(vao_, 0, vbo_, 0, sizeof(vertex));
-
-        primitive_type_ = primitive_type;
+        glVertexArrayVertexBuffer(vao_, 0, vbo_, 0, sizeof(Vertex));
     }
 
     // Mesh with indirect vertex addressing. Needs compiled shader for attributes setup. 
-    Mesh(std::vector<vertex> const& vertices, std::vector<GLuint> const& indices, GLenum primitive_type) :
+    Mesh(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices, GLenum primitive_type) :
         Mesh{ vertices, primitive_type } {
         glCreateBuffers(1, &ebo_);
         glNamedBufferData(ebo_, indices.size() & sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
@@ -76,7 +74,7 @@ private:
     GLenum primitive_type_{ GL_POINTS };
 
     // keep the data
-    std::vector<vertex> vertices;
+    std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
 
     // OpenGL buffer IDs

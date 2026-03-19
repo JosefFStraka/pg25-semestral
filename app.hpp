@@ -9,6 +9,9 @@
 #include "app_imgui.hpp"
 #include "fps_meter.hpp"
 #include "ShaderProgram.hpp"
+#include "Mesh.hpp"
+#include "Model.hpp"
+#include "OBJloader.hpp"
 
 #include <GL/glew.h> 
 #include <GL/wglew.h> 
@@ -61,12 +64,12 @@ private:
     
     fps_meter FPS;
 
+    // shared library of shaders for all models, automatic resource management 
     std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> shader_library;
 
-    std::vector<vertex> triangle_vertices =
-    {
-        {{0.0f,  0.5f,  0.0f}},
-        {{0.5f, -0.5f,  0.0f}},
-        {{-0.5f, -0.5f,  0.0f}}
-    };
+    // shared library of meshes for all models, automatic resource management 
+    std::unordered_map<std::string, std::shared_ptr<Mesh>> mesh_library;
+
+    // all objects of the scene addressable by name
+    std::unordered_map<std::string, Model> scene; 
 };
