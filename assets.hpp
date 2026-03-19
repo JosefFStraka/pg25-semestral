@@ -14,14 +14,6 @@ struct Vertex {
     glm::vec3 normal;
     glm::vec2 texCoords;
 
-    Vertex() : Vertex(glm::vec3()) {}
-
-    Vertex(glm::vec3 position) {
-        this->position = position;
-        normal = glm::vec3();
-        texCoords = glm::vec3();
-    }
-
     bool operator == (const Vertex& v1) const {
         return (position == v1.position
             && normal == v1.normal

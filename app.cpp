@@ -176,21 +176,6 @@ void App::init_assets(void) {
 
     // load mesh from .OBJ
     {
-        std::filesystem::path filename = "../resources/teapot_tri_vnt.obj"; // or loaded from JSON etc...
-
-        if (!std::filesystem::exists(filename)) {
-            throw std::runtime_error("File does not exist: " + filename.string());
-        } else {
-            std::vector<Vertex> vertices;
-            std::vector<GLuint> indices;
-            if (!loadOBJ(filename, vertices, indices)) {
-                throw std::runtime_error("Loading failed: " + filename.string());
-            }
-
-            mesh_library.emplace("loadedFromFile", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
-        }
-    }
-    {
         std::filesystem::path filename = "../resources/04/2d_obj_samples/triangle.obj"; // or loaded from JSON etc...
 
         if (!std::filesystem::exists(filename)) {
@@ -205,25 +190,40 @@ void App::init_assets(void) {
             mesh_library.emplace("triangle", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
         }
     }
+    {
+        std::filesystem::path filename = "../resources/teapot_tri_vnt.obj"; // or loaded from JSON etc...
+
+        if (!std::filesystem::exists(filename)) {
+            throw std::runtime_error("File does not exist: " + filename.string());
+        } else {
+            std::vector<Vertex> vertices;
+            std::vector<GLuint> indices;
+            if (!loadOBJ(filename, vertices, indices)) {
+                throw std::runtime_error("Loading failed: " + filename.string());
+            }
+
+            mesh_library.emplace("loadedFromFile", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
+        }
+    }
 
     // model: load model file, assign shader used to draw a model, put to scene
     // Model my_model = Model("resources/objects/hierarchical.obj", shader_library.at("simple_shader"));
     // scene.emplace("my_first_object", my_model);
 
     Model m_triangle;
-    m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_shader"));
+    m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_uniform_shader"));
     scene.emplace("m_triangle", m_triangle);
 
-    Model m_cube;
-    m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
-    scene.emplace("m_cube", m_cube);
+    // Model m_cube;
+    // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
+    // scene.emplace("m_cube", m_cube);
 
     // reuse mesh and shader data to construct complex model
-    Model m;
-    m.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
+    //Model m;
+    //m.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
     // m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
-    m.addMesh(mesh_library.at("loadedFromFile"), shader_library.at("rainbow"));
-    scene.emplace("my_complex_object", m);
+    //m.addMesh(mesh_library.at("loadedFromFile"), shader_library.at("rainbow"));
+    //scene.emplace("my_complex_object", m);
 }
 
 int App::run() {
@@ -242,6 +242,7 @@ int App::run() {
         */
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
+        auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
         glClearColor(0, 0, 0, 1);
         double last_time = -1 / 60.0;
@@ -289,7 +290,7 @@ int App::run() {
                                 ImGui::PopID();
                                 i++;
                             }
-                            
+
                             // for (auto const& pair : scene) {
                             //     ImGui::BulletText();
                             // }
@@ -308,15 +309,19 @@ int App::run() {
             //         nothing here so far...
             //
 
-            HSL data = HSL((int)(glfwGetTime() * (360 / 5)) % 360, 1.f, 0.5f);
-            RGB value = HSLToRGB(data);
-            simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R, value.G, value.B, 1.f));
+
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             auto now = glfwGetTime();
             double delta = now - last_time;
             last_time = now;
+
+            HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
+            RGB value = HSLToRGB(data);
+            simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
+
+            rainbow_shader->setUniform("iTime", (float)now);
 
             for (auto const& pair : scene) {
                 Model model = pair.second;

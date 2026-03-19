@@ -25,9 +25,10 @@ public:
     Mesh() = delete;
 
     // Simple mesh from vertices
-    Mesh(std::vector<Vertex> const& vertices, GLenum primitive_type) : primitive_type_{ primitive_type } {
+    Mesh(std::vector<Vertex> const& vertices, GLenum primitive_type)
+        : primitive_type_{ primitive_type }, vertex_count_{ static_cast<GLsizei>(vertices.size()) } {
         glCreateVertexArrays(1, &vao_);
-        
+
         glVertexArrayAttribFormat(vao_, attribute_location_position, glm::vec3::length(), GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
         glVertexArrayAttribBinding(vao_, attribute_location_position, 0);
         glEnableVertexArrayAttrib(vao_, attribute_location_position);
@@ -47,20 +48,36 @@ public:
     }
 
     // Mesh with indirect vertex addressing. Needs compiled shader for attributes setup. 
-    Mesh(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices, GLenum primitive_type) :
-        Mesh{ vertices, primitive_type } {
+    Mesh(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices, GLenum primitive_type)
+        : Mesh{ vertices, primitive_type } {
+        index_count_ = static_cast<GLsizei>(indices.size());
         glCreateBuffers(1, &ebo_);
-        glNamedBufferData(ebo_, indices.size() & sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
+        glNamedBufferData(ebo_, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
         glVertexArrayElementBuffer(vao_, ebo_);
+    }
+
+    Mesh(Mesh&& other) noexcept
+        : primitive_type_{ other.primitive_type_ }
+        , vertex_count_{ other.vertex_count_ }
+        , index_count_{ other.index_count_ }
+        , vao_{ other.vao_ }
+        , vbo_{ other.vbo_ }
+        , ebo_{ other.ebo_ } {
+        // Nullify source so its destructor won't delete our GL objects
+        other.vao_ = 0;
+        other.vbo_ = 0;
+        other.ebo_ = 0;
+        other.vertex_count_ = 0;
+        other.index_count_ = 0;
     }
 
     void draw() {
         glBindVertexArray(vao_);
 
         if (ebo_ == 0) {
-            glDrawArrays(primitive_type_, 0, vertices.size());
+            glDrawArrays(primitive_type_, 0, vertex_count_);
         } else {
-            glDrawElements(primitive_type_, indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(primitive_type_, index_count_, GL_UNSIGNED_INT, nullptr);
         }
     }
 
@@ -71,11 +88,9 @@ public:
     };
 private:
     // safe defaults
-    GLenum primitive_type_{ GL_POINTS };
-
-    // keep the data
-    std::vector<Vertex> vertices;
-    std::vector<GLuint> indices;
+    GLenum  primitive_type_{ GL_POINTS };
+    GLsizei vertex_count_{ 0 };
+    GLsizei index_count_{ 0 };
 
     // OpenGL buffer IDs
     // ID = 0 is reserved (i.e. uninitalized)
