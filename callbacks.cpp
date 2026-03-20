@@ -48,11 +48,16 @@ void App::key_callback(int key, int scancode, int action, int mods) {
         }
     }
 }
-
 void App::fbsize_callback(int width, int height) {
     std::cout << "fbsize_callback: width " << width << ", height " << height << std::endl;
     app_settings.window_width = width;
     app_settings.window_height = height;
+
+    // set viewport
+    glViewport(0, 0, width, height);
+    //now your canvas has [0,0] in bottom left corner, and its size is [width x height] 
+
+    this->update_projection_matrix(); 
 }
 void App::window_pos_callback(int xpos, int ypos) {
     std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
@@ -77,4 +82,9 @@ void App::scroll_callback(double xoffset, double yoffset) {
     if (yoffset > 0.0) {
         std::cout << "wheel up...\n";
     }
+
+    this->fov += 10*yoffset; // yoffset is mostly +1 or -1; one degree difference in fov is not visible
+    this->fov = std::clamp(this->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
+    
+    this->update_projection_matrix(); 
 }

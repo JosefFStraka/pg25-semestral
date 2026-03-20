@@ -151,28 +151,10 @@ void App::init_assets(void) {
     shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_uniform.frag", false));
     shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/rainbow.frag", false));
 
-
-    {
-        std::vector<Vertex> V{
-        {{1, 1, 0}}, // [00]
-        {{0, 1, 0}}, // [01]
-        {{1, 1, 1}}, // [02]
-        {{0, 1, 1}}, // [03]
-        {{1, 0, 0}}, // [04]
-        {{0, 0, 0}}, // [05]
-        {{0, 0, 1}}, // [06]
-        {{1, 0, 1}}, // [07]
-        };
-
-        std::vector<GLuint> I{ 0, 1, 4, 5, 6, 1, 3, 0, 2, 4, 7, 6, 2, 3 };
-
-        mesh_library.emplace("cube", std::make_shared<Mesh>(V, I, GL_TRIANGLE_STRIP));
-    }
-
     //mesh library: meshes, that can be shared by multiple models
-
-    //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
-    //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
+    mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
+    mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
+    mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
 
     // load mesh from .OBJ
     {
@@ -202,7 +184,7 @@ void App::init_assets(void) {
                 throw std::runtime_error("Loading failed: " + filename.string());
             }
 
-            mesh_library.emplace("loadedFromFile", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
+            mesh_library.emplace("teapot_tri_vnt", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
         }
     }
 
@@ -212,7 +194,12 @@ void App::init_assets(void) {
 
     Model m_triangle;
     m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_uniform_shader"));
-    scene.emplace("m_triangle", m_triangle);
+    //scene.emplace("m_triangle", m_triangle);
+
+    Model m_teapot;
+    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("simple_uniform_shader"));
+    m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    scene.emplace("m_teapot", m_teapot);
 
     // Model m_cube;
     // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
@@ -240,6 +227,9 @@ int App::run() {
                     // POLL: Poll events, dispatch
                 }
         */
+
+        update_projection_matrix();
+        glViewport(0, 0, width, height);
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -322,6 +312,8 @@ int App::run() {
             simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
 
             rainbow_shader->setUniform("iTime", (float)now);
+
+
 
             for (auto const& pair : scene) {
                 Model model = pair.second;
@@ -430,6 +422,20 @@ void App::set_vsync(bool value) {
     app_settings.vsync = value;
     glfwSwapInterval(app_settings.vsync);
     std::cout << "VSync: " << app_settings.vsync << "\n";
+}
+
+void App::update_projection_matrix(void) {
+    if (height < 1)
+        height = 1;   // avoid division by 0
+
+    float ratio = static_cast<float>(width) / height;
+
+    projection_matrix = glm::perspective(
+        glm::radians(fov),   // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90� (extra wide) and 30� (quite zoomed in)
+        ratio,               // Aspect Ratio. Depends on the size of your window.
+        0.1f,                // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+        20000.0f             // Far clipping plane. Keep as little as possible.
+    );
 }
 
 App::~App() {

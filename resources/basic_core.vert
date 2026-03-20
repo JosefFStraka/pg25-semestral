@@ -10,5 +10,5 @@ uniform mat4 uV_m = mat4(1.0f);
 void main()
 {
     // Outputs the positions/coordinates of all vertices
-    gl_Position = vec4(position, 1.0f); //uP_m * uV_m * uM_m * vec4(position, 1.0f);
+    gl_Position = uP_m * uV_m * uM_m * vec4(position, 1.0f);
 }

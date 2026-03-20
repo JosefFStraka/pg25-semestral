@@ -50,3 +50,15 @@ Hotovo ale OpenCV je vcpkg
 - [x] Properly save and restore window position and size, including multimonitor setup.
 
 > Nevim co je multimonitor
+
+### Cv4
+
+hotovo :)
+
+### Cv5
+
+nebylo
+
+### Cv6
+
+- [x] Model upraveno s pos, rot, scale a z toho Model matrix

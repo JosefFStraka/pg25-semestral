@@ -35,6 +35,8 @@ private:
 
     void print_gl_info(void);
 
+    void update_projection_matrix(void);
+
     //callbacks
     void error_callback(int error, const char* description);
     void key_callback(int key, int scancode, int action, int mods);
@@ -57,6 +59,12 @@ private:
     int saved_window_pos_y{};
     int saved_window_width{};
     int saved_window_height{};
+
+    // projection related variables    
+    int width{0}, height{0};
+    float fov = 60.0f;
+    // store projection matrix here, update only on callbacks
+    glm::mat4 projection_matrix = glm::identity<glm::mat4>();
 
     GLFWwindow* window;
     AppImGui* imgui;
