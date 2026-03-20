@@ -209,6 +209,7 @@ void App::init_assets(void) {
     Model m_teapot;
     m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("simple_uniform_shader"));
     m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    m_teapot.setPosition(glm::vec3(0.f, -4.f, 0.f));
     scene.emplace("m_teapot", m_teapot);
 
     // Model m_cube;
@@ -218,7 +219,7 @@ void App::init_assets(void) {
     // reuse mesh and shader data to construct complex model
     //Model m;
     //m.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
-    // m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
+    //m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
     //m.addMesh(mesh_library.at("loadedFromFile"), shader_library.at("rainbow"));
     //scene.emplace("my_complex_object", m);
 }
@@ -231,8 +232,11 @@ int App::run() {
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
+        auto& teapot_model = scene.at("m_teapot");
+
         glClearColor(0, 0, 0, 1);
         double last_time = -1 / 60.0;
+        double last_fps_time = 0.0;
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -246,7 +250,7 @@ int App::run() {
                     ImGui::BeginDisabled();
                 }
                 {
-                    ImGui::Text("FPS: %.1f (%.1f - %.1f)", FPS.get_current(), FPS.get_min(), FPS.get_max());
+                    ImGui::Text("FPS: %4.1f %4.0f %4.0f ", FPS.get_current(), FPS.get_1_low(), FPS.get_01_low());
                     if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
                         set_vsync(this->app_settings.vsync);
                     }
@@ -264,7 +268,7 @@ int App::run() {
                                 ImGui::PushID(i);
                                 if (ImGui::TreeNode("", name.c_str())) {
                                     ImGui::Text("pivot_position: {%f %f %f}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
-                                    ImGui::Text("eulerAngles: {%f %f %f}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
+                                    ImGui::Text("rotation: {%f %f %f}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
                                     ImGui::Text("scale: {%f %f %f}", model.scale.x, model.scale.y, model.scale.z);
                                     ImGui::Text("mashes: %d", model.meshes.size());
                                     ImGui::TreePop();
@@ -285,7 +289,7 @@ int App::run() {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             auto now = glfwGetTime();
-            double delta = now - last_time;
+            double delta_time = now - last_time;
             last_time = now;
 
             HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
@@ -294,8 +298,10 @@ int App::run() {
 
             rainbow_shader->setUniform("iTime", (float)now);
 
-            for (auto [_, model] : scene) {
-                model.update(delta);
+            teapot_model.rotate(glm::vec3(170.f * delta_time, 310.f * delta_time, 110.f * delta_time));
+
+            for (auto&& [_, model] : scene) {
+                model.update(delta_time);
                 model.draw();
             }
 
@@ -308,6 +314,11 @@ int App::run() {
             glfwPollEvents();
 
             FPS.update();
+
+            if (now - last_fps_time > 1.0) {
+                last_fps_time = now;
+                std::cout << std::format("FPS: {:6.1f} | 1%: {:3.0f} | 0.1%: {:3.0f}", FPS.get_current(), FPS.get_1_low(), FPS.get_01_low()) << std::endl;
+            }
         }
     }
     catch (std::exception const& e) {
