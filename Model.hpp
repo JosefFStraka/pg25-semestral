@@ -19,7 +19,7 @@ public:
     glm::vec3 eulerAngles{};    // pitch, yaw, roll
     glm::vec3 scale{ 1.0f };
 
-    bool parameters_modified{false};
+    bool parameters_modified{true};
     glm::mat4 local_model_matrix{ 1.0 }; //cache, and for complex transformations (default = identity) 
 
     glm::mat4 createMM(const glm::vec3& origin, const glm::vec3& eAng, const glm::vec3& scale) {

@@ -95,11 +95,21 @@ void App::init_glfw(void) {
         glfwWindowHint(GLFW_POSITION_Y, app_settings.window_pos_y);
     }
 
+    if (app_settings.window_width <= 0) {
+        app_settings.window_width = 800;
+    }
+    if (app_settings.window_height <= 0) {
+        app_settings.window_height = 600;
+    }
+
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(800, 600, "ICP", nullptr, nullptr);
+    window = glfwCreateWindow(app_settings.window_width, app_settings.window_height, "ICP", nullptr, nullptr);
     if (!window) {
         throw std::runtime_error("GLFW window can not be created.");
     }
+
+    glfwGetWindowSize(window, &app_settings.window_width, &app_settings.window_height);
+    glfwGetFramebufferSize(window, &fb_width, &fb_height);
 
     glfwSetWindowUserPointer(window, this);
 
@@ -215,21 +225,8 @@ void App::init_assets(void) {
 
 int App::run() {
     try {
-        /* Typical game loop:
-
-                // INIT: Initial positions and state
-                while (application_should_not_close)
-                {
-                    // UPDATE: Update game state
-                    // RENDER: Render content
-                    // SWAP: Swap back/front buffer
-                    // VSYNC: Wait for vertical retrace (e.g. 1/60 of a second)
-                    // POLL: Poll events, dispatch
-                }
-        */
-
+        glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
-        glViewport(0, 0, width, height);
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -262,28 +259,19 @@ int App::run() {
 
                     if (ImGui::CollapsingHeader("Scene")) {
                         size_t i = 0;
-                        for (auto const& pair : scene) {
+                        for (auto const& [name, model] : scene) {
                             {
-                                // Here we use PushID() to generate a unique base ID, and then the "" used as TreeNode id won't conflict.
-                                // An alternative to using 'PushID() + TreeNode("", ...)' to generate a unique ID is to use 'TreeNode((void*)(intptr_t)i, ...)',
-                                // aka generate a dummy pointer-sized value to be hashed. The demo below uses that technique. Both are fine.
                                 ImGui::PushID(i);
-                                auto const name = pair.first;
-                                auto const model = pair.second;
                                 if (ImGui::TreeNode("", name.c_str())) {
-                                    ImGui::Text("pivot_position: {%d %d %d}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
-                                    ImGui::Text("eulerAngles: {%d %d %d}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
-                                    ImGui::Text("scale: {%d %d %d}", model.scale.x, model.scale.y, model.scale.z);
+                                    ImGui::Text("pivot_position: {%f %f %f}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
+                                    ImGui::Text("eulerAngles: {%f %f %f}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
+                                    ImGui::Text("scale: {%f %f %f}", model.scale.x, model.scale.y, model.scale.z);
                                     ImGui::Text("mashes: %d", model.meshes.size());
                                     ImGui::TreePop();
                                 }
                                 ImGui::PopID();
                                 i++;
                             }
-
-                            // for (auto const& pair : scene) {
-                            //     ImGui::BulletText();
-                            // }
                         }
                     }
                 }
@@ -293,13 +281,6 @@ int App::run() {
                 }
                 imgui->gui_end();
             }
-
-            //
-            // UPDATE: recompute objects state, players position etc.
-            //         nothing here so far...
-            //
-
-
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -313,15 +294,11 @@ int App::run() {
 
             rainbow_shader->setUniform("iTime", (float)now);
 
-
-
-            for (auto const& pair : scene) {
-                Model model = pair.second;
+            for (auto [_, model] : scene) {
                 model.update(delta);
                 model.draw();
             }
 
-            // ImGui display
             if (should_draw_gui) {
                 imgui->render();
             }
@@ -329,10 +306,6 @@ int App::run() {
             glfwSwapBuffers(window);
 
             glfwPollEvents();
-
-            // if (FPS.is_updated()) { // display new value only once per interval (default = 1.0s)
-            //     std::cout << "FPS: " << FPS.get_current() << " (min: " << FPS.get_min() << ", max: " << FPS.get_max() << ")" << std::endl;
-            // }
 
             FPS.update();
         }
@@ -425,10 +398,10 @@ void App::set_vsync(bool value) {
 }
 
 void App::update_projection_matrix(void) {
-    if (height < 1)
-        height = 1;   // avoid division by 0
+    if (fb_height < 1)
+        fb_height = 1;   // avoid division by 0
 
-    float ratio = static_cast<float>(width) / height;
+    float ratio = static_cast<float>(fb_width) / fb_height;
 
     projection_matrix = glm::perspective(
         glm::radians(fov),   // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90� (extra wide) and 30� (quite zoomed in)

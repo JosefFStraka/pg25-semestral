@@ -2,6 +2,8 @@
 
 #include <chrono> 
 #include <limits>
+#include <deque>
+#include <memory>
 
 using namespace std::chrono_literals;
 
@@ -9,55 +11,80 @@ using namespace std::chrono_literals;
 class fps_meter {
 public:
 	// Do not allow type conversion from integers, bool, float etc.
-	explicit fps_meter(std::chrono::duration<double> interval = 1.0s):m_interval(interval) {}
+	explicit fps_meter() {}
+
+	struct frame_capture {
+		std::chrono::duration<double> frame_time;
+		std::chrono::steady_clock::time_point capture_time;
+	};
+
 
 	// Get last FPS value without modification
 	double get_current(void) { return m_fps; }
 	double get_min(void) { return m_fps_min; }
 	double get_max(void) { return m_fps_max; }
 
-	// Check for new value
-	bool is_updated(void) { return m_updated; }
-
 	// Call once per frame (end of the frame).
 	void update(void) {
-		m_frame_count++;
-
 		auto now = std::chrono::steady_clock::now();
 		std::chrono::duration<double> delta = now - m_last_time;
+		m_last_time = now;
 
-		if ( delta > m_interval ){
-			m_fps = static_cast<double>(m_frame_count) / delta.count();
-			m_frame_count = 0;
-			m_last_time = now;
-			m_updated = true;
+		auto cutoff = std::chrono::steady_clock::now() - std::chrono::seconds(1);
 
-			if (m_fps < m_fps_min) m_fps_min = m_fps;
-            if (m_fps > m_fps_max) m_fps_max = m_fps;
-		} else {
-			m_updated = false;
+		while (frame_captures.size() > 0) {
+			std::shared_ptr<frame_capture> fc = frame_captures.front();
+
+			if (fc->capture_time < cutoff) {
+				frame_captures.pop_front();
+			} else {
+
+				break;
+			}
 		}
+
+		frame_captures.push_back(std::make_shared<frame_capture>(delta, now));
+
+		long long ft_min = std::numeric_limits<long long>::max();
+		long long ft_max = std::numeric_limits<long long>::lowest();
+		long long ft_total = 0;
+
+		size_t size = frame_captures.size();
+		for (size_t i = 0; i < size; i++) {
+			std::shared_ptr<frame_capture> fc = frame_captures.at(i);
+
+			long long frame_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(fc->frame_time).count();
+
+			ft_total += frame_microseconds;
+
+			if (frame_microseconds < ft_min) {
+				ft_min = frame_microseconds;
+			}
+			if (frame_microseconds > ft_max) {
+				ft_max = frame_microseconds;
+			}
+		}
+
+		m_fps = size / (ft_total / 1000000.0);
+		m_fps_min = 1000000.0 / ft_max;
+		m_fps_max = 1000000.0 / ft_min;
 	}
 
 	// Restart frame counting
 	void reset(void) {
 		m_last_time = std::chrono::steady_clock::now();
-		m_frame_count = 0;
-		m_updated = false;
-		m_fps_min = std::numeric_limits<double>::max();
-		m_fps_max = std::numeric_limits<double>::lowest();
-	}
-
-	// Set different interval for FPS calculation (eg.: increase, if you want to display FPS in window title)
-	void set_interval(std::chrono::duration<double> interval) {
-		m_interval = interval;
+		m_fps = 0.0;
+		m_fps_min = 0.0;
+		m_fps_max = 0.0;
+		frame_captures.clear();
 	}
 private:
-	double m_fps{0.0};
+
+	std::deque<std::shared_ptr<frame_capture>> frame_captures;
+
 	std::chrono::time_point<std::chrono::steady_clock> m_last_time = std::chrono::steady_clock::now();
-	std::chrono::duration<double> m_interval = 1.0s;
-	size_t m_frame_count{0};
-	bool m_updated{false};
-	double m_fps_min{std::numeric_limits<double>::max()};
-	double m_fps_max{std::numeric_limits<double>::lowest()};
+
+	double m_fps{ 0.0 };
+	double m_fps_min{ 0.0 };
+	double m_fps_max{ 0.0 };
 };

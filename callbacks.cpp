@@ -50,8 +50,13 @@ void App::key_callback(int key, int scancode, int action, int mods) {
 }
 void App::fbsize_callback(int width, int height) {
     std::cout << "fbsize_callback: width " << width << ", height " << height << std::endl;
+
+    //might differ but lets make it simple for now
     app_settings.window_width = width;
     app_settings.window_height = height;
+
+    fb_width = width;
+    fb_height = height;
 
     // set viewport
     glViewport(0, 0, width, height);
