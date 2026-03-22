@@ -26,6 +26,7 @@ App::App() {
     std::cout << "Constructed...\n";
 }
 
+// MARK: INIT
 bool App::init() {
     try {
         std::cout << "Current working directory: " << std::filesystem::current_path().generic_string() << '\n';
@@ -213,6 +214,7 @@ void App::init_assets(void) {
     //scene.emplace("my_complex_object", m);
 }
 
+// MARK: RUN
 int App::run() {
     try {
         /* Typical game loop:
@@ -230,6 +232,15 @@ int App::run() {
 
         update_projection_matrix();
         glViewport(0, 0, width, height);
+
+        glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+
+        glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
+
+        camera.Position = glm::vec3(0.0f, 0.0f, 5.0f);
+
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -306,6 +317,13 @@ int App::run() {
             auto now = glfwGetTime();
             double delta = now - last_time;
             last_time = now;
+
+            //########## react to user  ##########
+            camera.Position += camera.ProcessInput(window, delta); // process keys etc.
+
+            //########## create and set View Matrix according to camera settings  ##########
+            simple_uniform_shader->setUniform("uV_m", camera.GetViewMatrix());
+            simple_uniform_shader->setUniform("uP_m", projection_matrix);
 
             HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
             RGB value = HSLToRGB(data);

@@ -12,6 +12,7 @@
 #include "Mesh.hpp"
 #include "Model.hpp"
 #include "OBJloader.hpp"
+#include "camera.hpp"
 
 #include <GL/glew.h> 
 #include <GL/wglew.h> 
@@ -69,6 +70,12 @@ private:
     GLFWwindow* window;
     AppImGui* imgui;
     settings::app_settings::AppSettings app_settings;
+
+    // camera related 
+    Camera camera;
+    // remember last cursor position, move relative to that in the next frame
+    double cursorLastX{ 0 };
+    double cursorLastY{ 0 };
     
     fps_meter FPS;
 

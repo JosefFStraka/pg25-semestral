@@ -72,6 +72,8 @@ void App::mouse_button_callback(int button, int action, int mods) {
 void App::cursor_position_callback(double xpos, double ypos) {
     if (imgui->capture_mouse()) return;
 
+    camera.ProcessMouseMovement(xpos - last_cursor_pos_x, (ypos - last_cursor_pos_y) * -1.0);
+
     last_cursor_pos_x = xpos;
     last_cursor_pos_y = ypos;
     //std::cout << "cursor_position_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
