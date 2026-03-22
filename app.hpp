@@ -62,7 +62,7 @@ private:
     int saved_window_height{};
 
     // projection related variables    
-    int width{0}, height{0};
+    int fb_width{0}, fb_height{0}; //fb size
     float fov = 60.0f;
     // store projection matrix here, update only on callbacks
     glm::mat4 projection_matrix = glm::identity<glm::mat4>();

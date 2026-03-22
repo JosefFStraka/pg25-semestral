@@ -96,11 +96,21 @@ void App::init_glfw(void) {
         glfwWindowHint(GLFW_POSITION_Y, app_settings.window_pos_y);
     }
 
+    if (app_settings.window_width <= 0) {
+        app_settings.window_width = 800;
+    }
+    if (app_settings.window_height <= 0) {
+        app_settings.window_height = 600;
+    }
+
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(800, 600, "ICP", nullptr, nullptr);
+    window = glfwCreateWindow(app_settings.window_width, app_settings.window_height, "ICP", nullptr, nullptr);
     if (!window) {
         throw std::runtime_error("GLFW window can not be created.");
     }
+
+    glfwGetWindowSize(window, &app_settings.window_width, &app_settings.window_height);
+    glfwGetFramebufferSize(window, &fb_width, &fb_height);
 
     glfwSetWindowUserPointer(window, this);
 
@@ -200,6 +210,7 @@ void App::init_assets(void) {
     Model m_teapot;
     m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("simple_uniform_shader"));
     m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    m_teapot.setPosition(glm::vec3(0.f, -4.f, 0.f));
     scene.emplace("m_teapot", m_teapot);
 
     // Model m_cube;
@@ -209,7 +220,7 @@ void App::init_assets(void) {
     // reuse mesh and shader data to construct complex model
     //Model m;
     //m.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
-    // m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
+    //m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
     //m.addMesh(mesh_library.at("loadedFromFile"), shader_library.at("rainbow"));
     //scene.emplace("my_complex_object", m);
 }
@@ -217,21 +228,8 @@ void App::init_assets(void) {
 // MARK: RUN
 int App::run() {
     try {
-        /* Typical game loop:
-
-                // INIT: Initial positions and state
-                while (application_should_not_close)
-                {
-                    // UPDATE: Update game state
-                    // RENDER: Render content
-                    // SWAP: Swap back/front buffer
-                    // VSYNC: Wait for vertical retrace (e.g. 1/60 of a second)
-                    // POLL: Poll events, dispatch
-                }
-        */
-
+        glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
-        glViewport(0, 0, width, height);
 
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
@@ -245,8 +243,11 @@ int App::run() {
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
+        auto& teapot_model = scene.at("m_teapot");
+
         glClearColor(0, 0, 0, 1);
         double last_time = -1 / 60.0;
+        double last_fps_time = 0.0;
 
         while (!glfwWindowShouldClose(window)) {
 
@@ -260,7 +261,7 @@ int App::run() {
                     ImGui::BeginDisabled();
                 }
                 {
-                    ImGui::Text("FPS: %.1f (%.1f - %.1f)", FPS.get_current(), FPS.get_min(), FPS.get_max());
+                    ImGui::Text("FPS: %4.1f %4.0f %4.0f ", FPS.get_current(), FPS.get_1_low(), FPS.get_01_low());
                     if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
                         set_vsync(this->app_settings.vsync);
                     }
@@ -273,28 +274,19 @@ int App::run() {
 
                     if (ImGui::CollapsingHeader("Scene")) {
                         size_t i = 0;
-                        for (auto const& pair : scene) {
+                        for (auto const& [name, model] : scene) {
                             {
-                                // Here we use PushID() to generate a unique base ID, and then the "" used as TreeNode id won't conflict.
-                                // An alternative to using 'PushID() + TreeNode("", ...)' to generate a unique ID is to use 'TreeNode((void*)(intptr_t)i, ...)',
-                                // aka generate a dummy pointer-sized value to be hashed. The demo below uses that technique. Both are fine.
                                 ImGui::PushID(i);
-                                auto const name = pair.first;
-                                auto const model = pair.second;
                                 if (ImGui::TreeNode("", name.c_str())) {
-                                    ImGui::Text("pivot_position: {%d %d %d}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
-                                    ImGui::Text("eulerAngles: {%d %d %d}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
-                                    ImGui::Text("scale: {%d %d %d}", model.scale.x, model.scale.y, model.scale.z);
+                                    ImGui::Text("pivot_position: {%f %f %f}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
+                                    ImGui::Text("rotation: {%f %f %f}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
+                                    ImGui::Text("scale: {%f %f %f}", model.scale.x, model.scale.y, model.scale.z);
                                     ImGui::Text("mashes: %d", model.meshes.size());
                                     ImGui::TreePop();
                                 }
                                 ImGui::PopID();
                                 i++;
                             }
-
-                            // for (auto const& pair : scene) {
-                            //     ImGui::BulletText();
-                            // }
                         }
                     }
                 }
@@ -305,17 +297,10 @@ int App::run() {
                 imgui->gui_end();
             }
 
-            //
-            // UPDATE: recompute objects state, players position etc.
-            //         nothing here so far...
-            //
-
-
-
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             auto now = glfwGetTime();
-            double delta = now - last_time;
+            double delta_time = now - last_time;
             last_time = now;
 
             //########## react to user  ##########
@@ -331,15 +316,13 @@ int App::run() {
 
             rainbow_shader->setUniform("iTime", (float)now);
 
+            teapot_model.rotate(glm::vec3(170.f * delta_time, 310.f * delta_time, 110.f * delta_time));
 
-
-            for (auto const& pair : scene) {
-                Model model = pair.second;
-                model.update(delta);
+            for (auto&& [_, model] : scene) {
+                model.update(delta_time);
                 model.draw();
             }
 
-            // ImGui display
             if (should_draw_gui) {
                 imgui->render();
             }
@@ -348,11 +331,12 @@ int App::run() {
 
             glfwPollEvents();
 
-            // if (FPS.is_updated()) { // display new value only once per interval (default = 1.0s)
-            //     std::cout << "FPS: " << FPS.get_current() << " (min: " << FPS.get_min() << ", max: " << FPS.get_max() << ")" << std::endl;
-            // }
-
             FPS.update();
+
+            if (now - last_fps_time > 1.0) {
+                last_fps_time = now;
+                std::cout << std::format("FPS: {:6.1f} | 1%: {:3.0f} | 0.1%: {:3.0f}", FPS.get_current(), FPS.get_1_low(), FPS.get_01_low()) << std::endl;
+            }
         }
     }
     catch (std::exception const& e) {
@@ -443,10 +427,10 @@ void App::set_vsync(bool value) {
 }
 
 void App::update_projection_matrix(void) {
-    if (height < 1)
-        height = 1;   // avoid division by 0
+    if (fb_height < 1)
+        fb_height = 1;   // avoid division by 0
 
-    float ratio = static_cast<float>(width) / height;
+    float ratio = static_cast<float>(fb_width) / fb_height;
 
     projection_matrix = glm::perspective(
         glm::radians(fov),   // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90� (extra wide) and 30� (quite zoomed in)
