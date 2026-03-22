@@ -237,7 +237,7 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, 5.0f);
+        camera.Position = glm::vec3(0.0f, 0.0f, 10.0f);
 
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -304,7 +304,7 @@ int App::run() {
             last_time = now;
 
             //########## react to user  ##########
-            camera.Position += camera.ProcessInput(window, delta); // process keys etc.
+            camera.Position += camera.ProcessInput(window, delta_time); // process keys etc.
 
             //########## create and set View Matrix according to camera settings  ##########
             simple_uniform_shader->setUniform("uV_m", camera.GetViewMatrix());
