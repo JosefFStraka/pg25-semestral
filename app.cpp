@@ -173,80 +173,67 @@ void App::init_assets(void) {
     // all shaders: load, compile, link, initialize params, place to library
     shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_core.frag", false));
     shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_uniform.frag", false));
+    shader_library.emplace("normal_shader", std::make_shared<ShaderProgram>("../resources/normal.vert", "../resources/normal.frag", false));
     shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/rainbow.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
-    mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
-    mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
-    mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
+    //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
+    //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
 
-    // load mesh from .OBJ
-    {
-        std::filesystem::path filename = "../resources/04/2d_obj_samples/triangle.obj"; // or loaded from JSON etc...
-
-        if (!std::filesystem::exists(filename)) {
-            throw std::runtime_error("File does not exist: " + filename.string());
-        } else {
-            std::vector<Vertex> vertices;
-            std::vector<GLuint> indices;
-            if (!loadOBJ(filename, vertices, indices)) {
-                throw std::runtime_error("Loading failed: " + filename.string());
-            }
-
-            mesh_library.emplace("triangle", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
-        }
-    }
-    {
-        std::filesystem::path filename = "../resources/teapot_tri_vnt.obj"; // or loaded from JSON etc...
-
-        if (!std::filesystem::exists(filename)) {
-            throw std::runtime_error("File does not exist: " + filename.string());
-        } else {
-            std::vector<Vertex> vertices;
-            std::vector<GLuint> indices;
-            if (!loadOBJ(filename, vertices, indices)) {
-                throw std::runtime_error("Loading failed: " + filename.string());
-            }
-
-            mesh_library.emplace("teapot_tri_vnt", std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
-        }
-    }
-
-    // model: load model file, assign shader used to draw a model, put to scene
-    // Model my_model = Model("resources/objects/hierarchical.obj", shader_library.at("simple_shader"));
-    // scene.emplace("my_first_object", my_model);
-
+    /*
+    load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
     Model m_triangle;
     m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_uniform_shader"));
-    //scene.emplace("m_triangle", m_triangle);
+    scene.emplace("m_triangle", m_triangle);
+    */
 
-    Model m_teapot;
-    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("simple_uniform_shader"));
-    m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    m_teapot.setPosition(glm::vec3(0.f, -4.f, 0.f));
-    scene.emplace("m_teapot", m_teapot);
+    /*
+    mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
+    Model m_cube;
+    m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
+    scene.emplace("m_cube", m_cube);
+    */
 
-    // Model m_cube;
-    // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
-    // scene.emplace("m_cube", m_cube);
+    // load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
+    // Model m_teapot;
+    // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("normal_shader"));
+    // m_teapot.setEulerAngles(glm::vec3(345.f, 125.f, 0.1f));
+    // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    // scene.emplace("m_teapot", m_teapot);
 
-    // reuse mesh and shader data to construct complex model
-    //Model m;
-    //m.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
-    //m.addMesh(mesh_library.at("sphere_lowpoly"), shader_library.at("simple_shader"));
-    //m.addMesh(mesh_library.at("loadedFromFile"), shader_library.at("rainbow"));
-    //scene.emplace("my_complex_object", m);
+    // bigger moddels, takes longer to load
+
+    /*
+    load_mesh(mesh_library, "../resources/pepa/bunny/bunny.obj", "bunny");
+    Model m_bunny;
+    m_bunny.addMesh(mesh_library.at("bunny"), shader_library.at("normal_shader"));
+    m_bunny.setPosition(glm::vec3(0.2f, -0.8f, 0.f));
+    m_bunny.setEulerAngles(glm::vec3(0.f, 180.f, 0.f));
+    m_bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+    scene.emplace("m_bunny", m_bunny);
+    */
+
+
+    load_mesh(mesh_library, "../resources/pepa/dragon/dragon.obj", "dragon");
+    Model m_dragon;
+    m_dragon.addMesh(mesh_library.at("dragon"), shader_library.at("normal_shader"));
+    m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+    scene.emplace("m_dragon", m_dragon);
+    /**/
 }
 
 int App::run() {
     try {
+        glEnable(GL_DEPTH_TEST);
+        glCullFace(GL_FRONT);
+
         glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
-        auto& teapot_model = scene.at("m_teapot");
+        float rotation_speed = 0.f;
 
         glClearColor(0, 0, 0, 1);
         double last_time = -1 / 60.0;
@@ -273,24 +260,28 @@ int App::run() {
                     }
                     ImGui::Checkbox("GUI always active", &this->app_settings.gui_always_enabled);
 
-                    ImGui::Checkbox("Debug Window", &imgui->debug_window_open);
+                    ImGui::Separator();
 
-                    if (ImGui::CollapsingHeader("Scene")) {
+                    ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
+                    if (ImGui::SliderFloat("FoV", &this->fov, 20.f, 180.f)) {
+                        update_projection_matrix();
+                    }
+                    ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
+
+                    if (ImGui::TreeNode("Scene")) {
                         size_t i = 0;
-                        for (auto const& [name, model] : scene) {
+                        for (auto& [name, model] : scene) {
                             {
                                 ImGui::PushID(i);
                                 if (ImGui::TreeNode("", name.c_str())) {
-                                    ImGui::Text("pivot_position: {%f %f %f}", model.pivot_position.x, model.pivot_position.y, model.pivot_position.z);
-                                    ImGui::Text("rotation: {%f %f %f}", model.eulerAngles.x, model.eulerAngles.y, model.eulerAngles.z);
-                                    ImGui::Text("scale: {%f %f %f}", model.scale.x, model.scale.y, model.scale.z);
-                                    ImGui::Text("mashes: %d", model.meshes.size());
+                                    AppImGui::model_controls(&model);
                                     ImGui::TreePop();
                                 }
                                 ImGui::PopID();
                                 i++;
                             }
                         }
+                        ImGui::TreePop();
                     }
                 }
 
@@ -312,9 +303,12 @@ int App::run() {
 
             rainbow_shader->setUniform("iTime", (float)now);
 
-            teapot_model.rotate(glm::vec3(170.f * delta_time, 310.f * delta_time, 110.f * delta_time));
+            for (auto [_, shader] : shader_library) {
+                shader->setUniform("uP_m", projection_matrix);
+            }
 
             for (auto&& [_, model] : scene) {
+                model.rotate(glm::vec3(17.f * rotation_speed * delta_time, 31.f * rotation_speed * delta_time, 11.f * rotation_speed * delta_time));
                 model.update(delta_time);
                 model.draw();
             }

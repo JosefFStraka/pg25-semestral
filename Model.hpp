@@ -36,7 +36,7 @@ public:
 
         glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
 
-        return s * rotm * t;
+        return t * rotm * s;
     }
 
     float wrapAngle(float angle) { // wrap any float to [0, 360)
@@ -107,6 +107,9 @@ public:
 
     void rotate(const glm::vec3& pitch_yaw_roll_offs) {
         eulerAngles += pitch_yaw_roll_offs;
+        eulerAngles.x = wrapAngle(eulerAngles.x);
+        eulerAngles.y = wrapAngle(eulerAngles.y);
+        eulerAngles.z = wrapAngle(eulerAngles.z);
         parameters_modified = true;
     }
 

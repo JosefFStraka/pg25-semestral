@@ -1,7 +1,7 @@
 #version 460 core
-in vec3 position;
-in vec3 notmal;
-in vec2 texture_coords;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec2 texture_coords;
 
 uniform mat4 uP_m = mat4(1.0f);
 uniform mat4 uM_m = mat4(1.0f);
