@@ -88,3 +88,33 @@ AppImGui::~AppImGui() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
+
+void AppImGui::model_controls(Model* const model) {
+    bool modified = false;
+    ImGui::Text("Position:");
+    ImGui::PushID(0);
+    modified |= ImGui::SliderFloat("x", &model->pivot_position.x, -2.f, 2.f);
+    modified |= ImGui::SliderFloat("y", &model->pivot_position.y, -2.f, 2.f);
+    modified |= ImGui::SliderFloat("z", &model->pivot_position.z, -2.f, 2.f);
+    ImGui::PopID();
+
+    ImGui::PushID(1);
+    ImGui::Text("Rotation:");
+    modified |= ImGui::SliderFloat("x", &model->eulerAngles.x, 0.f, 360.f);
+    modified |= ImGui::SliderFloat("y", &model->eulerAngles.y, 0.f, 360.f);
+    modified |= ImGui::SliderFloat("z", &model->eulerAngles.z, 0.f, 360.f);
+    ImGui::PopID();
+
+    ImGui::PushID(2);
+    ImGui::Text("Scale:");
+    modified |= ImGui::SliderFloat("x", &model->scale.x, -2.f, 2.f);
+    modified |= ImGui::SliderFloat("y", &model->scale.y, -2.f, 2.f);
+    modified |= ImGui::SliderFloat("z", &model->scale.z, -2.f, 2.f);
+    ImGui::PopID();
+
+    if (modified) {
+        model->parameters_modified = true;
+    }
+
+    ImGui::Text("meshes: %d", model->meshes.size());
+}

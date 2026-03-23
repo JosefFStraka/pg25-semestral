@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Model.hpp"
+
 struct GLFWwindow;
 
 class AppImGui {
@@ -18,6 +20,8 @@ public:
     bool capture_keyboard();
 
     bool debug_window_open = false;
+
+    static void model_controls(Model * const model);
 private:
     GLFWwindow* window = nullptr;
 };
