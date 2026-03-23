@@ -118,7 +118,7 @@ void App::init_glfw(void) {
     glfwMakeContextCurrent(window);
 
     // disable mouse cursor
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // GLFW callbacks registration
     init_callbacks();
@@ -195,32 +195,29 @@ void App::init_assets(void) {
     scene.emplace("m_cube", m_cube);
     */
 
-    // load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
-    // Model m_teapot;
-    // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("normal_shader"));
-    // m_teapot.setEulerAngles(glm::vec3(345.f, 125.f, 0.1f));
-    // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    // scene.emplace("m_teapot", m_teapot);
+    load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
+    Model m_teapot;
+    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("normal_shader"));
+    m_teapot.setEulerAngles(glm::vec3(30.f, 325.f, 0.1f));
+    m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    scene.emplace("m_teapot", m_teapot);
 
     // bigger moddels, takes longer to load
 
-    /*
-    load_mesh(mesh_library, "../resources/pepa/bunny/bunny.obj", "bunny");
-    Model m_bunny;
-    m_bunny.addMesh(mesh_library.at("bunny"), shader_library.at("normal_shader"));
-    m_bunny.setPosition(glm::vec3(0.2f, -0.8f, 0.f));
-    m_bunny.setEulerAngles(glm::vec3(0.f, 180.f, 0.f));
-    m_bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-    scene.emplace("m_bunny", m_bunny);
-    */
+    
+    // load_mesh(mesh_library, "../resources/pepa/bunny/bunny.obj", "bunny");
+    // Model m_bunny;
+    // m_bunny.addMesh(mesh_library.at("bunny"), shader_library.at("normal_shader"));
+    // m_bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
+    // m_bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
+    // m_bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+    // scene.emplace("m_bunny", m_bunny);
 
-
-    load_mesh(mesh_library, "../resources/pepa/dragon/dragon.obj", "dragon");
-    Model m_dragon;
-    m_dragon.addMesh(mesh_library.at("dragon"), shader_library.at("normal_shader"));
-    m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-    scene.emplace("m_dragon", m_dragon);
-    /**/
+    // load_mesh(mesh_library, "../resources/pepa/dragon/dragon.obj", "dragon");
+    // Model m_dragon;
+    // m_dragon.addMesh(mesh_library.at("dragon"), shader_library.at("normal_shader"));
+    // m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+    // scene.emplace("m_dragon", m_dragon);
 }
 
 // MARK: RUN
@@ -232,12 +229,12 @@ int App::run() {
         glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
 
-        //glCullFace(GL_BACK);
-        //glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glEnable(GL_CULL_FACE);
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, 10.0f);
+        camera.Position = glm::vec3(0.0f, 0.0f, 2.0f);
 
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.

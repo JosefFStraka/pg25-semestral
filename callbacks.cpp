@@ -62,7 +62,7 @@ void App::fbsize_callback(int width, int height) {
     glViewport(0, 0, width, height);
     //now your canvas has [0,0] in bottom left corner, and its size is [width x height] 
 
-    this->update_projection_matrix(); 
+    this->update_projection_matrix();
 }
 void App::window_pos_callback(int xpos, int ypos) {
     std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
@@ -75,7 +75,11 @@ void App::mouse_button_callback(int button, int action, int mods) {
     std::cout << "mouse_button_callback: button " << button << ", action " << action << ", mods " << mods << std::endl;
 }
 void App::cursor_position_callback(double xpos, double ypos) {
-    if (imgui->capture_mouse()) return;
+    if (app_settings.gui_enabled) {
+        last_cursor_pos_x = xpos;
+        last_cursor_pos_y = ypos;
+        return;
+    }
 
     camera.ProcessMouseMovement(xpos - last_cursor_pos_x, (ypos - last_cursor_pos_y) * -1.0);
 
@@ -86,12 +90,8 @@ void App::cursor_position_callback(double xpos, double ypos) {
 void App::scroll_callback(double xoffset, double yoffset) {
     if (imgui->capture_mouse()) return;
 
-    if (yoffset > 0.0) {
-        std::cout << "wheel up...\n";
-    }
-
-    this->fov += 10*yoffset; // yoffset is mostly +1 or -1; one degree difference in fov is not visible
+    this->fov += 10 * yoffset; // yoffset is mostly +1 or -1; one degree difference in fov is not visible
     this->fov = std::clamp(this->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
-    
-    this->update_projection_matrix(); 
+
+    this->update_projection_matrix();
 }
