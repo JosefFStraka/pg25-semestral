@@ -24,9 +24,6 @@ void App::key_callback(int key, int scancode, int action, int mods) {
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             break;
-        case GLFW_KEY_D:
-            set_gui_enabled(!app_settings.gui_enabled);
-            break;
         default:
             break;
         }
@@ -36,6 +33,9 @@ void App::key_callback(int key, int scancode, int action, int mods) {
 
     if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
         switch (key) {
+        case GLFW_KEY_E:
+            set_gui_enabled(!app_settings.gui_enabled);
+            break;
         case GLFW_KEY_V:
             // Vsync on/off
             set_vsync(!app_settings.vsync);
