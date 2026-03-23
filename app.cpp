@@ -26,6 +26,7 @@ App::App() {
     std::cout << "Constructed...\n";
 }
 
+// MARK: INIT
 bool App::init() {
     try {
         std::cout << "Current working directory: " << std::filesystem::current_path().generic_string() << '\n';
@@ -222,13 +223,22 @@ void App::init_assets(void) {
     /**/
 }
 
+// MARK: RUN
 int App::run() {
     try {
         glEnable(GL_DEPTH_TEST);
-        glCullFace(GL_FRONT);
+        //glCullFace(GL_FRONT);
 
         glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
+
+        //glCullFace(GL_BACK);
+        //glEnable(GL_CULL_FACE);
+
+        glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
+
+        camera.Position = glm::vec3(0.0f, 0.0f, 10.0f);
+
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -297,13 +307,18 @@ int App::run() {
             double delta_time = now - last_time;
             last_time = now;
 
+            //########## react to user  ##########
+            camera.Position += camera.ProcessInput(window, delta_time); // process keys etc.
+
             HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
             RGB value = HSLToRGB(data);
             simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
 
             rainbow_shader->setUniform("iTime", (float)now);
 
-            for (auto [_, shader] : shader_library) {
+            //########## create and set View Matrix according to camera settings  ##########
+            for (auto& [_, shader] : shader_library) {
+                shader->setUniform("uV_m", camera.GetViewMatrix());
                 shader->setUniform("uP_m", projection_matrix);
             }
 
