@@ -154,6 +154,20 @@ void App::init_gl_debug(void) {
     }
 }
 
+void load_mesh(std::unordered_map<std::string, std::shared_ptr<Mesh>>& library, std::string filename, std::string modelname) {
+    if (!std::filesystem::exists(filename)) {
+        throw std::runtime_error("File does not exist: " + filename);
+    } else {
+        std::vector<Vertex> vertices;
+        std::vector<GLuint> indices;
+        if (!loadOBJ(filename, vertices, indices)) {
+            throw std::runtime_error("Loading failed: " + filename);
+        }
+
+        library.emplace(modelname, std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
+    }
+}
+
 void App::init_assets(void) {
 
     // all shaders: load, compile, link, initialize params, place to library
