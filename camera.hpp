@@ -14,7 +14,7 @@ public:
     glm::vec3 Right{};
     glm::vec3 Up{}; // camera local UP vector
 
-    GLfloat Yaw = -90.0f;
+    GLfloat Yaw = 0.0f;
     GLfloat Pitch = 0.0f;;
     GLfloat Roll = 0.0f;
 

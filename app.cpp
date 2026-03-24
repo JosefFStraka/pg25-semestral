@@ -52,12 +52,16 @@ bool App::init() {
 
         init_assets();
 
+        // GLFW callbacks registration
         init_callbacks();
 
         init_imgui();
 
         // When all is loaded, show the window.
         glfwShowWindow(window);
+
+        set_gui_enabled(app_settings.gui_enabled);
+        set_fullscreen(app_settings.fullscreen);
     }
     catch (std::exception const& e) {
         std::cerr << "Init failed : " << e.what() << std::endl;
@@ -109,19 +113,19 @@ void App::init_glfw(void) {
         throw std::runtime_error("GLFW window can not be created.");
     }
 
+    glfwGetWindowPos(window, &app_settings.window_pos_x, &app_settings.window_pos_y);
     glfwGetWindowSize(window, &app_settings.window_width, &app_settings.window_height);
+    saved_window_pos_x = app_settings.window_pos_x;
+    saved_window_pos_y = app_settings.window_pos_y;
+    saved_window_width = app_settings.window_width;
+    saved_window_height = app_settings.window_height;
+
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
 
     glfwSetWindowUserPointer(window, this);
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-
-    // disable mouse cursor
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // GLFW callbacks registration
-    init_callbacks();
 }
 
 void App::init_glew() {
@@ -201,13 +205,12 @@ void App::init_assets(void) {
     load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
     Model m_teapot;
     m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("normal_shader"));
-    m_teapot.setEulerAngles(glm::vec3(30.f, 325.f, 0.1f));
     m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
     scene.emplace("m_teapot", m_teapot);
 
     // bigger moddels, takes longer to load
 
-    
+
     // load_mesh(mesh_library, "../resources/pepa/bunny/bunny.obj", "bunny");
     // Model m_bunny;
     // m_bunny.addMesh(mesh_library.at("bunny"), shader_library.at("normal_shader"));
@@ -240,8 +243,7 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, 2.0f);
-
+        camera.Position = glm::vec3(-2.0f, 0.0f, 0.0f);
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -412,8 +414,11 @@ void App::set_fullscreen(bool value) {
     }
 
     if (app_settings.gui_enabled) {
+        if (app_settings.fullscreen)
+            ImGui::GetIO().MouseDrawCursor = true;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } else {
+        ImGui::GetIO().MouseDrawCursor = false;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
@@ -424,8 +429,11 @@ void App::set_gui_enabled(bool value) {
     app_settings.gui_enabled = value;
 
     if (app_settings.gui_enabled) {
+        if (app_settings.fullscreen)
+            ImGui::GetIO().MouseDrawCursor = true;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } else {
+        ImGui::GetIO().MouseDrawCursor = false;
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 

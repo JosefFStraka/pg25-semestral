@@ -10,9 +10,9 @@
 
 //Vertex description
 struct Vertex {
-    glm::vec3 position;
-    glm::vec3 normal;
-    glm::vec2 texCoords;
+    glm::vec3 position{0.f,0.f,0.f};
+    glm::vec3 normal{0.f,0.f,0.f};
+    glm::vec2 texCoords{0.f,0.f};
 
     bool operator == (const Vertex& v1) const {
         return (position == v1.position
