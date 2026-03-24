@@ -29,11 +29,11 @@ void App::key_callback(int key, int scancode, int action, int mods) {
         }
     }
 
-    //if (imgui->capture_keyboard()) return;
+    if (imgui->capture_keyboard()) return;
 
     if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
         switch (key) {
-        case GLFW_KEY_E:
+        case GLFW_KEY_TAB:
             set_gui_enabled(!app_settings.gui_enabled);
             break;
         case GLFW_KEY_V:
@@ -52,22 +52,28 @@ void App::fbsize_callback(int width, int height) {
     std::cout << "fbsize_callback: width " << width << ", height " << height << std::endl;
 
     //might differ but lets make it simple for now
-    app_settings.window_width = width;
-    app_settings.window_height = height;
+    if (!app_settings.fullscreen) {
+        app_settings.window_width = width;
+        app_settings.window_height = height;
+    }
 
     fb_width = width;
     fb_height = height;
 
     // set viewport
     glViewport(0, 0, width, height);
+
     //now your canvas has [0,0] in bottom left corner, and its size is [width x height] 
 
     this->update_projection_matrix();
 }
 void App::window_pos_callback(int xpos, int ypos) {
     std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
-    app_settings.window_pos_x = xpos;
-    app_settings.window_pos_y = ypos;
+
+    if (!app_settings.fullscreen) {
+        app_settings.window_pos_x = xpos;
+        app_settings.window_pos_y = ypos < 20 ? 20 : ypos; // give window titlebar some space
+    }
 }
 void App::mouse_button_callback(int button, int action, int mods) {
     if (imgui->capture_mouse()) return;
