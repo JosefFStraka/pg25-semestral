@@ -178,6 +178,9 @@ void App::init_assets(void) {
     shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/rainbow.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
+    std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
+    mesh_library.emplace("line", std::make_shared<Mesh>(line, GL_LINES));
+    mesh_library.emplace("cube", std::make_shared<Mesh>(generateCube()));
     //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
     //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
 
@@ -218,6 +221,9 @@ void App::init_assets(void) {
     // m_dragon.addMesh(mesh_library.at("dragon"), shader_library.at("normal_shader"));
     // m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
     // scene.emplace("m_dragon", m_dragon);
+
+    axis_display.init(mesh_library.at("line"), mesh_library.at("cube"), shader_library.at("simple_uniform_shader"), camera);
+    axis_display.set_viewport(0, 0, 64, 64);
 }
 
 // MARK: RUN
@@ -265,6 +271,7 @@ int App::run() {
                     if (ImGui::Checkbox("Fullscreen", &this->app_settings.fullscreen)) {
                         set_fullscreen(app_settings.fullscreen);
                     }
+                    ImGui::Checkbox("Axis display", &this->app_settings.gui_axis_display_enabled);
                     ImGui::Checkbox("GUI always active", &this->app_settings.gui_always_enabled);
 
                     ImGui::Separator();
@@ -324,6 +331,9 @@ int App::run() {
                 model.update(delta_time);
                 model.draw();
             }
+
+            if (app_settings.gui_axis_display_enabled)
+                axis_display.draw(camera);
 
             if (should_draw_gui) {
                 imgui->render();
@@ -440,6 +450,9 @@ void App::update_projection_matrix(void) {
         0.1f,                // Near clipping plane. Keep as big as possible, or you'll get precision issues.
         20000.0f             // Far clipping plane. Keep as little as possible.
     );
+
+    axis_display.viewport[2] = (GLsizei)std::floorf(fb_width / 15.f);
+    axis_display.viewport[3] = (GLsizei)std::floorf(fb_width / 15.f);
 }
 
 App::~App() {

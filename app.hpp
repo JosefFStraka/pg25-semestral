@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "assets.hpp"
+#include "AxisDisplay.hpp"
 #include "settings.hpp"
 #include "colors.hpp"
 #include "app_imgui.hpp"
@@ -77,6 +78,7 @@ private:
     double cursorLastX{ 0 };
     double cursorLastY{ 0 };
     
+    AxisDisplay axis_display;
     fps_meter FPS;
 
     // shared library of shaders for all models, automatic resource management 
