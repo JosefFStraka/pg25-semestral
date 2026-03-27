@@ -191,7 +191,23 @@ void App::init_assets(void) {
 
 
     texture_library.emplace("wood_box", std::make_shared<Texture>("../resources/textures/box_rgb888.png"));
+    texture_library.emplace("TextureDouble_A", std::make_shared<Texture>("../resources/textures/TextureDouble_A.png"));
+    texture_library.emplace("default", std::make_shared<Texture>("../resources/textures/default.png"));
+    texture_library.emplace("vlada", std::make_shared<Texture>("../resources/pepa/IMG_20231228_021715.jpg"));
+    texture_library.emplace("widevojta", std::make_shared<Texture>("../resources/widevojta.jpg"));
 
+    load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
+
+    load_mesh(mesh_library, "../resources/sphere_tri_vnt.obj", "sphere_tri_vnt");
+    Model vlada_ball;
+    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"));
+    vlada_ball.setPosition(glm::vec3(2.f, 0.f, 0.f));
+    scene.emplace("vlada_ball", vlada_ball);
+
+    Model vojta_ball;
+    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"));
+    vojta_ball.setPosition(glm::vec3(0.f, 0.f, 0.f));
+    scene.emplace("vojta_ball", vojta_ball);
     // Model m_box_texture;
     // m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
     // scene.emplace("m_box_texture", m_box_texture);
@@ -203,25 +219,24 @@ void App::init_assets(void) {
     scene.emplace("m_triangle", m_triangle);
     */
 
-    
     // mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
     // Model m_cube;
     // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("rainbow"));//shader_library.at("simple_uniform_shader"));
     // scene.emplace("m_cube", m_cube);
     
 
-    load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
-    Model m_teapot;
-    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("wood_box"), shader_library.at("tex"));
-    m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    scene.emplace("m_teapot", m_teapot);
+    // load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
+    // Model m_teapot;
+    // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("default"), shader_library.at("tex"));
+    // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    // scene.emplace("m_teapot", m_teapot);
 
     // bigger moddels, takes longer to load
 
 
     // load_mesh(mesh_library, "../resources/pepa/bunny/bunny.obj", "bunny");
     // Model m_bunny;
-    // m_bunny.addMesh(mesh_library.at("bunny"), shader_library.at("normal_shader"));
+    // m_bunny.addMesh(mesh_library.at("bunny"), texture_library.at("default"), shader_library.at("tex"));
     // m_bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
     // m_bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
     // m_bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
@@ -229,7 +244,7 @@ void App::init_assets(void) {
 
     // load_mesh(mesh_library, "../resources/pepa/dragon/dragon.obj", "dragon");
     // Model m_dragon;
-    // m_dragon.addMesh(mesh_library.at("dragon"), shader_library.at("normal_shader"));
+    // m_dragon.addMesh(mesh_library.at("dragon"), texture_library.at("TextureDouble_A"), shader_library.at("tex"));
     // m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
     // scene.emplace("m_dragon", m_dragon);
 
