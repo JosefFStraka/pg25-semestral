@@ -51,6 +51,7 @@ private:
     void set_fullscreen(bool value);
     void set_gui_enabled(bool value);
     void set_vsync(bool value);
+    void set_msaa(bool value);
 
     double last_cursor_pos_x{};
     double last_cursor_pos_y{};

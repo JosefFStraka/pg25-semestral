@@ -92,6 +92,9 @@ void App::init_glfw(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    // multisampling
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
     // open window, but hidden - it will be enabled later, after asset initialization
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
@@ -293,6 +296,9 @@ int App::run() {
                     if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
                         set_vsync(this->app_settings.vsync);
                     }
+                    if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &this->app_settings.msaa_enabled)) {
+                        set_msaa(this->app_settings.msaa_enabled);
+                    }
                     if (ImGui::Checkbox("Fullscreen", &this->app_settings.fullscreen)) {
                         set_fullscreen(app_settings.fullscreen);
                     }
@@ -467,6 +473,18 @@ void App::set_vsync(bool value) {
     app_settings.vsync = value;
     glfwSwapInterval(app_settings.vsync);
     std::cout << "VSync: " << app_settings.vsync << "\n";
+}
+
+void App::set_msaa(bool value) {
+    app_settings.msaa_enabled = value;
+
+    if (app_settings.msaa_enabled) {
+        glEnable(GL_MULTISAMPLE);
+    } else {
+        glDisable(GL_MULTISAMPLE);
+    }
+
+    std::cout << "MSAA: " << app_settings.msaa_enabled << "\n";
 }
 
 void App::update_projection_matrix(void) {

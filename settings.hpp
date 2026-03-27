@@ -20,6 +20,7 @@ namespace settings {
             bool gui_axis_display_enabled = false;
             bool gui_enabled = false;
             bool vsync = true;
+            bool msaa_enabled = true;
         };
 
         void to_json(json& j, const AppSettings& as);

@@ -69,7 +69,7 @@ public:
         shader_->setUniform("uP_m", glm::ortho(-1.2f, 1.2f, -1.2f, 1.2f, -0.2f, 2.2f));
         shader_->use();
 
-        glLineWidth(2);
+        glLineWidth(1); // line widt greater than 1 is depracated
 
         shader_->setUniform("ucolor", glm::vec4(255.f, 0.f, 0.f, 1.f));
         axisXLine.draw();
