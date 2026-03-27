@@ -92,6 +92,9 @@ void App::init_glfw(void) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    // multisampling
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
     // open window, but hidden - it will be enabled later, after asset initialization
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
@@ -203,16 +206,16 @@ void App::init_assets(void) {
     scene.emplace("m_triangle", m_triangle);
     */
 
-    
+
     // mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
     // Model m_cube;
     // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("rainbow"));//shader_library.at("simple_uniform_shader"));
     // scene.emplace("m_cube", m_cube);
-    
+
 
     load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
     Model m_teapot;
-    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("wood_box"), shader_library.at("tex"));
+    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(0.f, -0.5f, 0.f));
     m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
     scene.emplace("m_teapot", m_teapot);
 
@@ -277,6 +280,9 @@ int App::run() {
                     ImGui::Text("FPS: %4.1f %4.0f %4.0f ", FPS.get_current(), FPS.get_1_low(), FPS.get_01_low());
                     if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
                         set_vsync(this->app_settings.vsync);
+                    }
+                    if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &this->app_settings.msaa_enabled)) {
+                        set_msaa(this->app_settings.msaa_enabled);
                     }
                     if (ImGui::Checkbox("Fullscreen", &this->app_settings.fullscreen)) {
                         set_fullscreen(app_settings.fullscreen);
@@ -452,6 +458,18 @@ void App::set_vsync(bool value) {
     app_settings.vsync = value;
     glfwSwapInterval(app_settings.vsync);
     std::cout << "VSync: " << app_settings.vsync << "\n";
+}
+
+void App::set_msaa(bool value) {
+    app_settings.msaa_enabled = value;
+
+    if (app_settings.msaa_enabled) {
+        glEnable(GL_MULTISAMPLE);
+    } else {
+        glDisable(GL_MULTISAMPLE);
+    }
+
+    std::cout << "MSAA: " << app_settings.msaa_enabled << "\n";
 }
 
 void App::update_projection_matrix(void) {

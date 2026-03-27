@@ -16,6 +16,7 @@ namespace settings {
                 TO(window_pos_x),
                 TO(window_pos_y),
                 TO(window_width),
+                TO(msaa_enabled)
             };
         }
 
@@ -29,6 +30,7 @@ namespace settings {
             FROM(window_pos_x);
             FROM(window_pos_y);
             FROM(window_width);
+            FROM(msaa_enabled);
         }
     }
 }
