@@ -77,31 +77,40 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 			sscanf_s(line + 2, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
 			temp_normals.push_back(normal);
 		} else if (strcmp(lineHeader, "f") == 0) {
-			std::stringstream ss(line);
-			std::string prefix;
-			ss >> prefix; // skip 'f'
+			char* ptr = line + 2; // skip "f "
 
 			std::vector<Vertex> faceVertices;
 
-			std::string vertToken;
-			while (ss >> vertToken) {
-				std::vector<std::string> parts = split(vertToken, '/');
+			while (*ptr) {
+				// skip whitespace
+				while (*ptr == ' ' || *ptr == '\t') ptr++;
+				if (*ptr == '\0' || *ptr == '\n') break;
 
-				int vi = NO_INDEX, ti = NO_INDEX, ni = NO_INDEX;
+				int vi = 0, ti = 0, ni = 0;
 
-				if (parts.size() >= 1 && !parts[0].empty())
-					vi = std::stoi(parts[0]);
+				// --- parse vertex index ---
+				vi = strtol(ptr, &ptr, 10);
 
-				if (parts.size() >= 2 && !parts[1].empty())
-					ti = std::stoi(parts[1]);
+				// --- parse texcoord / normal ---
+				if (*ptr == '/') {
+					ptr++;
 
-				if (parts.size() >= 3 && !parts[2].empty())
-					ni = std::stoi(parts[2]);
+					// texture index (optional)
+					if (*ptr != '/') {
+						ti = strtol(ptr, &ptr, 10);
+					}
+
+					// normal index
+					if (*ptr == '/') {
+						ptr++;
+						ni = strtol(ptr, &ptr, 10);
+					}
+				}
 
 				Vertex v{};
 
-				// position
-				if (vi != NO_INDEX) {
+				// position (required in practice)
+				if (vi != 0) {
 					long idx = resolve_position(vi, (long)temp_vertices.size());
 					if (idx >= 0 && idx < (long)temp_vertices.size()) {
 						v.position = temp_vertices[idx];
@@ -109,28 +118,23 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 						std::cerr << "Invalid vertex index at line " << line_number << std::endl;
 						continue;
 					}
-				} else {
-					std::cerr << "Missing vertex position at line " << line_number << std::endl;
-					continue;
 				}
 
 				// texcoords
-				if (ti != NO_INDEX) {
+				if (ti != 0) {
 					long idx = resolve_position(ti, (long)temp_uvs.size());
 					if (idx >= 0 && idx < (long)temp_uvs.size()) {
 						v.texCoords = temp_uvs[idx];
-					} else {
-						v.texCoords = glm::vec2();
 					}
+				} else {
+					v.texCoords = glm::vec2();
 				}
 
 				// normals
-				if (ni != NO_INDEX) {
+				if (ni != 0) {
 					long idx = resolve_position(ni, (long)temp_normals.size());
 					if (idx >= 0 && idx < (long)temp_normals.size()) {
 						v.normal = temp_normals[idx];
-					} else {
-						v.normal = glm::vec3();
 					}
 				} else {
 					v.normal = glm::vec3();
@@ -139,7 +143,7 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 				faceVertices.push_back(v);
 			}
 
-			// TRIANGULATE (fan method)
+			// --- triangulate (fan) ---
 			for (size_t i = 1; i + 1 < faceVertices.size(); i++) {
 				Vertex tri[3] = {
 					faceVertices[0],
@@ -148,16 +152,16 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 				};
 
 				for (int k = 0; k < 3; k++) {
-					auto it = vertexCache.find(tri[k]);
+					//auto it = vertexCache.find(tri[k]);
 					GLuint index;
 
-					if (it == vertexCache.end()) {
+					//if (it == vertexCache.end()) {
 						index = vertices.size();
 						vertices.push_back(tri[k]);
 						vertexCache[tri[k]] = index;
-					} else {
-						index = it->second;
-					}
+					//} else {
+					//	index = it->second;
+					//}
 
 					indices.push_back(index);
 				}
