@@ -9,6 +9,7 @@ uniform mat4 uV_m = mat4(1.0f);
 
 out VS_OUT
 {
+    //vec3 normal;
     vec2 texcoord;
 } vs_out;
 
@@ -17,5 +18,6 @@ void main()
     // Outputs the positions/coordinates of all vertices
     gl_Position = uP_m * uV_m * uM_m * vec4(position, 1.0f);
 
+    //vs_out.normal = normal;
     vs_out.texcoord = texture_coords;
 }
