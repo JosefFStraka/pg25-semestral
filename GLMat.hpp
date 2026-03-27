@@ -91,8 +91,7 @@ public:
 
         for (int i = 0; i < rows * cols; ++i) {
             for (int j = 0; j < ch; j++) {
-                _data[i * ch + j] = (GLubyte)value[j];
-                //std::memcpy(&_data[i * ch + j], (void*)((GLubyte)value[j]), 1);
+                _data[i * ch + j] = static_cast<GLubyte>(value[j] * 255.0f);
             }
         }
     }
@@ -103,7 +102,7 @@ public:
 
         for (int i = 0; i < rows * cols; ++i) {
             for (int j = 0; j < ch; j++) {
-                _data[i * ch + j] = (GLubyte)value[j];
+                _data[i * ch + j] = static_cast<GLubyte>(value[j] * 255.0f);
             }
         }
     }
