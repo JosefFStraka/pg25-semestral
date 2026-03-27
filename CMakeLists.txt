@@ -14,8 +14,7 @@ find_package(glfw3          CONFIG  REQUIRED)
 find_package(nlohmann_json  CONFIG  REQUIRED)
 find_package(imgui          CONFIG  REQUIRED)
 
-#find_package(Stb            REQUIRED)
-#find_path(STB_INCLUDE_DIR "stb_image.h")
+find_path(STB_INCLUDE_DIR "stb_image.h")
 
 set(PROJECT_SOURCES
     app_imgui.cpp
@@ -25,6 +24,7 @@ set(PROJECT_SOURCES
     main.cpp
     meshgen.cpp
     settings.cpp
+    Texture.cpp
     ShaderProgram.cpp
     OBJloader.cpp
 )
@@ -42,5 +42,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ImGui-GLFW-OpenGL3
-#    ${Stb_INCLUDE_DIR}
+    ${Stb_INCLUDE_DIR}
 )

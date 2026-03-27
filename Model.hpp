@@ -4,12 +4,14 @@
 #include <string>
 #include <vector>
 #include <memory> 
+#include <optional> 
 
 #include <GL/glew.h>
 #include <glm/glm.hpp> 
 
 #include "assets.hpp"
 #include "Mesh.hpp"
+#include "Texture.hpp"
 #include "ShaderProgram.hpp"
 
 class Model {
@@ -19,7 +21,7 @@ public:
     glm::vec3 eulerAngles{};    // pitch, yaw, roll
     glm::vec3 scale{ 1.0f };
 
-    bool parameters_modified{true};
+    bool parameters_modified{ true };
     glm::mat4 local_model_matrix{ 1.0 }; //cache, and for complex transformations (default = identity) 
 
     glm::mat4 createMM(const glm::vec3& origin, const glm::vec3& eAng, const glm::vec3& scale) {
@@ -50,6 +52,7 @@ public:
     // mesh related data
     struct mesh_package {
         std::shared_ptr<Mesh> mesh;         // geometry & topology, vertex attributes
+        std::optional<std::shared_ptr<Texture>> texture;
         std::shared_ptr<ShaderProgram> shader;     // which shader to use to draw this part of the model
 
         glm::vec3 origin;                   // mesh origin relative to origin of the whole model
@@ -76,7 +79,18 @@ public:
         glm::vec3 eulerAngles = glm::vec3(0.0f), // dafault value
         glm::vec3 scale = glm::vec3(1.0f)       // dafault value
     ) {
-        meshes.emplace_back(mesh, shader, origin, eulerAngles, scale);
+        meshes.emplace_back(mesh, std::nullopt, shader, origin, eulerAngles, scale);
+    }
+
+    void addMesh(std::shared_ptr<Mesh> mesh,
+        std::shared_ptr<Texture> texture,
+        std::shared_ptr<ShaderProgram> shader,
+        glm::vec3 origin = glm::vec3(0.0f),      // dafault value
+        glm::vec3 eulerAngles = glm::vec3(0.0f), // dafault value
+        glm::vec3 scale = glm::vec3(1.0f)       // dafault value
+    ) {
+        meshes.emplace_back(mesh, std::optional(texture), shader, origin, eulerAngles, scale);
+
     }
 
     // ### NEW  (similar can be created for Mesh class)
@@ -137,13 +151,16 @@ public:
 
         // call draw() on mesh (all meshes)
         for (auto const& mesh_pkg : meshes) {
-            mesh_pkg.shader->use(); // select proper shader
+            mesh_pkg.shader->use();
+            glm::mat4 mesh_model_matrix = createMM(mesh_pkg.origin, mesh_pkg.eulerAngles, mesh_pkg.scale);
+            mesh_pkg.shader->setUniform("uM_m", mesh_model_matrix * local_model_matrix);
 
-            //## NEW: calculate and set model matrix 
-            glm::mat4 mesh_model_matrix = createMM(mesh_pkg.origin, mesh_pkg.eulerAngles, mesh_pkg.scale);        
-            mesh_pkg.shader->setUniform("uM_m", mesh_model_matrix * local_model_matrix);   
+            if (mesh_pkg.texture.has_value()) {
+                mesh_pkg.texture.value()->bind();
+                mesh_pkg.shader->setUniform("tex0", 0);
+            }
 
-            mesh_pkg.mesh->draw();   // draw mesh
+            mesh_pkg.mesh->draw();
         }
     }
 };

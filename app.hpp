@@ -81,6 +81,8 @@ private:
     AxisDisplay axis_display;
     fps_meter FPS;
 
+    std::unordered_map<std::string, std::shared_ptr<Texture>> texture_library;
+
     // shared library of shaders for all models, automatic resource management 
     std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> shader_library;
 

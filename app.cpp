@@ -176,10 +176,11 @@ void load_mesh(std::unordered_map<std::string, std::shared_ptr<Mesh>>& library, 
 void App::init_assets(void) {
 
     // all shaders: load, compile, link, initialize params, place to library
-    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_core.frag", false));
-    shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/basic_uniform.frag", false));
-    shader_library.emplace("normal_shader", std::make_shared<ShaderProgram>("../resources/normal.vert", "../resources/normal.frag", false));
-    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/basic_core.vert", "../resources/rainbow.frag", false));
+    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/basic_core.frag", false));
+    shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/basic_uniform.frag", false));
+    shader_library.emplace("normal_shader", std::make_shared<ShaderProgram>("../resources/shaders/normal.vert", "../resources/shaders/normal.frag", false));
+    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/rainbow.frag", false));
+    shader_library.emplace("tex", std::make_shared<ShaderProgram>("../resources/shaders/tex.vert", "../resources/shaders/tex.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
@@ -188,6 +189,13 @@ void App::init_assets(void) {
     //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
     //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
 
+
+    texture_library.emplace("wood_box", std::make_shared<Texture>("../resources/textures/box_rgb888.png"));
+
+    // Model m_box_texture;
+    // m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
+    // scene.emplace("m_box_texture", m_box_texture);
+
     /*
     load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
     Model m_triangle;
@@ -195,16 +203,16 @@ void App::init_assets(void) {
     scene.emplace("m_triangle", m_triangle);
     */
 
-    /*
-    mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
-    Model m_cube;
-    m_cube.addMesh(mesh_library.at("cube"), shader_library.at("simple_shader"));//shader_library.at("simple_uniform_shader"));
-    scene.emplace("m_cube", m_cube);
-    */
+    
+    // mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
+    // Model m_cube;
+    // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("rainbow"));//shader_library.at("simple_uniform_shader"));
+    // scene.emplace("m_cube", m_cube);
+    
 
     load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
     Model m_teapot;
-    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), shader_library.at("normal_shader"));
+    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("wood_box"), shader_library.at("tex"));
     m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
     scene.emplace("m_teapot", m_teapot);
 
@@ -250,7 +258,7 @@ int App::run() {
 
         float rotation_speed = 0.f;
 
-        glClearColor(0, 0, 0, 1);
+        glClearColor(0.2f, 0.2f, 0.2f, 1);
         double last_time = -1 / 60.0;
         double last_fps_time = 0.0;
 
