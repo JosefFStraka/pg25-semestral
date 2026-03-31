@@ -14,7 +14,7 @@
 
 #include "gl_err_callback.h"
 #include "glfw_helpers.hpp"
-
+#include "image_io.hpp"
 #include "imgui.h"
 #include "meshgen.hpp"
 
@@ -193,27 +193,26 @@ void App::init_assets(void) {
     //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
 
 
+    texture_library.emplace("default", std::make_shared<Texture>("../resources/textures/default.png"));
     texture_library.emplace("wood_box", std::make_shared<Texture>("../resources/textures/box_rgb888.png"));
     texture_library.emplace("TextureDouble_A", std::make_shared<Texture>("../resources/textures/TextureDouble_A.png"));
-    texture_library.emplace("default", std::make_shared<Texture>("../resources/textures/default.png"));
     texture_library.emplace("vlada", std::make_shared<Texture>("../resources/pepa/IMG_20231228_021715.jpg"));
-    texture_library.emplace("widevojta", std::make_shared<Texture>("../resources/widevojta.jpg"));
+    texture_library.emplace("widevojta", std::make_shared<Texture>("../resources/pepa/widevojta.jpg"));
 
-    load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
+    //load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
 
-    load_mesh(mesh_library, "../resources/sphere_tri_vnt.obj", "sphere_tri_vnt");
+    load_mesh(mesh_library, "../resources/assets/obj_samples/sphere_tri_vnt.obj", "sphere_tri_vnt");
     Model vlada_ball;
-    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"));
-    vlada_ball.setPosition(glm::vec3(2.f, 0.f, 0.f));
+    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
     scene.emplace("vlada_ball", vlada_ball);
 
     Model vojta_ball;
-    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"));
-    vojta_ball.setPosition(glm::vec3(0.f, 0.f, 0.f));
+    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"), glm::vec3(2.f, 0.f, 0.f));
     scene.emplace("vojta_ball", vojta_ball);
-    // Model m_box_texture;
-    // m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
-    // scene.emplace("m_box_texture", m_box_texture);
+
+    Model m_box_texture;
+    m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(4.f, 0.f, 0.f));
+    scene.emplace("m_box_texture", m_box_texture);
 
     /*
     load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
@@ -226,7 +225,7 @@ void App::init_assets(void) {
     // Model m_cube;
     // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("rainbow"));//shader_library.at("simple_uniform_shader"));
     // scene.emplace("m_cube", m_cube);
-    
+
 
     // load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
     // Model m_teapot;
@@ -251,6 +250,12 @@ void App::init_assets(void) {
     // m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
     // scene.emplace("m_dragon", m_dragon);
 
+    // load_mesh(mesh_library, "../resources/pepa/sponza/sponza.obj", "sponza");
+    // Model m_sponza;
+    // m_sponza.addMesh(mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("tex"));
+    // m_sponza.setScale(glm::vec3(0.005f, 0.005f, 0.005f));
+    // scene.emplace("m_sponza", m_sponza);
+
     axis_display.init(mesh_library.at("line"), mesh_library.at("cube"), shader_library.at("simple_uniform_shader"), camera);
     axis_display.set_viewport(0, 0, 64, 64);
 }
@@ -259,17 +264,15 @@ void App::init_assets(void) {
 int App::run() {
     try {
         glEnable(GL_DEPTH_TEST);
-        //glCullFace(GL_FRONT);
+        glEnable(GL_CULL_FACE);
 
         glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
 
-        glCullFace(GL_BACK);
-        glEnable(GL_CULL_FACE);
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(-2.0f, 0.0f, 0.0f);
+        camera.Position = glm::vec3(0.0f, 0.0f, -2.0f);
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -372,6 +375,20 @@ int App::run() {
 
             glfwSwapBuffers(window);
 
+            if (screenshot != 0) {
+                static int saved_msaa = -1;
+                std::string ss = app_settings.msaa_enabled == 1 ? "msaa.png" : "nomsaa.png";
+                take_screenshot(ss);
+                if (screenshot == 2) {
+                    screenshot = 0;
+                    set_msaa(saved_msaa);
+                } else {
+                    screenshot++;
+                    saved_msaa = app_settings.msaa_enabled;
+                    set_msaa(!app_settings.msaa_enabled);
+                }
+            }
+
             glfwPollEvents();
 
             FPS.update();
@@ -389,6 +406,7 @@ int App::run() {
 
     return EXIT_SUCCESS;
 }
+//MARK: END RUN
 
 void App::print_gl_info() {
 
@@ -485,6 +503,15 @@ void App::set_msaa(bool value) {
     }
 
     std::cout << "MSAA: " << app_settings.msaa_enabled << "\n";
+}
+
+void App::take_screenshot(std::string path) {
+    GLMat framebuffer(fb_height, fb_width, GL_8UC3);
+    glReadPixels(0, 0, fb_width, fb_height, GL_RGB, GL_UNSIGNED_BYTE, framebuffer.data());
+
+    if (imwrite(path, framebuffer, 1) == 0) {
+        std::cout << "Failed to save screenshot! (path:\"" << path << "\")" << std::endl;
+    }
 }
 
 void App::update_projection_matrix(void) {

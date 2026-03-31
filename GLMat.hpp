@@ -2,21 +2,32 @@
 #include <vector>
 #include <cstring>
 #include <stdexcept>
-#include <GL/gl.h>
-
+#include <GL/glew.h>
+#include <glm/glm.hpp>
 // --- Type system (similar to OpenCV) ---
 enum GLMatType {
     GL_8UC1 = 0,
     GL_8UC3,
-    GL_8UC4
+    GL_8UC4,
+    GL_16UC1,
+    GL_16UC3,
+    GL_16UC4
 };
 
 inline int channels(GLMatType type) {
     switch (type) {
-    case GL_8UC1: return 1;
-    case GL_8UC3: return 3;
-    case GL_8UC4: return 4;
+    case GL_8UC1: case GL_16UC1: return 1;
+    case GL_8UC3: case GL_16UC3: return 3;
+    case GL_8UC4: case GL_16UC4: return 4;
     default: return 0;
+    }
+}
+
+inline int channelSize(GLMatType type) {
+    switch (type) {
+    case GL_8UC1: case GL_8UC3: case GL_8UC4: return sizeof(GLubyte); break;
+    case GL_16UC1: case GL_16UC3: case GL_16UC4: return sizeof(GLushort); break;
+    default: return -1; break;
     }
 }
 

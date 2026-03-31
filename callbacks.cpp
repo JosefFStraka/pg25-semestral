@@ -33,7 +33,7 @@ void App::key_callback(int key, int scancode, int action, int mods) {
 
     if ((action == GLFW_PRESS) || (action == GLFW_REPEAT)) {
         switch (key) {
-        case GLFW_KEY_TAB:
+        case GLFW_KEY_X:
             set_gui_enabled(!app_settings.gui_enabled);
             break;
         case GLFW_KEY_V:
@@ -42,6 +42,10 @@ void App::key_callback(int key, int scancode, int action, int mods) {
             break;
         case GLFW_KEY_F:
             set_fullscreen(!app_settings.fullscreen);
+            break;
+        case GLFW_KEY_F11:
+            if (screenshot != 0) return;
+            screenshot = 1;
             break;
         default:
             break;

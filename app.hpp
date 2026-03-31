@@ -53,6 +53,8 @@ private:
     void set_vsync(bool value);
     void set_msaa(bool value);
 
+    void take_screenshot(std::string path);
+
     double last_cursor_pos_x{};
     double last_cursor_pos_y{};
     double saved_cursor_pos_x{};
@@ -62,6 +64,8 @@ private:
     int saved_window_pos_y{};
     int saved_window_width{};
     int saved_window_height{};
+
+    int screenshot = 0;
 
     // projection related variables    
     int fb_width{0}, fb_height{0}; //fb size

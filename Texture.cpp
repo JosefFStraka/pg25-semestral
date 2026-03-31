@@ -1,81 +1,17 @@
 #include "Texture.hpp"
+#include "image_io.hpp"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
-#include <string>
+#include <iostream>
 #include <stdexcept>
 
-// Mimic OpenCV flag
-enum GLImreadFlags {
-    GL_IMREAD_UNCHANGED = -1
-};
 
-GLMat imread(const std::string& path, int flag = GL_IMREAD_UNCHANGED)
-{
-    int width, height, channels;
-
-    // Load without forcing channels (UNCHANGED behavior)
-    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-
-    if (!data) {
-        throw std::runtime_error("Failed to load image: " + path);
-    }
-
-    GLMatType type;
-    switch (channels) {
-        case 1: type = GL_8UC1; break;
-        case 3: type = GL_8UC3; break;
-        case 4: type = GL_8UC4; break;
-        default:
-            stbi_image_free(data);
-            throw std::runtime_error("Unsupported channel count");
-    }
-
-    GLMat img(height, width, type);
-
-    std::memcpy(img.data(), data, width * height * channels);
-
-    stbi_image_free(data);
-    return img;
-}
-
-void flip(GLMat const& src, GLMat& dst, int flipCode)
-{
-    if (src.empty()) {
-        throw std::runtime_error("flip: source is empty");
-    }
-
-    dst = GLMat(src.rows, src.cols, src.type());
-
-    int ch = channels(src.type());
-
-    for (int r = 0; r < src.rows; ++r) {
-        for (int c = 0; c < src.cols; ++c) {
-
-            int rr = r;
-            int cc = c;
-
-            if (flipCode == 0 || flipCode == -1)
-                rr = src.rows - 1 - r;
-
-            if (flipCode == 1 || flipCode == -1)
-                cc = src.cols - 1 - c;
-
-            const GLubyte* src_px = src.at(r, c).ptr;
-            GLubyte* dst_px = dst.at(rr, cc).ptr;
-
-            std::memcpy(dst_px, src_px, ch);
-        }
-    }
-}
 
 GLuint Texture::gen_ckboard(void) {
     if (glIsTexture(ckboard_) != GL_TRUE) { // default checker-board texture yet not valid texture
         glCreateTextures(GL_TEXTURE_2D, 1, &ckboard_);
 
-        GLubyte black[3] = {1, 2, 3};
-        GLubyte white[3] = {255, 255, 255};
+        GLubyte black[3] = { 1, 2, 3 };
+        GLubyte white[3] = { 255, 255, 255 };
         GLMat ckb = GLMat(2, 2, GLMatType::GL_8UC3, black);
         ckb.at(0, 0) = white;
         ckb.at(1, 1) = white;
@@ -93,21 +29,20 @@ GLuint Texture::gen_ckboard(void) {
 GLMat Texture::load_image(const std::filesystem::path& path) {
     GLMat image = imread(path.string()); // Read with (potential) alpha, do not rotate by EXIF.
 
-    // check! cv::imread does NOT throw exception, if the image is not found.
     if (image.empty()) {
         throw std::runtime_error{ std::string("no texture in file: ").append(path.string()) };
     }
+
     return image;
 }
 
-Texture::Texture(const std::filesystem::path & path, Interpolation interpolation) : Texture{ load_image(path), interpolation } {}
+Texture::Texture(const std::filesystem::path& path, Interpolation interpolation) : Texture{ load_image(path), interpolation } {}
 
-Texture::Texture(const glm::vec3 & vec) : Texture{ GLMat{1, 1, GL_8UC3, {vec.b, vec.g, vec.r}}, Interpolation::nearest } {}
+Texture::Texture(const glm::vec3& vec) : Texture{ GLMat{1, 1, GL_8UC3, {vec.b, vec.g, vec.r}}, Interpolation::nearest } {}
 
-Texture::Texture(const glm::vec4 & vec) : Texture{ GLMat{1, 1, GL_8UC4, {vec.b, vec.g, vec.r, vec.a}}, Interpolation::nearest } {}
+Texture::Texture(const glm::vec4& vec) : Texture{ GLMat{1, 1, GL_8UC4, {vec.b, vec.g, vec.r, vec.a}}, Interpolation::nearest } {}
 
-Texture::Texture(GLMat const& image, Interpolation interpolation)
-{
+Texture::Texture(GLMat const& image, Interpolation interpolation) {
     if (ckboard_ == 0) {
         ckboard_ = gen_ckboard();
     }
@@ -116,29 +51,51 @@ Texture::Texture(GLMat const& image, Interpolation interpolation)
         throw std::runtime_error{ "the input image is empty" };
     }
 
-    GLMat flipped;
-    flip(image, flipped, 0);  // OpenGL vs. Window coordinates...
+    auto px = image.at(0, 0);
+    std::cout << (int)px[0] << ", "
+        << (int)px[1] << ", "
+        << (int)px[2] << std::endl;
 
     glCreateTextures(GL_TEXTURE_2D, 1, &name_);
 
-    switch (flipped.type()) {
-        case GL_8UC1: // single channel image - greyscale
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    switch (image.type()) {
+    case GL_8UC1: // single channel image - greyscale
         // upload only one channel
-        glTextureStorage2D(name_, 1, GL_R8, flipped.cols, flipped.rows);
-        glTextureSubImage2D(name_, 0, 0, 0, flipped.cols, flipped.rows, GL_RED, GL_UNSIGNED_BYTE, flipped.data());
+        glTextureStorage2D(name_, 1, GL_R8, image.cols, image.rows);
+        glTextureSubImage2D(name_, 0, 0, 0, image.cols, image.rows, GL_RED, GL_UNSIGNED_BYTE, image.data());
         // use data also for other channels
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_G, GL_RED);
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_B, GL_RED);
         break;
     case GL_8UC3:  // RGB
         // upload only one channel
-        glTextureStorage2D(name_, 1, GL_RGB8, flipped.cols, flipped.rows);
-        glTextureSubImage2D(name_, 0, 0, 0, flipped.cols, flipped.rows,  GL_BGR, GL_UNSIGNED_BYTE, flipped.data());
+        glTextureStorage2D(name_, 1, GL_RGB8, image.cols, image.rows);
+        glTextureSubImage2D(name_, 0, 0, 0, image.cols, image.rows, GL_RGB, GL_UNSIGNED_BYTE, image.data());
         break;
     case GL_8UC4:  // RGBA
         // upload only one channel
-        glTextureStorage2D(name_, 1, GL_RGBA8, flipped.cols, flipped.rows);
-        glTextureSubImage2D(name_, 0, 0, 0, flipped.cols, flipped.rows,  GL_BGR, GL_UNSIGNED_BYTE, flipped.data());
+        glTextureStorage2D(name_, 2, GL_RGBA8, image.cols, image.rows);
+        glTextureSubImage2D(name_, 0, 0, 0, image.cols, image.rows, GL_BGR, GL_UNSIGNED_BYTE, image.data());
+        break;
+    case GL_16UC1:  // 16-bit R
+        // upload only one channel
+        glTextureStorage2D(name_, 1, GL_RGBA8, image.cols, image.rows);
+        glTextureSubImage2D(name_, 0, 0, 0, image.cols, image.rows, GL_BGR, GL_UNSIGNED_SHORT, image.data());
+
+        // use data also for other channels
+        glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_G, GL_RED);
+        glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_B, GL_RED);
+        break;
+    case GL_16UC3:  // 16-bit RGB
+        // upload only one channel
+        glTextureStorage2D(name_, 2, GL_RGBA8, image.cols, image.rows);
+        glTextureSubImage2D(name_, 0, 0, 0, image.cols, image.rows, GL_BGR, GL_UNSIGNED_SHORT, image.data());
+        break;
+    case GL_16UC4:  // 16-bit RGBA
+        // upload only one channel
+        glTextureStorage2D(name_, 2, GL_RGBA16, image.cols, image.rows);
+        glTextureSubImage2D(name_, 0, 0, 0, image.cols, image.rows, GL_BGR, GL_UNSIGNED_SHORT, image.data());
         break;
     default:
         throw std::runtime_error{ "unsupported number of channels or channel depth in texture" };
@@ -149,7 +106,7 @@ Texture::Texture(GLMat const& image, Interpolation interpolation)
     // Configures the way the texture repeats
     //TODO glTextureParameteri(...)
     glTextureParameteri(name_, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(name_, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTextureParameteri(name_, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 Texture::~Texture() {
@@ -206,7 +163,7 @@ void Texture::replace_image(const GLMat& image) {
     // immutable texture format used: only content can be changed (size and data format MUST match)
 
     // check size
-    if ((image.rows != get_height() ) || (image.cols != get_width()))
+    if ((image.rows != get_height()) || (image.cols != get_width()))
         throw std::runtime_error("improper image replacement size");
 
     // check channels and format

@@ -15,12 +15,14 @@ find_package(nlohmann_json  CONFIG  REQUIRED)
 find_package(imgui          CONFIG  REQUIRED)
 
 find_path(STB_INCLUDE_DIR "stb_image.h")
+find_path(STB_INCLUDE_DIR "stb_image_write.h")
 
 set(PROJECT_SOURCES
     app_imgui.cpp
     app.cpp
     callbacks.cpp
     gl_err_callback.cpp
+    image_io.cpp
     main.cpp
     meshgen.cpp
     settings.cpp
