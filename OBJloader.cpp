@@ -38,8 +38,6 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 	std::vector< glm::vec2 > temp_uvs;
 	std::vector< glm::vec3 > temp_normals;
 
-	std::unordered_map<Vertex, GLuint, VertexHasher> vertexCache;
-
 	vertices.clear();
 	indices.clear();
 
@@ -152,17 +150,10 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 				};
 
 				for (int k = 0; k < 3; k++) {
-					//auto it = vertexCache.find(tri[k]);
 					GLuint index;
 
-					//if (it == vertexCache.end()) {
-						index = vertices.size();
-						vertices.push_back(tri[k]);
-						vertexCache[tri[k]] = index;
-					//} else {
-					//	index = it->second;
-					//}
-
+					index = vertices.size();
+					vertices.push_back(tri[k]);
 					indices.push_back(index);
 				}
 			}

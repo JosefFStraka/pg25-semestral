@@ -21,13 +21,13 @@ set(PROJECT_SOURCES
     app_imgui.cpp
     app.cpp
     callbacks.cpp
+    engine/rendering/Texture.cpp
+    engine/rendering/ShaderProgram.cpp
     gl_err_callback.cpp
     image_io.cpp
     main.cpp
     meshgen.cpp
     settings.cpp
-    Texture.cpp
-    ShaderProgram.cpp
     OBJloader.cpp
 )
 

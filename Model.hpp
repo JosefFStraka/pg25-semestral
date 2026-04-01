@@ -6,13 +6,14 @@
 #include <memory> 
 #include <optional> 
 
+#include "assets.hpp"
+#include "engine/resource/resource_manager.hpp"
+#include "engine/rendering/Mesh.hpp"
+#include "engine/rendering/Texture.hpp"
+#include "engine/rendering/ShaderProgram.hpp"
+
 #include <GL/glew.h>
 #include <glm/glm.hpp> 
-
-#include "assets.hpp"
-#include "Mesh.hpp"
-#include "Texture.hpp"
-#include "ShaderProgram.hpp"
 
 class Model {
 public:
@@ -51,8 +52,8 @@ public:
 
     // mesh related data
     struct mesh_package {
-        std::shared_ptr<Mesh> mesh;         // geometry & topology, vertex attributes
-        std::optional<std::shared_ptr<Texture>> texture;
+        resource_handle<Mesh> mesh;         // geometry & topology, vertex attributes
+        std::optional<resource_handle<Texture>> texture;
         std::shared_ptr<ShaderProgram> shader;     // which shader to use to draw this part of the model
 
         glm::vec3 origin;                   // mesh origin relative to origin of the whole model
@@ -73,7 +74,7 @@ public:
         //
     }
 
-    void addMesh(std::shared_ptr<Mesh> mesh,
+    void addMesh(resource_handle<Mesh> mesh,
         std::shared_ptr<ShaderProgram> shader,
         glm::vec3 origin = glm::vec3(0.0f),      // dafault value
         glm::vec3 eulerAngles = glm::vec3(0.0f), // dafault value
@@ -82,18 +83,17 @@ public:
         meshes.emplace_back(mesh, std::nullopt, shader, origin, eulerAngles, scale);
     }
 
-    void addMesh(std::shared_ptr<Mesh> mesh,
-        std::shared_ptr<Texture> texture,
+    void addMesh(resource_handle<Mesh> mesh,
+        std::optional<resource_handle<Texture>> texture,
         std::shared_ptr<ShaderProgram> shader,
         glm::vec3 origin = glm::vec3(0.0f),      // dafault value
         glm::vec3 eulerAngles = glm::vec3(0.0f), // dafault value
         glm::vec3 scale = glm::vec3(1.0f)       // dafault value
     ) {
-        meshes.emplace_back(mesh, std::optional(texture), shader, origin, eulerAngles, scale);
+        meshes.emplace_back(mesh, texture, shader, origin, eulerAngles, scale);
 
     }
 
-    // ### NEW  (similar can be created for Mesh class)
     void setPosition(const glm::vec3& new_position) {
         pivot_position = new_position;
         parameters_modified = true;
@@ -144,7 +144,7 @@ public:
         //       use lambda funtion, call scripting language, etc. 
     }
 
-    void draw() {
+    void draw(resource_manager* manager) {
         if (parameters_modified) {
             force_mm_update();
         }
@@ -155,12 +155,17 @@ public:
             glm::mat4 mesh_model_matrix = createMM(mesh_pkg.origin, mesh_pkg.eulerAngles, mesh_pkg.scale);
             mesh_pkg.shader->setUniform("uM_m", mesh_model_matrix * local_model_matrix);
 
-            if (mesh_pkg.texture.has_value()) {
-                mesh_pkg.texture.value()->bind();
-                mesh_pkg.shader->setUniform("tex0", 0);
-            }
+            if (manager != nullptr) {
+                if (mesh_pkg.texture.has_value()) {
+                    auto tex = manager->get_texture(mesh_pkg.texture.value());
+                    tex->bind();
+                    mesh_pkg.shader->setUniform("tex0", 0);
+                }
 
-            mesh_pkg.mesh->draw();
+                manager->get_mesh(mesh_pkg.mesh)->draw();
+            } else {
+                std::cout << "NO RESOURCE MANAGER!" << std::endl;
+            }
         }
     }
 };

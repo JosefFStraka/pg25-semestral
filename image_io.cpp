@@ -68,14 +68,14 @@ GLMat imread(const std::string& path) {
 
 int imwrite(const std::string& path, GLMat image, int flip) {
     int ch = channels(image.type());
-    int stride_in_bytes = channelSize(image.type()) * ch  * image.cols;
+    int stride_in_bytes = channelSize(image.type()) * ch  * image.width;
 
     stbi_flip_vertically_on_write(flip);
 
     int result = stbi_write_png(
         path.c_str(),
-        image.cols,
-        image.rows,
+        image.width,
+        image.height,
         ch,
         reinterpret_cast<const void*>(image.data()),
         stride_in_bytes

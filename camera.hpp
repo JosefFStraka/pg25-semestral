@@ -15,7 +15,7 @@ public:
     glm::vec3 Up{}; // camera local UP vector
 
     GLfloat Yaw = 0.0f;
-    GLfloat Pitch = 0.0f;;
+    GLfloat Pitch = 0.0f;
     GLfloat Roll = 0.0f;
 
     // Camera options
@@ -80,9 +80,10 @@ public:
 private:
     void updateCameraVectors() {
         glm::vec3 front;
-        front.x = cos(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
+        GLfloat yaw = this->Yaw - 90.f;
+        front.x = cos(glm::radians(yaw)) * cos(glm::radians(this->Pitch));
         front.y = sin(glm::radians(this->Pitch));
-        front.z = sin(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
+        front.z = sin(glm::radians(yaw)) * cos(glm::radians(this->Pitch));
 
         this->Front = glm::normalize(front);
         this->Right = glm::normalize(glm::cross(this->Front, glm::vec3(0.0f, 1.0f, 0.0f)));
