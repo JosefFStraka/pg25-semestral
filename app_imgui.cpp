@@ -89,13 +89,13 @@ AppImGui::~AppImGui() {
     ImGui::DestroyContext();
 }
 
-void AppImGui::model_controls(Model* const model) {
+void AppImGui::model_controls(ModelInstance* const model) {
     bool modified = false;
     ImGui::Text("Position:");
     ImGui::PushID(0);
-    modified |= ImGui::SliderFloat("x", &model->pivot_position.x, -2.f, 2.f);
-    modified |= ImGui::SliderFloat("y", &model->pivot_position.y, -2.f, 2.f);
-    modified |= ImGui::SliderFloat("z", &model->pivot_position.z, -2.f, 2.f);
+    modified |= ImGui::SliderFloat("x", &model->pivot_position.x, -10.f, 10.f);
+    modified |= ImGui::SliderFloat("y", &model->pivot_position.y, -10.f, 10.f);
+    modified |= ImGui::SliderFloat("z", &model->pivot_position.z, -10.f, 10.f);
     ImGui::PopID();
 
     ImGui::PushID(1);
@@ -115,6 +115,4 @@ void AppImGui::model_controls(Model* const model) {
     if (modified) {
         model->parameters_modified = true;
     }
-
-    ImGui::Text("meshes: %d", model->meshes.size());
 }

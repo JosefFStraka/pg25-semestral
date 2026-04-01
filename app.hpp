@@ -6,6 +6,7 @@
 #include "fps_meter.hpp"
 
 #include "engine/resources/ResourceManager.hpp"
+#include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/ShaderProgram.hpp"
 #include "engine/rendering/Mesh.hpp"
 
@@ -15,7 +16,7 @@
 #include "colors.hpp"
 #include "app_imgui.hpp"
 
-#include "Model.hpp"
+#include "ModelInstance.hpp"
 #include "camera.hpp"
 
 #include <GL/glew.h> 
@@ -90,12 +91,11 @@ private:
     fps_meter FPS;
 
     ResourceManager resources;
+    Renderer renderer;
+
     std::unordered_map<std::string, ResourceHandle<Texture>> texture_library;
     std::unordered_map<std::string, ResourceHandle<Mesh>> mesh_library;
+    std::unordered_map<std::string, ResourceHandle<ShaderProgram>> shader_library;
 
-    // shared library of shaders for all models, automatic resource management 
-    std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> shader_library;
-
-    // all objects of the scene addressable by name
-    std::unordered_map<std::string, Model> scene; 
+    Scene scene;
 };

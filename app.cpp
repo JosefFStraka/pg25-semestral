@@ -176,21 +176,43 @@ void load_mesh(std::unordered_map<std::string, std::shared_ptr<Mesh>>& library, 
     }
 }
 
+ResourceHandle<ModelResource> createSimpleModel(
+    ResourceManager& rm,
+    ResourceHandle<Mesh> mesh,
+    ResourceHandle<Texture> texture,
+    ResourceHandle<ShaderProgram> shader) {
+    ModelResource res;
+
+    res.meshes.push_back({
+        mesh,
+        texture,
+        shader,
+        glm::vec3(0.0f),
+        glm::vec3(0.0f),
+        glm::vec3(1.0f)
+        });
+
+    return rm.createModelResource(std::move(res));
+}
+ModelInstance createModelInstance(ResourceHandle<ModelResource> mR) {
+    ModelInstance mI;
+    mI.model = mR;
+    return mI;
+}
 void App::init_assets(void) {
 
     // all shaders: load, compile, link, initialize params, place to library
-    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/basic_core.frag", false));
-    shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/basic_uniform.frag", false));
-    shader_library.emplace("normal_shader", std::make_shared<ShaderProgram>("../resources/shaders/normal.vert", "../resources/shaders/normal.frag", false));
-    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/rainbow.frag", false));
-    shader_library.emplace("tex", std::make_shared<ShaderProgram>("../resources/shaders/tex.vert", "../resources/shaders/tex.frag", false));
+    shader_library.emplace("simple_shader", resources.emplaceShader("../resources/shaders/basic_core.vert", "../resources/shaders/basic_core.frag", false));
+    shader_library.emplace("simple_uniform_shader", resources.emplaceShader("../resources/shaders/basic_core.vert", "../resources/shaders/basic_uniform.frag", false));
+    shader_library.emplace("normal_shader", resources.emplaceShader("../resources/shaders/normal.vert", "../resources/shaders/normal.frag", false));
+    shader_library.emplace("rainbow", resources.emplaceShader("../resources/shaders/basic_core.vert", "../resources/shaders/rainbow.frag", false));
+    shader_library.emplace("tex", resources.emplaceShader("../resources/shaders/tex.vert", "../resources/shaders/tex.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
 
-
     mesh_library.emplace("line", resources.emplaceMesh(line, GL_LINES));
-    mesh_library.emplace("cube", resources.registerMesh("../resources/assets/obj_samples/cube_triangles_vnt.obj")); 
+    mesh_library.emplace("cube", resources.registerMesh("../resources/assets/obj_samples/cube_triangles_vnt.obj"));
     mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
     mesh_library.emplace("triangle", resources.registerMesh("../resources/04/2d_obj_samples/triangle.obj"));
     mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/teapot_tri_vnt.obj"));
@@ -198,63 +220,72 @@ void App::init_assets(void) {
     mesh_library.emplace("dragon", resources.registerMesh("../resources/pepa/dragon/dragon.obj"));
     mesh_library.emplace("sponza", resources.registerMesh("../resources/pepa/sponza/sponza.obj"));
 
+    texture_library.emplace("white", resources.emplaceTexture(glm::vec3(1.f, 1.f, 1.f)));
     texture_library.emplace("default", resources.registerTexture("../resources/textures/default.png"));
     texture_library.emplace("wood_box", resources.registerTexture("../resources/textures/box_rgb888.png"));
     texture_library.emplace("TextureDouble_A", resources.registerTexture("../resources/textures/TextureDouble_A.png"));
     texture_library.emplace("vlada", resources.registerTexture("../resources/pepa/IMG_20231228_021715.jpg"));
     texture_library.emplace("widevojta", resources.registerTexture("../resources/pepa/widevojta.jpg"));
 
-    //load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
+    auto vladaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"));
+    {
+        ModelInstance vladaBall = createModelInstance(vladaBallHandle);
+        vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
+        scene.models.emplace("vlada_ball", vladaBall);
+    }
+    auto vojtaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"));
+    {
+        ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
+        vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
+        scene.models.emplace("vojta_ball", vojtaBall);
+    }
+    auto boxHandle = createSimpleModel(resources, mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"));
+    {
+        ModelInstance m_box_texture = createModelInstance(boxHandle);
+        m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
+        scene.models.emplace("m_box_texture", m_box_texture);
+    }
 
-    Model vlada_ball;
-    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"));
-    vlada_ball.setPosition(glm::vec3(-2.f, 0.f, 0.f));
-    scene.emplace("vlada_ball", vlada_ball);
+    // Model m_triangle;
+    // m_triangle.addMesh(mesh_library.at("triangle"), texture_library.at("white"), shader_library.at("simple_uniform_shader"));
+    // // scene.models.emplace("m_triangle", m_triangle);
 
-    Model vojta_ball;
-    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"));
-    vojta_ball.setPosition(glm::vec3(0.f, 0.f, 0.f));
-    scene.emplace("vojta_ball", vojta_ball);
+    // Model m_cube;
+    // m_cube.addMesh(mesh_library.at("cube"), texture_library.at("white"), shader_library.at("rainbow"));
+    // // scene.models.emplace("m_cube", m_cube);
 
-    Model m_box_texture;
-    m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"));
-    m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
-    scene.emplace("m_box_texture", m_box_texture);
+    // Model m_teapot;
+    // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("default"), shader_library.at("tex"));
+    // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    // //scene.models.emplace("m_teapot", m_teapot);
+
+    // // bigger moddels, takes longer to load
 
 
-    Model m_triangle;
-    m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_uniform_shader"));
-    // scene.emplace("m_triangle", m_triangle);
+    auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("default"), shader_library.at("tex"));
+    {
+        ModelInstance bunny = createModelInstance(bunnyHandle);
+        bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
+        bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
+        bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+        //scene.models.emplace("bunny", bunny);
+    }
 
-    Model m_cube;
-    m_cube.addMesh(mesh_library.at("cube"), shader_library.at("rainbow"));//shader_library.at("simple_uniform_shader"));
-    // scene.emplace("m_cube", m_cube);
+    auto dragonHandle = createSimpleModel(resources, mesh_library.at("dragon"), texture_library.at("default"), shader_library.at("tex"));
+    {
+        ModelInstance dragon = createModelInstance(dragonHandle);
+        dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+        //scene.models.emplace("dragon", dragon);
+    }
 
-    Model m_teapot;
-    m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("default"), shader_library.at("tex"));
-    m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    //scene.emplace("m_teapot", m_teapot);
+    auto sponzaHandle = createSimpleModel(resources, mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("tex"));
+    {
+        ModelInstance sponza = createModelInstance(sponzaHandle);
+        sponza.setScale(glm::vec3(0.01f, 0.01f, 0.01f));
+        //scene.models.emplace("sponza", sponza);
+    }
 
-    // bigger moddels, takes longer to load
-
-    Model m_bunny;
-    m_bunny.addMesh(mesh_library.at("bunny"), texture_library.at("default"), shader_library.at("tex"));
-    m_bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
-    m_bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
-    m_bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-    //scene.emplace("m_bunny", m_bunny);
-
-    Model m_dragon;
-    m_dragon.addMesh(mesh_library.at("dragon"), texture_library.at("TextureDouble_A"), shader_library.at("tex"));
-    m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-    //scene.emplace("m_dragon", m_dragon);
-
-    Model m_sponza;
-    m_sponza.addMesh(mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("tex"));
-    m_sponza.setScale(glm::vec3(0.005f, 0.005f, 0.005f));
-    //scene.emplace("m_sponza", m_sponza);
-
-    axis_display.init(resources.getMesh(mesh_library.at("line")), resources.getMesh(mesh_library.at("cube")), shader_library.at("simple_uniform_shader"));
+    axis_display.init();
     axis_display.set_viewport(0, 0, 64, 64);
 }
 
@@ -320,7 +351,7 @@ int App::run() {
 
                     if (ImGui::TreeNode("Scene")) {
                         size_t i = 0;
-                        for (auto& [name, model] : scene) {
+                        for (auto& [name, model] : scene.models) {
                             {
                                 ImGui::PushID(i);
                                 if (ImGui::TreeNode("", name.c_str())) {
@@ -352,21 +383,23 @@ int App::run() {
 
             HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
             RGB value = HSLToRGB(data);
-            simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
+            resources.getShader(simple_uniform_shader)->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
 
-            rainbow_shader->setUniform("iTime", (float)now);
+            resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
 
             //########## create and set View Matrix according to camera settings  ##########
-            for (auto& [_, shader] : shader_library) {
+            for (auto& [_, shaderHandle] : shader_library) {
+                auto shader = resources.getShader(shaderHandle);
                 shader->setUniform("uV_m", camera.GetViewMatrix());
                 shader->setUniform("uP_m", projection_matrix);
             }
 
-            for (auto&& [_, model] : scene) {
+            for (auto&& [_, model] : scene.models) {
                 model.rotate(glm::vec3(17.f * rotation_speed * delta_time, 31.f * rotation_speed * delta_time, 11.f * rotation_speed * delta_time));
                 model.update(delta_time);
-                model.draw(&resources);
             }
+
+            renderer.render(&resources, &scene);
 
             if (app_settings.gui_axis_display_enabled)
                 axis_display.draw(camera);

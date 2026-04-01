@@ -71,15 +71,17 @@ public:
         other.index_count_ = 0;
     }
 
-    void draw() {
+    void bind() {
         glBindVertexArray(vao_);
-
-        if (ebo_ == 0) {
-            glDrawArrays(primitive_type_, 0, vertex_count_);
-        } else {
-            glDrawElements(primitive_type_, index_count_, GL_UNSIGNED_INT, nullptr);
-        }
     }
+
+    bool hasEbo() {
+        return ebo_ != 0;
+    }
+
+    GLenum  getPrimitiveType(){ return primitive_type_; }
+    GLsizei getVertexCount() { return vertex_count_; }
+    GLsizei getIndexCount() { return index_count_; }
 
     ~Mesh() {
         glDeleteBuffers(1, &ebo_);
