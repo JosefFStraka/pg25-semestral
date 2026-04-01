@@ -194,7 +194,7 @@ void App::init_assets(void) {
     //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
     mesh_library.emplace("line", std::make_shared<Mesh>(line, GL_LINES));
-    mesh_library.emplace("cube", std::make_shared<Mesh>(generateCube()));
+    load_mesh(mesh_library, "../resources/assets/obj_samples/cube_triangles_vnt.obj", "cube"); //mesh_library.emplace("cube", std::make_shared<Mesh>(generateCube()));
     //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
     //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
 
@@ -209,15 +209,15 @@ void App::init_assets(void) {
 
     load_mesh(mesh_library, "../resources/assets/obj_samples/sphere_tri_vnt.obj", "sphere_tri_vnt");
     Model vlada_ball;
-    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
+    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"), glm::vec3(-2.f, 0.f, 0.f));
     scene.emplace("vlada_ball", vlada_ball);
 
     Model vojta_ball;
-    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"), glm::vec3(2.f, 0.f, 0.f));
+    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
     scene.emplace("vojta_ball", vojta_ball);
 
     Model m_box_texture;
-    m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(4.f, 0.f, 0.f));
+    m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(2.f, 0.f, 0.f));
     scene.emplace("m_box_texture", m_box_texture);
 
     /*
@@ -262,7 +262,7 @@ void App::init_assets(void) {
     // m_sponza.setScale(glm::vec3(0.005f, 0.005f, 0.005f));
     // scene.emplace("m_sponza", m_sponza);
 
-    axis_display.init(mesh_library.at("line"), mesh_library.at("cube"), shader_library.at("simple_uniform_shader"), camera);
+    axis_display.init(mesh_library.at("line"), mesh_library.at("cube"), shader_library.at("simple_uniform_shader"));
     axis_display.set_viewport(0, 0, 64, 64);
 }
 
@@ -278,7 +278,7 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, -2.0f);
+        camera.Position = glm::vec3(0.0f, 0.0f, 4.0f);
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
@@ -321,6 +321,10 @@ int App::run() {
                         update_projection_matrix();
                     }
                     ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
+
+                    ImGui::Text("Camera:");
+                    ImGui::Text("x: %.2f | y: %.2f | z: %.2f", camera.Position.x, camera.Position.y, camera.Position.z);
+                    ImGui::Text("pitch: %.1f | yaw: %.1f", camera.Pitch, camera.Yaw);
 
                     if (ImGui::TreeNode("Scene")) {
                         size_t i = 0;
