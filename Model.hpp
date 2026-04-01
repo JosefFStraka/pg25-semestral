@@ -7,7 +7,7 @@
 #include <optional> 
 
 #include "assets.hpp"
-#include "engine/resource/resource_manager.hpp"
+#include "engine/resources/ResourceManager.hpp"
 #include "engine/rendering/Mesh.hpp"
 #include "engine/rendering/Texture.hpp"
 #include "engine/rendering/ShaderProgram.hpp"
@@ -52,8 +52,8 @@ public:
 
     // mesh related data
     struct mesh_package {
-        resource_handle<Mesh> mesh;         // geometry & topology, vertex attributes
-        std::optional<resource_handle<Texture>> texture;
+        ResourceHandle<Mesh> mesh;         // geometry & topology, vertex attributes
+        std::optional<ResourceHandle<Texture>> texture;
         std::shared_ptr<ShaderProgram> shader;     // which shader to use to draw this part of the model
 
         glm::vec3 origin;                   // mesh origin relative to origin of the whole model
@@ -74,7 +74,7 @@ public:
         //
     }
 
-    void addMesh(resource_handle<Mesh> mesh,
+    void addMesh(ResourceHandle<Mesh> mesh,
         std::shared_ptr<ShaderProgram> shader,
         glm::vec3 origin = glm::vec3(0.0f),      // dafault value
         glm::vec3 eulerAngles = glm::vec3(0.0f), // dafault value
@@ -83,8 +83,8 @@ public:
         meshes.emplace_back(mesh, std::nullopt, shader, origin, eulerAngles, scale);
     }
 
-    void addMesh(resource_handle<Mesh> mesh,
-        std::optional<resource_handle<Texture>> texture,
+    void addMesh(ResourceHandle<Mesh> mesh,
+        std::optional<ResourceHandle<Texture>> texture,
         std::shared_ptr<ShaderProgram> shader,
         glm::vec3 origin = glm::vec3(0.0f),      // dafault value
         glm::vec3 eulerAngles = glm::vec3(0.0f), // dafault value
@@ -144,7 +144,7 @@ public:
         //       use lambda funtion, call scripting language, etc. 
     }
 
-    void draw(resource_manager* manager) {
+    void draw(ResourceManager* manager) {
         if (parameters_modified) {
             force_mm_update();
         }
@@ -157,12 +157,12 @@ public:
 
             if (manager != nullptr) {
                 if (mesh_pkg.texture.has_value()) {
-                    auto tex = manager->get_texture(mesh_pkg.texture.value());
+                    auto tex = manager->getTexture(mesh_pkg.texture.value());
                     tex->bind();
                     mesh_pkg.shader->setUniform("tex0", 0);
                 }
 
-                manager->get_mesh(mesh_pkg.mesh)->draw();
+                manager->getMesh(mesh_pkg.mesh)->draw();
             } else {
                 std::cout << "NO RESOURCE MANAGER!" << std::endl;
             }

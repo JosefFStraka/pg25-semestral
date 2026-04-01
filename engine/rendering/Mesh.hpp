@@ -8,7 +8,7 @@
 #include <glm/ext.hpp>
 
 #include "assets.hpp"
-#include "non_copyable.hpp"
+#include "NonCopyable.hpp"
 
 class Mesh : private NonCopyable
 {

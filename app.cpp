@@ -189,20 +189,20 @@ void App::init_assets(void) {
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
 
 
-    mesh_library.emplace("line", resources.add_mesh(line, GL_LINES));
-    mesh_library.emplace("cube", resources.register_mesh("../resources/assets/obj_samples/cube_triangles_vnt.obj")); 
-    mesh_library.emplace("sphere_tri_vnt", resources.register_mesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
-    mesh_library.emplace("triangle", resources.register_mesh("../resources/04/2d_obj_samples/triangle.obj"));
-    mesh_library.emplace("teapot_tri_vnt", resources.register_mesh("../resources/teapot_tri_vnt.obj"));
-    mesh_library.emplace("bunny", resources.register_mesh("../resources/pepa/bunny/bunny.obj"));
-    mesh_library.emplace("dragon", resources.register_mesh("../resources/pepa/dragon/dragon.obj"));
-    mesh_library.emplace("sponza", resources.register_mesh("../resources/pepa/sponza/sponza.obj"));
+    mesh_library.emplace("line", resources.emplaceMesh(line, GL_LINES));
+    mesh_library.emplace("cube", resources.registerMesh("../resources/assets/obj_samples/cube_triangles_vnt.obj")); 
+    mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
+    mesh_library.emplace("triangle", resources.registerMesh("../resources/04/2d_obj_samples/triangle.obj"));
+    mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/teapot_tri_vnt.obj"));
+    mesh_library.emplace("bunny", resources.registerMesh("../resources/pepa/bunny/bunny.obj"));
+    mesh_library.emplace("dragon", resources.registerMesh("../resources/pepa/dragon/dragon.obj"));
+    mesh_library.emplace("sponza", resources.registerMesh("../resources/pepa/sponza/sponza.obj"));
 
-    texture_library.emplace("default", resources.register_texture("../resources/textures/default.png"));
-    texture_library.emplace("wood_box", resources.register_texture("../resources/textures/box_rgb888.png"));
-    texture_library.emplace("TextureDouble_A", resources.register_texture("../resources/textures/TextureDouble_A.png"));
-    texture_library.emplace("vlada", resources.register_texture("../resources/pepa/IMG_20231228_021715.jpg"));
-    texture_library.emplace("widevojta", resources.register_texture("../resources/pepa/widevojta.jpg"));
+    texture_library.emplace("default", resources.registerTexture("../resources/textures/default.png"));
+    texture_library.emplace("wood_box", resources.registerTexture("../resources/textures/box_rgb888.png"));
+    texture_library.emplace("TextureDouble_A", resources.registerTexture("../resources/textures/TextureDouble_A.png"));
+    texture_library.emplace("vlada", resources.registerTexture("../resources/pepa/IMG_20231228_021715.jpg"));
+    texture_library.emplace("widevojta", resources.registerTexture("../resources/pepa/widevojta.jpg"));
 
     //load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
 
@@ -254,7 +254,7 @@ void App::init_assets(void) {
     m_sponza.setScale(glm::vec3(0.005f, 0.005f, 0.005f));
     //scene.emplace("m_sponza", m_sponza);
 
-    axis_display.init(resources.get_mesh(mesh_library.at("line")), resources.get_mesh(mesh_library.at("cube")), shader_library.at("simple_uniform_shader"));
+    axis_display.init(resources.getMesh(mesh_library.at("line")), resources.getMesh(mesh_library.at("cube")), shader_library.at("simple_uniform_shader"));
     axis_display.set_viewport(0, 0, 64, 64);
 }
 
@@ -270,7 +270,7 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, 2.0f);
+        camera.Position = glm::vec3(0.0f, 0.0f, 4.0f);
 
         auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
         auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.

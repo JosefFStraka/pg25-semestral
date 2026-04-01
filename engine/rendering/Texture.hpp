@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 #include "GLMat.hpp"
-#include "non_copyable.hpp"
+#include "NonCopyable.hpp"
 
 class Texture: private NonCopyable
 {

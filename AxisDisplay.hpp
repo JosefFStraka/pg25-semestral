@@ -1,15 +1,15 @@
 
-#include "engine/resource/resource_manager.hpp"
+#include "engine/resources/ResourceManager.hpp"
 #include "Model.hpp"
 #include "camera.hpp"
 #include "meshgen.hpp"
 
 class AxisDisplay {
-    resource_handle<Mesh> line_;
-    resource_handle<Mesh> mesh_;
+    ResourceHandle<Mesh> line_;
+    ResourceHandle<Mesh> mesh_;
     std::shared_ptr<ShaderProgram> shader_;
 
-    resource_manager resources;
+    ResourceManager resources;
 
     Model axisXLine;
     Model axisXModel;
@@ -33,8 +33,8 @@ public:
     GLint viewport[4];
 
     void init(std::shared_ptr<Mesh> line, std::shared_ptr<Mesh> mesh, std::shared_ptr<ShaderProgram> shader) {
-        line_ = resources.add_mesh(line);
-        mesh_ = resources.add_mesh(mesh);
+        line_ = resources.addSharedMesh("", line);
+        mesh_ = resources.addSharedMesh("", mesh);
         shader_ = shader;
 
         glm::vec3 scale(0.2f, 0.2f, 0.2f);

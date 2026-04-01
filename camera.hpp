@@ -7,7 +7,6 @@
 class Camera
 {
 public:
-
     // Camera Attributes
     glm::vec3 Position{};
     glm::vec3 Front{};
@@ -19,7 +18,7 @@ public:
     GLfloat Roll = 0.0f;
 
     // Camera options
-    GLfloat MovementSpeed = 1.0f;
+    GLfloat MovementSpeed = 3.0f;
     GLfloat MouseSensitivity = 0.25f;
 
     Camera() {
@@ -42,17 +41,16 @@ public:
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             direction += Front; // add unit vector to final direction  
-
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
             direction -= Front;
-
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
             direction -= Right;
-
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
             direction += Right;
-
-        //... up, down, diagonal, ... 
+        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+            direction -= Up;
+        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+            direction += Up;
 
         if (glm::length(direction) == 0)
             return glm::vec3(0.f, 0.f, 0.f);
@@ -80,6 +78,9 @@ public:
 private:
     void updateCameraVectors() {
         glm::vec3 front;
+
+        //Make it so at yaw = 0 camera is looking towards -Z with X to right and Y up. 
+        //Too lazy to change the trig func
         GLfloat yaw = this->Yaw - 90.f;
         front.x = cos(glm::radians(yaw)) * cos(glm::radians(this->Pitch));
         front.y = sin(glm::radians(this->Pitch));
