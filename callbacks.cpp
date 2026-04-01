@@ -13,6 +13,7 @@ void App::init_callbacks() {
     glfwSetKeyCallback(window, GlfwBinder<&App::key_callback>::callback);
     glfwSetFramebufferSizeCallback(window, GlfwBinder<&App::fbsize_callback>::callback);
     glfwSetWindowPosCallback(window, GlfwBinder<&App::window_pos_callback>::callback);
+    glfwSetWindowMaximizeCallback(window, GlfwBinder<&App::window_maximization_callback>::callback);
     glfwSetMouseButtonCallback(window, GlfwBinder<&App::mouse_button_callback>::callback);
     glfwSetCursorPosCallback(window, GlfwBinder<&App::cursor_position_callback>::callback);
     glfwSetScrollCallback(window, GlfwBinder<&App::scroll_callback>::callback);
@@ -56,7 +57,7 @@ void App::fbsize_callback(int width, int height) {
     std::cout << "fbsize_callback: width " << width << ", height " << height << std::endl;
 
     //might differ but lets make it simple for now
-    if (!app_settings.fullscreen) {
+    if (!app_settings.fullscreen && !app_settings.window_maximized) {
         app_settings.window_width = width;
         app_settings.window_height = height;
     }
@@ -71,12 +72,25 @@ void App::fbsize_callback(int width, int height) {
 
     this->update_projection_matrix();
 }
+int backup_window_pos_x = -1;
+int backup_window_pos_y = -1;
 void App::window_pos_callback(int xpos, int ypos) {
     std::cout << "window_pos_callback: xpos " << xpos << ", ypos " << ypos << std::endl;
 
-    if (!app_settings.fullscreen) {
+    if (!app_settings.fullscreen && !app_settings.window_maximized) {
+        backup_window_pos_x = app_settings.window_pos_x;
+        backup_window_pos_y = app_settings.window_pos_y;
         app_settings.window_pos_x = xpos;
         app_settings.window_pos_y = ypos < 20 ? 20 : ypos; // give window titlebar some space
+    }
+}
+void App::window_maximization_callback(int maximized) {
+    std::cout << "window_maximization_callback: maximized " << maximized << std::endl;
+
+    app_settings.window_maximized = maximized;
+    if (maximized && backup_window_pos_x != -1) {
+        app_settings.window_pos_x = backup_window_pos_x;
+        app_settings.window_pos_y = backup_window_pos_y;
     }
 }
 void App::mouse_button_callback(int button, int action, int mods) {

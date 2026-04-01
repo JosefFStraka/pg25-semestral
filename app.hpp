@@ -44,6 +44,7 @@ private:
     void key_callback(int key, int scancode, int action, int mods);
     void fbsize_callback(int width, int height);
     void window_pos_callback(int xpos, int ypos);
+    void window_maximization_callback(int maximized);
     void mouse_button_callback(int button, int action, int mods);
     void cursor_position_callback(double xpos, double ypos);
     void scroll_callback(double xoffset, double yoffset);

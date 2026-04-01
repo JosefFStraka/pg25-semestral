@@ -15,6 +15,7 @@ namespace settings {
             int window_height = 600;
             int window_pos_x = -1;
             int window_pos_y = -1;
+            int window_maximized = 0;
             bool fullscreen = false;
             bool gui_always_enabled = false;
             bool gui_axis_display_enabled = false;

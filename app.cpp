@@ -36,7 +36,7 @@ bool App::init() {
         }
 
         if (!std::filesystem::exists("../resources"))
-            throw std::runtime_error("Directory 'resources' not found. Various media files are expected to be there.");
+            throw std::runtime_error("Directory '../resources' not found. Various media files are expected to be there.");
 
         // init_opencv();
         init_glfw();
@@ -86,7 +86,6 @@ void App::init_glfw(void) {
         throw std::runtime_error("GLFW can not be initialized.");
     }
 
-
     // try to open OpenGL
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -110,18 +109,25 @@ void App::init_glfw(void) {
         app_settings.window_height = 600;
     }
 
+    if (app_settings.window_maximized) {
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+    }
+
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(app_settings.window_width, app_settings.window_height, "ICP", nullptr, nullptr);
     if (!window) {
         throw std::runtime_error("GLFW window can not be created.");
     }
 
-    glfwGetWindowPos(window, &app_settings.window_pos_x, &app_settings.window_pos_y);
-    glfwGetWindowSize(window, &app_settings.window_width, &app_settings.window_height);
-    saved_window_pos_x = app_settings.window_pos_x;
-    saved_window_pos_y = app_settings.window_pos_y;
-    saved_window_width = app_settings.window_width;
-    saved_window_height = app_settings.window_height;
+    if (app_settings.window_maximized) {
+        glfwGetWindowPos(window, &app_settings.window_pos_x, &app_settings.window_pos_y);
+        glfwGetWindowSize(window, &app_settings.window_width, &app_settings.window_height);
+        saved_window_pos_x = app_settings.window_pos_x;
+        saved_window_pos_y = app_settings.window_pos_y;
+        saved_window_width = app_settings.window_width;
+        saved_window_height = app_settings.window_height;
+    }
+
 
     glfwGetFramebufferSize(window, &fb_width, &fb_height);
 
@@ -448,10 +454,12 @@ void App::set_fullscreen(bool value) {
         auto monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-        saved_window_pos_x = app_settings.window_pos_x;
-        saved_window_pos_y = app_settings.window_pos_y;
-        saved_window_width = app_settings.window_width;
-        saved_window_height = app_settings.window_height;
+        if (!app_settings.window_maximized) {
+            saved_window_pos_x = app_settings.window_pos_x;
+            saved_window_pos_y = app_settings.window_pos_y;
+            saved_window_width = app_settings.window_width;
+            saved_window_height = app_settings.window_height;
+        }
 
         saved_refresh_rate = mode->refreshRate;
 
