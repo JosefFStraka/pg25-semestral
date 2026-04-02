@@ -199,18 +199,15 @@ ModelInstance createModelInstance(ResourceHandle<ModelResource> mR) {
     mI.model = mR;
     return mI;
 }
+
+//MARK: App::init_assets
 void App::init_assets(void) {
 
     // all shaders: load, compile, link, initialize params, place to library
-    shader_library.emplace("simple_shader", resources.emplaceShader("../resources/shaders/basic_core.vert", "../resources/shaders/basic_core.frag", false));
-    shader_library.emplace("simple_uniform_shader", resources.emplaceShader("../resources/shaders/basic_core.vert", "../resources/shaders/basic_uniform.frag", false));
-    shader_library.emplace("normal_shader", resources.emplaceShader("../resources/shaders/normal.vert", "../resources/shaders/normal.frag", false));
-    shader_library.emplace("rainbow", resources.emplaceShader("../resources/shaders/basic_core.vert", "../resources/shaders/rainbow.frag", false));
-    shader_library.emplace("tex", resources.emplaceShader("../resources/shaders/tex.vert", "../resources/shaders/tex.frag", false));
+    shader_library.emplace("phong", resources.emplaceShader("../resources/shaders/phong.vert", "../resources/shaders/phong.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
-
     mesh_library.emplace("line", resources.emplaceMesh(line, GL_LINES));
     mesh_library.emplace("cube", resources.registerMesh("../resources/assets/obj_samples/cube_triangles_vnt.obj"));
     mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
@@ -227,19 +224,20 @@ void App::init_assets(void) {
     texture_library.emplace("vlada", resources.registerTexture("../resources/pepa/IMG_20231228_021715.jpg"));
     texture_library.emplace("widevojta", resources.registerTexture("../resources/pepa/widevojta.jpg"));
 
-    auto vladaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"));
+    auto vladaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("phong"));
     {
         ModelInstance vladaBall = createModelInstance(vladaBallHandle);
         vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
-        scene.models.emplace("vlada_ball", vladaBall);
+        //scene.models.emplace("vlada_ball", vladaBall);
     }
-    auto vojtaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"));
+    auto vojtaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("phong"));
     {
         ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
-        vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
+        vojtaBall.setPosition(glm::vec3(1.f, 2.f, 0.f));
+        vojtaBall.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
         scene.models.emplace("vojta_ball", vojtaBall);
     }
-    auto boxHandle = createSimpleModel(resources, mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"));
+    auto boxHandle = createSimpleModel(resources, mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("phong"));
     {
         ModelInstance m_box_texture = createModelInstance(boxHandle);
         m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
@@ -262,23 +260,23 @@ void App::init_assets(void) {
     // // bigger moddels, takes longer to load
 
 
-    auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("default"), shader_library.at("tex"));
+    auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
     {
         ModelInstance bunny = createModelInstance(bunnyHandle);
         bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
         bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
         bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-        //scene.models.emplace("bunny", bunny);
+        scene.models.emplace("bunny", bunny);
     }
 
-    auto dragonHandle = createSimpleModel(resources, mesh_library.at("dragon"), texture_library.at("default"), shader_library.at("tex"));
+    auto dragonHandle = createSimpleModel(resources, mesh_library.at("dragon"), texture_library.at("default"), shader_library.at("phong"));
     {
         ModelInstance dragon = createModelInstance(dragonHandle);
         dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
         //scene.models.emplace("dragon", dragon);
     }
 
-    auto sponzaHandle = createSimpleModel(resources, mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("tex"));
+    auto sponzaHandle = createSimpleModel(resources, mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("phong"));
     {
         ModelInstance sponza = createModelInstance(sponzaHandle);
         sponza.setScale(glm::vec3(0.01f, 0.01f, 0.01f));
@@ -302,9 +300,6 @@ int App::run() {
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
         camera.Position = glm::vec3(0.0f, 0.0f, 4.0f);
-
-        auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
-        auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
 
         float rotation_speed = 0.f;
 
@@ -381,11 +376,11 @@ int App::run() {
             //########## react to user  ##########
             camera.Position += camera.ProcessInput(window, delta_time); // process keys etc.
 
-            HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
-            RGB value = HSLToRGB(data);
-            resources.getShader(simple_uniform_shader)->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
+            // HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
+            // RGB value = HSLToRGB(data);
+            // resources.getShader(simple_uniform_shader)->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
 
-            resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
+            // resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
 
             //########## create and set View Matrix according to camera settings  ##########
             for (auto& [_, shaderHandle] : shader_library) {

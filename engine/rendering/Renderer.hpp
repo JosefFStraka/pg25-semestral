@@ -26,7 +26,7 @@ public:
 
                 auto tex = resourceManager->getTexture(meshPkg.texture);
                 tex->bind();
-                shader->setUniform("tex0", 0);
+                //shader->setUniform("tex0", 0);
 
                 drawMesh(mesh);
             }

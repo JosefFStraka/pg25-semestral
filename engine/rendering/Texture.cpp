@@ -49,7 +49,6 @@ Texture::Texture(GLMat const& image, Interpolation interpolation) {
         throw std::runtime_error{ "the input image is empty" };
     }
     
-    auto px = image.at(0, 0);
     glCreateTextures(GL_TEXTURE_2D, 1, &name_);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

@@ -32,7 +32,7 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
 }
 
 bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertices, std::vector<GLuint>& indices) {
-	std::cout << "Loading model: " << filename.string() << std::endl;
+	//std::cout << "Loading model: " << filename.string() << std::endl;
 
 	std::vector< glm::vec3 > temp_vertices;
 	std::vector< glm::vec2 > temp_uvs;
@@ -160,7 +160,7 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 		}
 	}
 
-	std::cout << "Model loaded: " << filename.string() << std::endl;
+	//std::cout << "Model loaded: " << filename.string() << std::endl;
 
 	fclose(file);
 	return true;

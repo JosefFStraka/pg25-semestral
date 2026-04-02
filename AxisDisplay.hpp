@@ -96,14 +96,14 @@ public:
         auto up = glm::vec3(0.f, 1.f, 0.f);
         auto front = glm::vec3(0.f, 0.f, 1.f);
 
-        init_model("axisXModel", texRed, right, scale);
-        init_line("axisXLine", texRed, glm::vec3(0.f, 0.f, 0.f));
+        init_model("axisXModel", texRed, front, scale);
+        init_line("axisXLine", texRed, glm::vec3(0.f, -90.f, 0.f));
 
         init_model("axisYModel", texGreen, up, scale);
         init_line("axisYLine", texGreen, glm::vec3(0.f, 0.f, 90.f));
 
-        init_line("axisZLine", texBlue, glm::vec3(0.f, -90.f, 0.f));
-        init_model("axisZModel", texBlue, front, scale);
+        init_model("axisZModel", texBlue, right, scale);
+        init_line("axisZLine", texBlue, glm::vec3(0.f, 0.f, 0.f));
 
         init_model("centerModel", texWhite, glm::vec3(0.f, 0.f, 0.f), scale * 1.5f);
     }

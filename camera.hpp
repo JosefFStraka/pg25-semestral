@@ -18,7 +18,7 @@ public:
     GLfloat Roll = 0.0f;
 
     // Camera options
-    GLfloat MovementSpeed = 3.0f;
+    GLfloat MovementSpeed = 2.0f;
     GLfloat MouseSensitivity = 0.25f;
 
     Camera() {
@@ -79,9 +79,7 @@ private:
     void updateCameraVectors() {
         glm::vec3 front;
 
-        //Make it so at yaw = 0 camera is looking towards -Z with X to right and Y up. 
-        //Too lazy to change the trig func
-        GLfloat yaw = this->Yaw - 90.f;
+        GLfloat yaw = this->Yaw - 90.0;
         front.x = cos(glm::radians(yaw)) * cos(glm::radians(this->Pitch));
         front.y = sin(glm::radians(this->Pitch));
         front.z = sin(glm::radians(yaw)) * cos(glm::radians(this->Pitch));
