@@ -62,31 +62,24 @@ Texture::Texture(GLMat const& image, Interpolation interpolation) {
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_B, GL_RED);
         break;
     case GL_8UC3:  // RGB
-        // upload only one channel
         glTextureStorage2D(name_, 1, GL_RGB8, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_RGB, GL_UNSIGNED_BYTE, image.data());
         break;
     case GL_8UC4:  // RGBA
-        // upload only one channel
         glTextureStorage2D(name_, 2, GL_RGBA8, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, image.data());
         break;
     case GL_16UC1:  // 16-bit R
-        // upload only one channel
         glTextureStorage2D(name_, 1, GL_RGBA8, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_SHORT, image.data());
-
-        // use data also for other channels
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_G, GL_RED);
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_B, GL_RED);
         break;
     case GL_16UC3:  // 16-bit RGB
-        // upload only one channel
         glTextureStorage2D(name_, 2, GL_RGBA8, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_SHORT, image.data());
         break;
     case GL_16UC4:  // 16-bit RGBA
-        // upload only one channel
         glTextureStorage2D(name_, 2, GL_RGBA16, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_SHORT, image.data());
         break;

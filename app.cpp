@@ -204,12 +204,17 @@ ModelInstance createModelInstance(ResourceHandle<ModelResource> mR) {
 void App::init_assets(void) {
 
     // all shaders: load, compile, link, initialize params, place to library
+    shader_library.emplace("skybox", resources.emplaceShader("../engine/assets/shaders/skybox.vert", "../engine/assets/shaders/skybox.frag", false));
     shader_library.emplace("phong", resources.emplaceShader("../resources/shaders/phong.vert", "../resources/shaders/phong.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
     mesh_library.emplace("line", resources.emplaceMesh(line, GL_LINES));
-    mesh_library.emplace("cube", resources.registerMesh("../resources/assets/obj_samples/cube_triangles_vnt.obj"));
+    std::vector<Vertex> triangle = { Vertex{.position = {-1.f, -1.f, 0.f}}, Vertex{.position = {3.f, -1.f, 0.f}}, Vertex{.position = {-1.f, 3.f, 0.f}} };
+    mesh_library.emplace("skybox_triangle", resources.emplaceMesh(triangle, GL_TRIANGLES));
+
+    mesh_library.emplace("plane", resources.registerMesh("../engine/assets/meshes/plane.obj"));
+    mesh_library.emplace("cube", resources.registerMesh("../engine/assets/meshes/cube.obj"));
     mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
     mesh_library.emplace("triangle", resources.registerMesh("../resources/04/2d_obj_samples/triangle.obj"));
     mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/teapot_tri_vnt.obj"));
@@ -218,7 +223,7 @@ void App::init_assets(void) {
     mesh_library.emplace("sponza", resources.registerMesh("../resources/pepa/sponza/sponza.obj"));
 
     texture_library.emplace("white", resources.emplaceTexture(glm::vec3(1.f, 1.f, 1.f)));
-    texture_library.emplace("default", resources.registerTexture("../resources/textures/default.png"));
+    texture_library.emplace("default", resources.registerTexture("../engine/assets/textures/default.png"));
     texture_library.emplace("wood_box", resources.registerTexture("../resources/textures/box_rgb888.png"));
     texture_library.emplace("TextureDouble_A", resources.registerTexture("../resources/textures/TextureDouble_A.png"));
     texture_library.emplace("vlada", resources.registerTexture("../resources/pepa/IMG_20231228_021715.jpg"));
@@ -228,13 +233,18 @@ void App::init_assets(void) {
     {
         ModelInstance vladaBall = createModelInstance(vladaBallHandle);
         vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
-        //scene.models.emplace("vlada_ball", vladaBall);
+        scene.models.emplace("vlada_ball", vladaBall);
     }
     auto vojtaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("phong"));
     {
+        ModelInstance slunce_nase_jasne = createModelInstance(vojtaBallHandle);
+        slunce_nase_jasne.setPosition(glm::vec3(1.f, 2.f, 0.f));
+        slunce_nase_jasne.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        scene.models.emplace("slunce_nase_jasne", slunce_nase_jasne);
+    }
+    {
         ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
-        vojtaBall.setPosition(glm::vec3(1.f, 2.f, 0.f));
-        vojtaBall.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
         scene.models.emplace("vojta_ball", vojtaBall);
     }
     auto boxHandle = createSimpleModel(resources, mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("phong"));
@@ -283,6 +293,18 @@ void App::init_assets(void) {
         //scene.models.emplace("sponza", sponza);
     }
 
+    std::string base_path = "../resources/textures/skyboxes/vylety_20260403_cubemap/";
+    CubeMapTexture* cm = new CubeMapTexture({
+        base_path + "_px.png",
+        base_path + "_nx.png",
+        base_path + "_py.png",
+        base_path + "_ny.png",
+        base_path + "_pz.png",
+        base_path + "_nz.png",
+        });
+
+    scene.skybox = new Skybox(mesh_library.at("skybox_triangle"), cm, shader_library.at("skybox"));
+
     axis_display.init();
     axis_display.set_viewport(0, 0, 64, 64);
 }
@@ -292,6 +314,8 @@ int App::run() {
     try {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
+
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
         glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
@@ -564,6 +588,8 @@ void App::update_projection_matrix(void) {
 
 App::~App() {
     settings::save("settings.json", app_settings);
+
+    if (scene.skybox) delete scene.skybox;
 
     delete imgui;
 }

@@ -31,8 +31,30 @@ public:
                 drawMesh(mesh);
             }
         }
+
+        drawSkybox(resourceManager, scene->skybox);
     }
+
+    void drawSkybox(ResourceManager* resourceManager, Skybox* skybox) {
+        if (!skybox) 
+            return;
+
+        auto mesh = resourceManager->getMesh(skybox->mesh_);
+        auto shader = resourceManager->getShader(skybox->shader_);
+
+        shader->use();
+        glBindTextureUnit(7, skybox->cubemap_->getName());
+        shader->setUniform("skybox", 7);
+
+        glDepthFunc(GL_LEQUAL);
+        drawMesh(mesh);
+        glDepthFunc(GL_LESS);
+    }
+
     void drawMesh(Mesh* mesh) {
+        if (!mesh) 
+            return;
+            
         mesh->bind();
         if (mesh->hasEbo()) {
             glDrawElements(mesh->getPrimitiveType(), mesh->getIndexCount(), GL_UNSIGNED_INT, nullptr);

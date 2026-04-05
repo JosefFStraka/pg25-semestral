@@ -9,7 +9,7 @@ uniform vec3 diffuse_intensity = vec3(1.0, 1.0, 1.0);
 
 uniform vec3 specular_material = vec3(1.0, 1.0, 1.0);
 uniform vec3 specular_intensity = vec3(1.0, 1.0, 1.0);
-uniform float specular_shinines = 12.0;
+uniform float specular_shinines = 18.0;
 
 in VS_OUT {
     vec3 N;
