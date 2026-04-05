@@ -42,21 +42,6 @@ class AxisDisplay {
 
         return rm.createModelResource(std::move(res));
     }
-
-    void init_line(std::string name, ResourceHandle<Texture> texture, glm::vec3 rot) {
-        auto lineHandle = createSimpleModel(
-            resources,
-            line_,
-            texture,
-            shader_
-        );
-
-        ModelInstance lineInstance;
-        lineInstance.model = lineHandle;
-        lineInstance.setEulerAngles(rot);
-
-        scene.models.emplace(name, lineInstance);
-    }
     void init_model(std::string name, ResourceHandle<Texture> texture, glm::vec3 trans, glm::vec3 scale) {
         auto modelHandle = createSimpleModel(
             resources,
@@ -77,17 +62,14 @@ public:
     GLint viewport[4];
 
     void init() {
-        std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
-        line_ = resources.emplaceMesh(line, GL_LINES);
-        mesh_ = resources.registerMesh("../resources/assets/obj_samples/cube_triangles_vnt.obj");
+        mesh_ = resources.registerMesh("../engine/assets/meshes/cube.obj");
         texRed = resources.emplaceTexture(glm::vec3(1.f, 0.f, 0.f));
         texGreen = resources.emplaceTexture(glm::vec3(0.f, 1.f, 0.f));
         texBlue = resources.emplaceTexture(glm::vec3(0.f, 0.f, 1.f));
         texWhite = resources.emplaceTexture(glm::vec3(1.f, 1.f, 1.f));
-        shader_ = resources.emplaceShader("../resources/shaders/tex.vert", "../resources/shaders/tex.frag", false);
+        shader_ = resources.emplaceShader("../engine/assets/shaders/tex.vert", "../engine/assets/shaders/tex.frag", false);
 
-        glm::vec3 scale(0.2f, 0.2f, 0.2f);
-
+        
         // OpenGL uses a right-handed coordinate system where
         // the positive x-axis points to the right, 
         // the positive y-axis points up, and 
@@ -95,16 +77,13 @@ public:
         auto right = glm::vec3(1.f, 0.f, 0.f);
         auto up = glm::vec3(0.f, 1.f, 0.f);
         auto front = glm::vec3(0.f, 0.f, 1.f);
+        
+        glm::vec3 scale(0.4f, 0.4f, 0.4f);
+        float direction_scale = 0.5f;
 
-        init_model("axisXModel", texRed, front, scale);
-        init_line("axisXLine", texRed, glm::vec3(0.f, -90.f, 0.f));
-
-        init_model("axisYModel", texGreen, up, scale);
-        init_line("axisYLine", texGreen, glm::vec3(0.f, 0.f, 90.f));
-
-        init_model("axisZModel", texBlue, right, scale);
-        init_line("axisZLine", texBlue, glm::vec3(0.f, 0.f, 0.f));
-
+        init_model("axisXModel", texRed, front * direction_scale, scale);
+        init_model("axisYModel", texGreen, up * direction_scale, scale);
+        init_model("axisZModel", texBlue, right * direction_scale, scale);
         init_model("centerModel", texWhite, glm::vec3(0.f, 0.f, 0.f), scale * 1.5f);
     }
 
