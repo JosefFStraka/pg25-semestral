@@ -182,87 +182,136 @@ void load_mesh(std::unordered_map<std::string, std::shared_ptr<Mesh>>& library, 
     }
 }
 
+ResourceHandle<ModelResource> createSimpleModel(
+    ResourceManager& rm,
+    ResourceHandle<Mesh> mesh,
+    ResourceHandle<Texture> texture,
+    ResourceHandle<ShaderProgram> shader) {
+    ModelResource res;
+
+    res.meshes.push_back({
+        mesh,
+        texture,
+        shader,
+        glm::vec3(0.0f),
+        glm::vec3(0.0f),
+        glm::vec3(1.0f)
+        });
+
+    return rm.createModelResource(std::move(res));
+}
+ModelInstance createModelInstance(ResourceHandle<ModelResource> mR) {
+    ModelInstance mI;
+    mI.model = mR;
+    return mI;
+}
+
+//MARK: App::init_assets
 void App::init_assets(void) {
 
     // all shaders: load, compile, link, initialize params, place to library
-    shader_library.emplace("simple_shader", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/basic_core.frag", false));
-    shader_library.emplace("simple_uniform_shader", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/basic_uniform.frag", false));
-    shader_library.emplace("normal_shader", std::make_shared<ShaderProgram>("../resources/shaders/normal.vert", "../resources/shaders/normal.frag", false));
-    shader_library.emplace("rainbow", std::make_shared<ShaderProgram>("../resources/shaders/basic_core.vert", "../resources/shaders/rainbow.frag", false));
-    shader_library.emplace("tex", std::make_shared<ShaderProgram>("../resources/shaders/tex.vert", "../resources/shaders/tex.frag", false));
+    shader_library.emplace("skybox", resources.emplaceShader("../engine/assets/shaders/skybox.vert", "../engine/assets/shaders/skybox.frag", false));
+    shader_library.emplace("phong", resources.emplaceShader("../resources/shaders/phong.vert", "../resources/shaders/phong.frag", false));
 
     //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
-    mesh_library.emplace("line", std::make_shared<Mesh>(line, GL_LINES));
-    load_mesh(mesh_library, "../resources/assets/obj_samples/cube_triangles_vnt.obj", "cube"); //mesh_library.emplace("cube", std::make_shared<Mesh>(generateCube()));
-    //mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateSphere(4, 4)));
-    //mesh_library.emplace("sphere_highpoly", std::make_shared<Mesh>(generateSphere(8, 8)));
+    mesh_library.emplace("line", resources.emplaceMesh(line, GL_LINES));
+    std::vector<Vertex> triangle = { Vertex{.position = {-1.f, -1.f, 0.f}}, Vertex{.position = {3.f, -1.f, 0.f}}, Vertex{.position = {-1.f, 3.f, 0.f}} };
+    mesh_library.emplace("skybox_triangle", resources.emplaceMesh(triangle, GL_TRIANGLES));
+
+    mesh_library.emplace("plane", resources.registerMesh("../engine/assets/meshes/plane.obj"));
+    mesh_library.emplace("cube", resources.registerMesh("../engine/assets/meshes/cube.obj"));
+    mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
+    mesh_library.emplace("triangle", resources.registerMesh("../resources/04/2d_obj_samples/triangle.obj"));
+    mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/teapot_tri_vnt.obj"));
+    mesh_library.emplace("bunny", resources.registerMesh("../resources/pepa/bunny/bunny.obj"));
+    mesh_library.emplace("dragon", resources.registerMesh("../resources/pepa/dragon/dragon.obj"));
+    mesh_library.emplace("sponza", resources.registerMesh("../resources/pepa/sponza/sponza.obj"));
+
+    texture_library.emplace("white", resources.emplaceTexture(glm::vec3(1.f, 1.f, 1.f)));
+    texture_library.emplace("default", resources.registerTexture("../engine/assets/textures/default.png"));
+    texture_library.emplace("wood_box", resources.registerTexture("../resources/textures/box_rgb888.png"));
+    texture_library.emplace("TextureDouble_A", resources.registerTexture("../resources/textures/TextureDouble_A.png"));
+    texture_library.emplace("vlada", resources.registerTexture("../resources/pepa/IMG_20231228_021715.jpg"));
+    texture_library.emplace("widevojta", resources.registerTexture("../resources/pepa/widevojta.jpg"));
+
+    auto vladaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("phong"));
+    {
+        ModelInstance vladaBall = createModelInstance(vladaBallHandle);
+        vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
+        scene.models.emplace("vlada_ball", vladaBall);
+    }
+    auto vojtaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("phong"));
+    {
+        ModelInstance slunce_nase_jasne = createModelInstance(vojtaBallHandle);
+        slunce_nase_jasne.setPosition(glm::vec3(1.f, 2.f, 0.f));
+        slunce_nase_jasne.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        scene.models.emplace("slunce_nase_jasne", slunce_nase_jasne);
+    }
+    {
+        ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
+        vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
+        scene.models.emplace("vojta_ball", vojtaBall);
+    }
+    auto boxHandle = createSimpleModel(resources, mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("phong"));
+    {
+        ModelInstance m_box_texture = createModelInstance(boxHandle);
+        m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
+        scene.models.emplace("m_box_texture", m_box_texture);
+    }
 
 
-    texture_library.emplace("default", std::make_shared<Texture>("../resources/textures/default.png"));
-    texture_library.emplace("wood_box", std::make_shared<Texture>("../resources/textures/box_rgb888.png"));
-    texture_library.emplace("TextureDouble_A", std::make_shared<Texture>("../resources/textures/TextureDouble_A.png"));
-    texture_library.emplace("vlada", std::make_shared<Texture>("../resources/pepa/IMG_20231228_021715.jpg"));
-    texture_library.emplace("widevojta", std::make_shared<Texture>("../resources/pepa/widevojta.jpg"));
-
-    //load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
-
-    load_mesh(mesh_library, "../resources/assets/obj_samples/sphere_tri_vnt.obj", "sphere_tri_vnt");
-    Model vlada_ball;
-    vlada_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("tex"), glm::vec3(-2.f, 0.f, 0.f));
-    scene.emplace("vlada_ball", vlada_ball);
-
-    Model vojta_ball;
-    vojta_ball.addMesh(mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("tex"), glm::vec3(0.f, 0.f, 0.f));
-    scene.emplace("vojta_ball", vojta_ball);
-
-    Model m_box_texture;
-    m_box_texture.addMesh(mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("tex"), glm::vec3(2.f, 0.f, 0.f));
-    scene.emplace("m_box_texture", m_box_texture);
-
-    /*
-    load_mesh(mesh_library, "../resources/04/2d_obj_samples/triangle.obj", "triangle");
-    Model m_triangle;
-    m_triangle.addMesh(mesh_library.at("triangle"), shader_library.at("simple_uniform_shader"));
-    scene.emplace("m_triangle", m_triangle);
-    */
-
-    // mesh_library.emplace("sphere_lowpoly", std::make_shared<Mesh>(generateCube()));
-    // Model m_cube;
-    // m_cube.addMesh(mesh_library.at("cube"), shader_library.at("rainbow"));//shader_library.at("simple_uniform_shader"));
-    // scene.emplace("m_cube", m_cube);
-
-
-    // load_mesh(mesh_library, "../resources/teapot_tri_vnt.obj", "teapot_tri_vnt");
     // Model m_teapot;
     // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("default"), shader_library.at("tex"));
     // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    // scene.emplace("m_teapot", m_teapot);
+    // //scene.models.emplace("m_teapot", m_teapot);
 
-    // bigger moddels, takes longer to load
+    auto teapotHandle = createSimpleModel(resources, mesh_library.at("teapot_tri_vnt"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
+    {
+        ModelInstance teapot = createModelInstance(teapotHandle);
+        teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
+        teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        scene.models.emplace("teapot", teapot);
+    }
 
+    auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
+    {
+        ModelInstance bunny = createModelInstance(bunnyHandle);
+        bunny.setPosition(glm::vec3(4.2f, -0.5f, 0.f));
+        bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
+        bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+        scene.models.emplace("bunny", bunny);
+    }
 
-    // load_mesh(mesh_library, "../resources/pepa/bunny/bunny.obj", "bunny");
-    // Model m_bunny;
-    // m_bunny.addMesh(mesh_library.at("bunny"), texture_library.at("default"), shader_library.at("tex"));
-    // m_bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
-    // m_bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
-    // m_bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-    // scene.emplace("m_bunny", m_bunny);
+    auto dragonHandle = createSimpleModel(resources, mesh_library.at("dragon"), texture_library.at("default"), shader_library.at("phong"));
+    {
+        ModelInstance dragon = createModelInstance(dragonHandle);
+        dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
+        dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+        scene.models.emplace("dragon", dragon);
+    }
 
-    // load_mesh(mesh_library, "../resources/pepa/dragon/dragon.obj", "dragon");
-    // Model m_dragon;
-    // m_dragon.addMesh(mesh_library.at("dragon"), texture_library.at("TextureDouble_A"), shader_library.at("tex"));
-    // m_dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-    // scene.emplace("m_dragon", m_dragon);
+    auto sponzaHandle = createSimpleModel(resources, mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("phong"));
+    {
+        ModelInstance sponza = createModelInstance(sponzaHandle);
+        sponza.setScale(glm::vec3(0.02f, 0.02f, 0.02f));
+        sponza.setPosition(glm::vec3(0.0f, -1.f, 0.0f));
+        scene.models.emplace("sponza", sponza);
+    }
 
-    // load_mesh(mesh_library, "../resources/pepa/sponza/sponza.obj", "sponza");
-    // Model m_sponza;
-    // m_sponza.addMesh(mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("tex"));
-    // m_sponza.setScale(glm::vec3(0.005f, 0.005f, 0.005f));
-    // scene.emplace("m_sponza", m_sponza);
+    std::string base_path = "../resources/textures/skyboxes/vylety_20260403_cubemap/";
+    CubeMapTexture* cm = new CubeMapTexture({
+        base_path + "_px.png",
+        base_path + "_nx.png",
+        base_path + "_py.png",
+        base_path + "_ny.png",
+        base_path + "_pz.png",
+        base_path + "_nz.png",
+        });
 
-    axis_display.init(mesh_library.at("line"), mesh_library.at("cube"), shader_library.at("simple_uniform_shader"));
+    scene.skybox = new Skybox(mesh_library.at("skybox_triangle"), cm, shader_library.at("skybox"));
+
+    axis_display.init();
     axis_display.set_viewport(0, 0, 64, 64);
 }
 
@@ -272,20 +321,32 @@ int App::run() {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
         glViewport(0, 0, fb_width, fb_height);
         update_projection_matrix();
 
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, 4.0f);
+        auto shader_phong = shader_library.at("phong");
 
-        auto simple_uniform_shader = shader_library.at("simple_uniform_shader"); // crated a copy of shared pointer. Shader is guaranteed to live.
-        auto rainbow_shader = shader_library.at("rainbow"); // crated a copy of shared pointer. Shader is guaranteed to live.
+
+        camera.Position = glm::vec3(-10.0f, 6.0f, 1.2f);
+        camera.Yaw = 90.f;
+        camera.ProcessMouseMovement(0, 0);
+        scene.camera = &camera;
+
+        scene.set_light(0, glm::vec4(-0.75f, -1.f, -0.333f, 0.f), glm::vec4(0.45f, 0.33f, 0.18f, 1.f), 1.f, 0.f); // sun
+        scene.set_light(1, glm::vec4(-1.f, 2.f, -2.f, 1.f), glm::vec4(1.f, 0.f, 0.f, 1.f), 0.15f, 180.f);
+        scene.set_light(2, glm::vec4(-5.5f, 2.6f, 0.f, 1.f), glm::vec4(0.f, 1.f, 0.f, 1.f), 0.10f, 180.f);
+        scene.set_light(3, glm::vec4(0.f, 2.f, 3.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), 0.07f, 180.f);
+        scene.active_lights = 4;
 
         float rotation_speed = 0.f;
+        int debugMode = 0;
 
-        glClearColor(0.2f, 0.2f, 0.2f, 1);
+        glClearColor(0.1f, 0.1f, 0.1f, 1);
         double last_time = -1 / 60.0;
         double last_fps_time = 0.0;
 
@@ -294,7 +355,6 @@ int App::run() {
             bool should_draw_gui = app_settings.gui_enabled || app_settings.gui_always_enabled;
             // ImGui prepare render (only if required)
             if (should_draw_gui) {
-
                 imgui->new_frame();
                 imgui->gui_begin();
                 if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
@@ -322,13 +382,16 @@ int App::run() {
                     }
                     ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
 
+
+                    ImGui::SliderInt("DebugMode", &debugMode, 0, 10);
+
                     ImGui::Text("Camera:");
                     ImGui::Text("x: %.2f | y: %.2f | z: %.2f", camera.Position.x, camera.Position.y, camera.Position.z);
                     ImGui::Text("pitch: %.1f | yaw: %.1f", camera.Pitch, camera.Yaw);
 
                     if (ImGui::TreeNode("Scene")) {
                         size_t i = 0;
-                        for (auto& [name, model] : scene) {
+                        for (auto& [name, model] : scene.models) {
                             {
                                 ImGui::PushID(i);
                                 if (ImGui::TreeNode("", name.c_str())) {
@@ -338,6 +401,18 @@ int App::run() {
                                 ImGui::PopID();
                                 i++;
                             }
+                        }
+                        ImGui::TreePop();
+                    }
+                    if (ImGui::TreeNode("Lights")) {
+                        ImGui::SliderInt("Active", &scene.active_lights, 0, 16);
+                        for (size_t i = 0; i < MAX_LIGHTS; i++) {
+                            ImGui::PushID(i);
+                            if (ImGui::TreeNode("", "light[%d]", i)) {
+                                AppImGui::light_controls(&scene.lights, i);
+                                ImGui::TreePop();
+                            }
+                            ImGui::PopID();
                         }
                         ImGui::TreePop();
                     }
@@ -358,23 +433,38 @@ int App::run() {
             //########## react to user  ##########
             camera.Position += camera.ProcessInput(window, delta_time); // process keys etc.
 
-            HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
-            RGB value = HSLToRGB(data);
-            simple_uniform_shader->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
+            // HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
+            // RGB value = HSLToRGB(data);
+            // resources.getShader(simple_uniform_shader)->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
 
-            rainbow_shader->setUniform("iTime", (float)now);
+            // resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
 
             //########## create and set View Matrix according to camera settings  ##########
-            for (auto& [_, shader] : shader_library) {
+            for (auto& [_, shaderHandle] : shader_library) {
+                auto shader = resources.getShader(shaderHandle);
+                if (!shader) continue;
                 shader->setUniform("uV_m", camera.GetViewMatrix());
                 shader->setUniform("uP_m", projection_matrix);
             }
 
-            for (auto&& [_, model] : scene) {
+            auto shader_phong = resources.getShader(shader_library.at("phong"));
+            if (shader_phong) {
+                shader_phong->setUniform("active_lights", scene.active_lights);
+                shader_phong->setUniform("debugMode", debugMode);
+                for (size_t i = 0; i < scene.active_lights; i++) {
+                    shader_phong->setUniform(std::format("lights.position[{}]", i), scene.lights.position[i]);
+                    shader_phong->setUniform(std::format("lights.color[{}]", i), scene.lights.color[i]);
+                    shader_phong->setUniform(std::format("lights.attenuation[{}]", i), scene.lights.attenuation[i]);
+                    shader_phong->setUniform(std::format("lights.spotCutoff[{}]", i), scene.lights.spotCutoff[i]);
+                }
+            }
+
+            for (auto&& [_, model] : scene.models) {
                 model.rotate(glm::vec3(17.f * rotation_speed * delta_time, 31.f * rotation_speed * delta_time, 11.f * rotation_speed * delta_time));
                 model.update(delta_time);
-                model.draw();
             }
+
+            renderer.render(&resources, &scene);
 
             if (app_settings.gui_axis_display_enabled)
                 axis_display.draw(camera);
@@ -387,7 +477,9 @@ int App::run() {
 
             if (screenshot != 0) {
                 static int saved_msaa = -1;
-                std::string ss = app_settings.msaa_enabled == 1 ? "msaa.png" : "nomsaa.png";
+
+                std::string ss = std::format("screenshots/{:%Y-%m-%d_%H-%M-%S}", std::chrono::system_clock::now());
+                ss += (app_settings.msaa_enabled == 1 ? "_msaa-on.png" : "_msaa-off.png");
                 take_screenshot(ss);
                 if (screenshot == 2) {
                     screenshot = 0;
@@ -518,10 +610,18 @@ void App::set_msaa(bool value) {
 }
 
 void App::take_screenshot(std::string path) {
-    GLMat framebuffer(fb_height, fb_width, GL_8UC3);
-    glReadPixels(0, 0, fb_width, fb_height, GL_RGB, GL_UNSIGNED_BYTE, framebuffer.data());
+    GLMat framebuffer(fb_height, fb_width, GL_8UC4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, fb_width, fb_height, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer.data());
 
-    if (imwrite(path, framebuffer, 1) == 0) {
+    std::filesystem::path filePath(path);
+
+    auto dir = filePath.parent_path();
+    if (!dir.empty()) {
+        std::filesystem::create_directories(dir);
+    }
+
+    if (imwrite(filePath.string(), framebuffer, 1) == 0) {
         std::cout << "Failed to save screenshot! (path:\"" << path << "\")" << std::endl;
     }
 }
@@ -545,6 +645,8 @@ void App::update_projection_matrix(void) {
 
 App::~App() {
     settings::save("settings.json", app_settings);
+
+    if (scene.skybox) delete scene.skybox;
 
     delete imgui;
 }

@@ -1,4 +1,4 @@
-#include "Mesh.hpp"
+#include "engine/rendering/Mesh.hpp"
 
 // Created by JJ, based on https://www.cs.umd.edu/gvil/papers/av_ts.pdf
 // Unit cube

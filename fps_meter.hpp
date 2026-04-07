@@ -4,6 +4,8 @@
 #include <limits>
 #include <deque>
 #include <memory>
+#include <numeric>
+#include <algorithm>
 
 using namespace std::chrono_literals;
 

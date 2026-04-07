@@ -9,12 +9,12 @@
 #include <stdexcept>
 
 
-GLMat imread(const std::string& path) {
+GLMat imread(const std::string& path, int flag_true_if_should_flip) {
     int width, height, channels;
 
     bool is_16bit = stbi_is_16_bit(path.c_str());
 
-    stbi_set_flip_vertically_on_load(1);
+    stbi_set_flip_vertically_on_load(flag_true_if_should_flip);
 
     if (!is_16bit) {
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
@@ -68,14 +68,14 @@ GLMat imread(const std::string& path) {
 
 int imwrite(const std::string& path, GLMat image, int flip) {
     int ch = channels(image.type());
-    int stride_in_bytes = channelSize(image.type()) * ch  * image.cols;
+    int stride_in_bytes = channelSize(image.type()) * ch  * image.width;
 
     stbi_flip_vertically_on_write(flip);
 
     int result = stbi_write_png(
         path.c_str(),
-        image.cols,
-        image.rows,
+        image.width,
+        image.height,
         ch,
         reinterpret_cast<const void*>(image.data()),
         stride_in_bytes

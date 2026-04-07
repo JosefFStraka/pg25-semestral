@@ -7,7 +7,7 @@
 #include <GL/glew.h> 
 #include <glm/glm.hpp>
 
-#include "non_copyable.hpp"
+#include "NonCopyable.hpp"
 
 class ShaderProgram : private NonCopyable {
 public:

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Model.hpp"
+#include "Scene.hpp"
+#include "ModelInstance.hpp"
 
 struct GLFWwindow;
 
@@ -21,7 +22,8 @@ public:
 
     bool debug_window_open = false;
 
-    static void model_controls(Model * const model);
+    static void model_controls(ModelInstance * const model);
+    static void light_controls(s_lights * lights, int i);
 private:
     GLFWwindow* window = nullptr;
 };

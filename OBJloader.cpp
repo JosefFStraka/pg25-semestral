@@ -32,13 +32,11 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
 }
 
 bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertices, std::vector<GLuint>& indices) {
-	std::cout << "Loading model: " << filename.string() << std::endl;
+	//std::cout << "Loading model: " << filename.string() << std::endl;
 
 	std::vector< glm::vec3 > temp_vertices;
 	std::vector< glm::vec2 > temp_uvs;
 	std::vector< glm::vec3 > temp_normals;
-
-	std::unordered_map<Vertex, GLuint, VertexHasher> vertexCache;
 
 	vertices.clear();
 	indices.clear();
@@ -152,24 +150,17 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 				};
 
 				for (int k = 0; k < 3; k++) {
-					//auto it = vertexCache.find(tri[k]);
 					GLuint index;
 
-					//if (it == vertexCache.end()) {
-						index = vertices.size();
-						vertices.push_back(tri[k]);
-						vertexCache[tri[k]] = index;
-					//} else {
-					//	index = it->second;
-					//}
-
+					index = vertices.size();
+					vertices.push_back(tri[k]);
 					indices.push_back(index);
 				}
 			}
 		}
 	}
 
-	std::cout << "Model loaded: " << filename.string() << std::endl;
+	//std::cout << "Model loaded: " << filename.string() << std::endl;
 
 	fclose(file);
 	return true;

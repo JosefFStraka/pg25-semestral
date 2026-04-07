@@ -3,16 +3,20 @@
 #include <chrono>
 #include <vector>
 
+#include "fps_meter.hpp"
+
+#include "engine/resources/ResourceManager.hpp"
+#include "engine/rendering/Renderer.hpp"
+#include "engine/rendering/ShaderProgram.hpp"
+#include "engine/rendering/Mesh.hpp"
+
 #include "assets.hpp"
 #include "AxisDisplay.hpp"
 #include "settings.hpp"
 #include "colors.hpp"
 #include "app_imgui.hpp"
-#include "fps_meter.hpp"
-#include "ShaderProgram.hpp"
-#include "Mesh.hpp"
-#include "Model.hpp"
-#include "OBJloader.hpp"
+
+#include "ModelInstance.hpp"
 #include "camera.hpp"
 
 #include <GL/glew.h> 
@@ -87,14 +91,12 @@ private:
     AxisDisplay axis_display;
     fps_meter FPS;
 
-    std::unordered_map<std::string, std::shared_ptr<Texture>> texture_library;
+    ResourceManager resources;
+    Renderer renderer;
 
-    // shared library of shaders for all models, automatic resource management 
-    std::unordered_map<std::string, std::shared_ptr<ShaderProgram>> shader_library;
+    std::unordered_map<std::string, ResourceHandle<Texture>> texture_library;
+    std::unordered_map<std::string, ResourceHandle<Mesh>> mesh_library;
+    std::unordered_map<std::string, ResourceHandle<ShaderProgram>> shader_library;
 
-    // shared library of meshes for all models, automatic resource management 
-    std::unordered_map<std::string, std::shared_ptr<Mesh>> mesh_library;
-
-    // all objects of the scene addressable by name
-    std::unordered_map<std::string, Model> scene; 
+    Scene scene;
 };

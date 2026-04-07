@@ -68,8 +68,8 @@ struct PixelRef {
 // --- GLMat class ---
 class GLMat {
 public:
-    int rows = 0;
-    int cols = 0;
+    int height = 0;
+    int width = 0;
 
 private:
     GLMatType _type;
@@ -79,39 +79,39 @@ public:
     // --- Constructors ---
     GLMat() : _type(GL_8UC1) {}
 
-    GLMat(int r, int c, GLMatType type)
-        : rows(r), cols(c), _type(type) {
-        _data.resize(rows * cols * channels(_type));
+    GLMat(int h, int w, GLMatType type)
+        : height(h), width(w), _type(type) {
+        _data.resize(height * width * channels(_type));
     }
 
     // Fill constructor (like cv::Mat(..., value))
-    GLMat(int r, int c, GLMatType type, const GLubyte* value)
-        : rows(r), cols(c), _type(type) {
+    GLMat(int h, int w, GLMatType type, const GLubyte* value)
+        : height(h), width(w), _type(type) {
         int ch = channels(_type);
-        _data.resize(rows * cols * ch);
+        _data.resize(height * width * ch);
 
-        for (int i = 0; i < rows * cols; ++i) {
+        for (int i = 0; i < height * width; ++i) {
             std::memcpy(&_data[i * ch], value, ch);
         }
     }
     // Fill constructor (like cv::Mat(..., value))
-    GLMat(int r, int c, GLMatType type, const glm::vec3 value)
-        : rows(r), cols(c), _type(type) {
+    GLMat(int h, int w, GLMatType type, const glm::vec3 value)
+        : height(h), width(w), _type(type) {
         int ch = channels(_type);
-        _data.resize(rows * cols * ch);
+        _data.resize(height * width * ch);
 
-        for (int i = 0; i < rows * cols; ++i) {
+        for (int i = 0; i < height * width; ++i) {
             for (int j = 0; j < ch; j++) {
                 _data[i * ch + j] = static_cast<GLubyte>(value[j] * 255.0f);
             }
         }
     }
-    GLMat(int r, int c, GLMatType type, const glm::vec4 value)
-        : rows(r), cols(c), _type(type) {
+    GLMat(int h, int w, GLMatType type, const glm::vec4 value)
+        : height(h), width(w), _type(type) {
         int ch = channels(_type);
-        _data.resize(rows * cols * ch);
+        _data.resize(height * width * ch);
 
-        for (int i = 0; i < rows * cols; ++i) {
+        for (int i = 0; i < height * width; ++i) {
             for (int j = 0; j < ch; j++) {
                 _data[i * ch + j] = static_cast<GLubyte>(value[j] * 255.0f);
             }
@@ -136,21 +136,21 @@ public:
     }
 
     // --- Element access ---
-    PixelRef at(int r, int c) {
-        checkBounds(r, c);
+    PixelRef at(int h, int w) {
+        checkBounds(h, w);
         int ch = channels(_type);
-        return PixelRef{ &_data[(r * cols + c) * ch], ch };
+        return PixelRef{ &_data[(h * width + w) * ch], ch };
     }
 
-    const PixelRef at(int r, int c) const {
-        checkBounds(r, c);
+    const PixelRef at(int h, int w) const {
+        checkBounds(h, w);
         int ch = channels(_type);
-        return PixelRef{ const_cast<GLubyte*>(&_data[(r * cols + c) * ch]), ch };
+        return PixelRef{ const_cast<GLubyte*>(&_data[(h * width + w) * ch]), ch };
     }
 
 private:
-    void checkBounds(int r, int c) const {
-        if (r < 0 || r >= rows || c < 0 || c >= cols) {
+    void checkBounds(int h, int w) const {
+        if (h < 0 || h >= height || w < 0 || w >= width) {
             throw std::out_of_range("GLMat index out of range");
         }
     }
