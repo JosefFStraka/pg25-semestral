@@ -15,16 +15,20 @@ public:
             modelInst.prepare();
 
             auto modelRes = resourceManager->getModel(modelInst.model);
+            if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
                 auto mesh = resourceManager->getMesh(meshPkg.mesh);
+                if (!mesh) continue;
                 auto shader = resourceManager->getShader(meshPkg.shader);
+                if (!shader) continue;
+                auto tex = resourceManager->getTexture(meshPkg.texture);
+                if (!tex) continue;
 
                 shader->use();
                 glm::mat4 mesh_model_matrix = modelInst.createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
                 shader->setUniform("uM_m", mesh_model_matrix * modelInst.local_model_matrix);
 
-                auto tex = resourceManager->getTexture(meshPkg.texture);
                 tex->bind();
                 //shader->setUniform("tex0", 0);
 
@@ -36,7 +40,7 @@ public:
     }
 
     void drawSkybox(ResourceManager* resourceManager, Skybox* skybox) {
-        if (!skybox) 
+        if (!skybox)
             return;
 
         auto mesh = resourceManager->getMesh(skybox->mesh_);
@@ -52,9 +56,9 @@ public:
     }
 
     void drawMesh(Mesh* mesh) {
-        if (!mesh) 
+        if (!mesh)
             return;
-            
+
         mesh->bind();
         if (mesh->hasEbo()) {
             glDrawElements(mesh->getPrimitiveType(), mesh->getIndexCount(), GL_UNSIGNED_INT, nullptr);

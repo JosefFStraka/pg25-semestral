@@ -9,7 +9,7 @@
 template<typename T>
 class ResourceStorage {
 public:
-    using loader_fn = std::function<std::unique_ptr<T>(const std::string&)>;
+    using loader_fn = std::function<void(ResourceEntry<T>*,  const std::string&)>;
     void setLoader(loader_fn loader) {
         loader_ = loader;
     }
@@ -42,7 +42,7 @@ public:
 
         std::unique_ptr<T> resource = std::make_unique<T>(std::forward<Args>(args)...);
 
-        entries_[id] = { path, std::move(resource) };
+        entries_[id] = { path, std::move(resource), ResourceEntry<T>::state::Ready  };
 
         ResourceHandle<T> res = ResourceHandle<T>(id);
 
@@ -56,12 +56,15 @@ public:
     T* get(ResourceHandle<T> handle) {
         auto& entry = entries_.at(handle.get_id());
 
-        if (!entry.data) {
+        if (entry.state == ResourceEntry<T>::state::None) {
             if (!loader_) {
-                throw std::runtime_error("No loader set for resource type");
+                entry.state = ResourceEntry<T>::state::Error;
+                //throw std::runtime_error("No loader set for resource type");
+                return nullptr;
             }
+            entry.state = ResourceEntry<T>::state::Loading;
 
-            entry.data = loader_(entry.path);
+            loader_(&entry, entry.path);
         }
 
         return entry.data.get();

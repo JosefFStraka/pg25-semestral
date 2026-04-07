@@ -273,7 +273,7 @@ void App::init_assets(void) {
     auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
     {
         ModelInstance bunny = createModelInstance(bunnyHandle);
-        bunny.setPosition(glm::vec3(0.2f, -0.5f, 0.f));
+        bunny.setPosition(glm::vec3(4.2f, -0.5f, 0.f));
         bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
         bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
         scene.models.emplace("bunny", bunny);
@@ -290,7 +290,7 @@ void App::init_assets(void) {
     {
         ModelInstance sponza = createModelInstance(sponzaHandle);
         sponza.setScale(glm::vec3(0.01f, 0.01f, 0.01f));
-        //scene.models.emplace("sponza", sponza);
+        scene.models.emplace("sponza", sponza);
     }
 
     std::string base_path = "../resources/textures/skyboxes/vylety_20260403_cubemap/";
@@ -323,7 +323,10 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(0.0f, 0.0f, 4.0f);
+        camera.Position = glm::vec3(-10.0f, 6.0f, 1.2f);
+        camera.Yaw = 90.f;
+        camera.ProcessMouseMovement(0,0);
+        scene.camera = &camera;
 
         float rotation_speed = 0.f;
 
@@ -409,6 +412,7 @@ int App::run() {
             //########## create and set View Matrix according to camera settings  ##########
             for (auto& [_, shaderHandle] : shader_library) {
                 auto shader = resources.getShader(shaderHandle);
+                if (shader == nullptr) continue;
                 shader->setUniform("uV_m", camera.GetViewMatrix());
                 shader->setUniform("uP_m", projection_matrix);
             }
@@ -431,7 +435,9 @@ int App::run() {
 
             if (screenshot != 0) {
                 static int saved_msaa = -1;
-                std::string ss = app_settings.msaa_enabled == 1 ? "msaa.png" : "nomsaa.png";
+
+                std::string ss = std::format("screenshots/{:%Y-%m-%d_%H-%M-%S}", std::chrono::system_clock::now());
+                ss += (app_settings.msaa_enabled == 1 ? "_msaa-on.png" : "_msaa-off.png");
                 take_screenshot(ss);
                 if (screenshot == 2) {
                     screenshot = 0;
@@ -564,7 +570,14 @@ void App::take_screenshot(std::string path) {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, fb_width, fb_height, GL_RGBA, GL_UNSIGNED_BYTE, framebuffer.data());
 
-    if (imwrite(path, framebuffer, 1) == 0) {
+    std::filesystem::path filePath(path);
+
+    auto dir = filePath.parent_path();
+    if (!dir.empty()) {
+        std::filesystem::create_directories(dir);
+    }
+
+    if (imwrite(filePath.string(), framebuffer, 1) == 0) {
         std::cout << "Failed to save screenshot! (path:\"" << path << "\")" << std::endl;
     }
 }

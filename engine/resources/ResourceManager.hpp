@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <iostream>
 #include <memory>
+#include <future>
+#include <queue>
 
 #include "ResourceHandle.hpp"
 #include "ResourceEntry.hpp"
@@ -12,22 +14,31 @@
 #include "../OBJloader.hpp"
 #include "../../ModelResource.hpp"
 
+struct MeshData {
+    std::vector<Vertex> vertices;
+    std::vector<GLuint> indices;
+};
+
 class ResourceManager {
 public:
     ResourceManager() {
         textures_.setLoader(
-            [](const std::string& path) {
-                return std::make_unique<Texture>(path);
+            [](ResourceEntry<Texture>* data, const std::string& path) {
+                data->data = std::make_unique<Texture>(path);
+                data->state = ResourceEntry<Texture>::state::Ready;
             });
         meshes_.setLoader(
-            [](const std::string& path) {
-                std::vector<Vertex> vertices;
-                std::vector<GLuint> indices;
-                if (!loadOBJ(path, vertices, indices)) {
-                    std::cout << "Loading failed: " << path << std::endl;
-                }
+            [this](ResourceEntry<Mesh>* data, const std::string& path) {
+                jobs_.push_back(std::async(std::launch::async, [this, data, path]() {
+                    MeshData md;
 
-                return std::make_unique<Mesh>(vertices, indices, GL_TRIANGLES);
+                    if (!loadOBJ(path, md.vertices, md.indices)) {
+                        std::cout << "Failed: " << path << std::endl;
+                        return;
+                    }
+
+                    completedMesh_.push({data, md});
+                }));
             });
 
         //no lazy load for shader yet
@@ -78,9 +89,22 @@ public:
         return models_.create(std::make_unique<ModelResource>(std::move(model)), path);
     }
     ModelResource* getModel(ResourceHandle<ModelResource> handle) {
+        while (!completedMesh_.empty())
+        {
+            auto x = completedMesh_.front();
+            completedMesh_.pop();
+            x.first->data = std::make_unique<Mesh>(x.second.vertices, x.second.indices, GL_TRIANGLES);
+            x.first->state = ResourceEntry<Mesh>::state::Ready;
+        }
+        
+
         return models_.get(handle);
     }
 private:
+    // quick and dirty
+    std::vector<std::future<void>> jobs_;
+    std::queue<std::pair<ResourceEntry<Mesh>*, MeshData>> completedMesh_;
+
     ResourceStorage<Texture> textures_;
     ResourceStorage<Mesh> meshes_;
     ResourceStorage<ShaderProgram> shaders_;
