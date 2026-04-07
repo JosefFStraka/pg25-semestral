@@ -116,3 +116,14 @@ void AppImGui::model_controls(ModelInstance* const model) {
         model->parameters_modified = true;
     }
 }
+
+void AppImGui::light_controls(s_lights * lights, int i) {
+    bool modified = false;
+    ImGui::SliderFloat("x", &lights->position[i].x, -10.f, 10.f);
+    ImGui::SliderFloat("y", &lights->position[i].y, -10.f, 10.f);
+    ImGui::SliderFloat("z", &lights->position[i].z, -10.f, 10.f);
+    ImGui::SliderFloat("w", &lights->position[i].w, 0.f, 1.f);
+    ImGui::ColorPicker3("Color", &lights->color[i].r);
+    ImGui::SliderFloat("Attenuation", &lights->attenuation[i], 0.f, 1.f);
+    ImGui::SliderFloat("spotCutoff", &lights->spotCutoff[i], 0.f, 180.f);
+}

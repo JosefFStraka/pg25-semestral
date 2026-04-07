@@ -217,7 +217,7 @@ void App::init_assets(void) {
     mesh_library.emplace("cube", resources.registerMesh("../engine/assets/meshes/cube.obj"));
     mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
     mesh_library.emplace("triangle", resources.registerMesh("../resources/04/2d_obj_samples/triangle.obj"));
-    mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/teapot_tri_vnt.obj"));
+    mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/teapot_tri_vnt.obj"));
     mesh_library.emplace("bunny", resources.registerMesh("../resources/pepa/bunny/bunny.obj"));
     mesh_library.emplace("dragon", resources.registerMesh("../resources/pepa/dragon/dragon.obj"));
     mesh_library.emplace("sponza", resources.registerMesh("../resources/pepa/sponza/sponza.obj"));
@@ -254,21 +254,19 @@ void App::init_assets(void) {
         scene.models.emplace("m_box_texture", m_box_texture);
     }
 
-    // Model m_triangle;
-    // m_triangle.addMesh(mesh_library.at("triangle"), texture_library.at("white"), shader_library.at("simple_uniform_shader"));
-    // // scene.models.emplace("m_triangle", m_triangle);
-
-    // Model m_cube;
-    // m_cube.addMesh(mesh_library.at("cube"), texture_library.at("white"), shader_library.at("rainbow"));
-    // // scene.models.emplace("m_cube", m_cube);
 
     // Model m_teapot;
     // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("default"), shader_library.at("tex"));
     // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
     // //scene.models.emplace("m_teapot", m_teapot);
 
-    // // bigger moddels, takes longer to load
-
+    auto teapotHandle = createSimpleModel(resources, mesh_library.at("teapot_tri_vnt"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
+    {
+        ModelInstance teapot = createModelInstance(teapotHandle);
+        teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
+        teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        scene.models.emplace("teapot", teapot);
+    }
 
     auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
     {
@@ -282,14 +280,16 @@ void App::init_assets(void) {
     auto dragonHandle = createSimpleModel(resources, mesh_library.at("dragon"), texture_library.at("default"), shader_library.at("phong"));
     {
         ModelInstance dragon = createModelInstance(dragonHandle);
+        dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
         dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-        //scene.models.emplace("dragon", dragon);
+        scene.models.emplace("dragon", dragon);
     }
 
     auto sponzaHandle = createSimpleModel(resources, mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("phong"));
     {
         ModelInstance sponza = createModelInstance(sponzaHandle);
-        sponza.setScale(glm::vec3(0.01f, 0.01f, 0.01f));
+        sponza.setScale(glm::vec3(0.02f, 0.02f, 0.02f));
+        sponza.setPosition(glm::vec3(0.0f, -1.f, 0.0f));
         scene.models.emplace("sponza", sponza);
     }
 
@@ -323,14 +323,24 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
+        auto shader_phong = shader_library.at("phong");
+
+
         camera.Position = glm::vec3(-10.0f, 6.0f, 1.2f);
         camera.Yaw = 90.f;
-        camera.ProcessMouseMovement(0,0);
+        camera.ProcessMouseMovement(0, 0);
         scene.camera = &camera;
 
-        float rotation_speed = 0.f;
+        scene.set_light(0, glm::vec4(-0.75f, -1.f, -0.333f, 0.f), glm::vec4(0.45f, 0.33f, 0.18f, 1.f), 1.f, 0.f); // sun
+        scene.set_light(1, glm::vec4(-1.f, 2.f, -2.f, 1.f), glm::vec4(1.f, 0.f, 0.f, 1.f), 0.15f, 180.f);
+        scene.set_light(2, glm::vec4(-5.5f, 2.6f, 0.f, 1.f), glm::vec4(0.f, 1.f, 0.f, 1.f), 0.10f, 180.f);
+        scene.set_light(3, glm::vec4(0.f, 2.f, 3.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), 0.07f, 180.f);
+        scene.active_lights = 4;
 
-        glClearColor(0.2f, 0.2f, 0.2f, 1);
+        float rotation_speed = 0.f;
+        int debugMode = 0;
+
+        glClearColor(0.1f, 0.1f, 0.1f, 1);
         double last_time = -1 / 60.0;
         double last_fps_time = 0.0;
 
@@ -339,7 +349,6 @@ int App::run() {
             bool should_draw_gui = app_settings.gui_enabled || app_settings.gui_always_enabled;
             // ImGui prepare render (only if required)
             if (should_draw_gui) {
-
                 imgui->new_frame();
                 imgui->gui_begin();
                 if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
@@ -367,6 +376,9 @@ int App::run() {
                     }
                     ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
 
+
+                    ImGui::SliderInt("DebugMode", &debugMode, 0, 10);
+
                     ImGui::Text("Camera:");
                     ImGui::Text("x: %.2f | y: %.2f | z: %.2f", camera.Position.x, camera.Position.y, camera.Position.z);
                     ImGui::Text("pitch: %.1f | yaw: %.1f", camera.Pitch, camera.Yaw);
@@ -383,6 +395,18 @@ int App::run() {
                                 ImGui::PopID();
                                 i++;
                             }
+                        }
+                        ImGui::TreePop();
+                    }
+                    if (ImGui::TreeNode("Lights")) {
+                        ImGui::SliderInt("Active", &scene.active_lights, 0, 16);
+                        for (size_t i = 0; i < MAX_LIGHTS; i++) {
+                            ImGui::PushID(i);
+                            if (ImGui::TreeNode("", "light[%d]", i)) {
+                                AppImGui::light_controls(&scene.lights, i);
+                                ImGui::TreePop();
+                            }
+                            ImGui::PopID();
                         }
                         ImGui::TreePop();
                     }
@@ -412,9 +436,21 @@ int App::run() {
             //########## create and set View Matrix according to camera settings  ##########
             for (auto& [_, shaderHandle] : shader_library) {
                 auto shader = resources.getShader(shaderHandle);
-                if (shader == nullptr) continue;
+                if (!shader) continue;
                 shader->setUniform("uV_m", camera.GetViewMatrix());
                 shader->setUniform("uP_m", projection_matrix);
+            }
+
+            auto shader_phong = resources.getShader(shader_library.at("phong"));
+            if (shader_phong) {
+                shader_phong->setUniform("active_lights", scene.active_lights);
+                shader_phong->setUniform("debugMode", debugMode);
+                for (size_t i = 0; i < scene.active_lights; i++) {
+                    shader_phong->setUniform(std::format("lights.position[{}]", i), scene.lights.position[i]);
+                    shader_phong->setUniform(std::format("lights.color[{}]", i), scene.lights.color[i]);
+                    shader_phong->setUniform(std::format("lights.attenuation[{}]", i), scene.lights.attenuation[i]);
+                    shader_phong->setUniform(std::format("lights.spotCutoff[{}]", i), scene.lights.spotCutoff[i]);
+                }
             }
 
             for (auto&& [_, model] : scene.models) {

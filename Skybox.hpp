@@ -4,9 +4,9 @@
 
 #include "engine/resources/ResourceHandle.hpp"
 #include "engine/rendering/Mesh.hpp"
+#include "engine/rendering/ShaderProgram.hpp"
 
 #include "CubeMapTexture.hpp"
-#include "ShaderProgram.hpp"
 
 class Skybox {
 public:
