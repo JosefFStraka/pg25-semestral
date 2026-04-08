@@ -329,19 +329,18 @@ int App::run() {
 
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        auto shader_phong = shader_library.at("phong");
-
-
         camera.Position = glm::vec3(-10.0f, 6.0f, 1.2f);
         camera.Yaw = 90.f;
         camera.ProcessMouseMovement(0, 0);
         scene.camera = &camera;
 
-        scene.set_light(0, glm::vec4(-0.75f, -1.f, -0.333f, 0.f), glm::vec4(0.45f, 0.33f, 0.18f, 1.f), 1.f, 0.f); // sun
+        scene.set_light(0, glm::vec4(-0.75f, -1.f, -0.333f, 0.f), glm::vec4(0.45f, 0.45f, 0.45f, 1.f), 1.f, 0.f); // sun
         scene.set_light(1, glm::vec4(-1.f, 2.f, -2.f, 1.f), glm::vec4(1.f, 0.f, 0.f, 1.f), 0.15f, 180.f);
         scene.set_light(2, glm::vec4(-5.5f, 2.6f, 0.f, 1.f), glm::vec4(0.f, 1.f, 0.f, 1.f), 0.10f, 180.f);
         scene.set_light(3, glm::vec4(0.f, 2.f, 3.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), 0.07f, 180.f);
         scene.active_lights = 4;
+
+        auto phongShaderHandle = shader_library.at("phong");
 
         float rotation_speed = 0.f;
         int debugMode = 0;
@@ -376,10 +375,12 @@ int App::run() {
 
                     ImGui::Separator();
 
-                    ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
+                    // ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
                     if (ImGui::SliderFloat("FoV", &this->fov, 20.f, 180.f)) {
                         update_projection_matrix();
                     }
+                    ImGui::SliderFloat("Camera speed", &scene.camera->MovementSpeed, 0.f, 10.f);
+
                     ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
 
 
@@ -447,7 +448,7 @@ int App::run() {
                 shader->setUniform("uP_m", projection_matrix);
             }
 
-            auto shader_phong = resources.getShader(shader_library.at("phong"));
+            auto shader_phong = resources.getShader(phongShaderHandle);
             if (shader_phong) {
                 shader_phong->setUniform("active_lights", scene.active_lights);
                 shader_phong->setUniform("debugMode", debugMode);

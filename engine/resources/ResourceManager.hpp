@@ -30,15 +30,16 @@ public:
         meshes_.setLoader(
             [this](ResourceEntry<Mesh>* data, const std::string& path) {
                 jobs_.push_back(std::async(std::launch::async, [this, data, path]() {
-                    MeshData md;
+                    MeshData* md = new MeshData();
 
-                    if (!loadOBJ(path, md.vertices, md.indices)) {
+                    if (!loadOBJ(path, md->vertices, md->indices)) {
                         std::cout << "Failed: " << path << std::endl;
                         return;
                     }
 
-                    completedMesh_.push({data, md});
-                }));
+                    std::unique_lock<std::mutex> lock(completedMeshMutex_);
+                    completedMesh_.push({ data, md });
+                    }));
             });
 
         //no lazy load for shader yet
@@ -89,21 +90,23 @@ public:
         return models_.create(std::make_unique<ModelResource>(std::move(model)), path);
     }
     ModelResource* getModel(ResourceHandle<ModelResource> handle) {
-        while (!completedMesh_.empty())
-        {
+        std::unique_lock<std::mutex> lock(completedMeshMutex_);
+        while (!completedMesh_.empty()) {
             auto x = completedMesh_.front();
-            completedMesh_.pop();
-            x.first->data = std::make_unique<Mesh>(x.second.vertices, x.second.indices, GL_TRIANGLES);
+
+            x.first->data = std::make_unique<Mesh>(x.second->vertices, x.second->indices, GL_TRIANGLES);
             x.first->state = ResourceEntry<Mesh>::state::Ready;
+            delete x.second;
+            completedMesh_.pop();
         }
-        
 
         return models_.get(handle);
     }
 private:
     // quick and dirty
     std::vector<std::future<void>> jobs_;
-    std::queue<std::pair<ResourceEntry<Mesh>*, MeshData>> completedMesh_;
+    std::queue<std::pair<ResourceEntry<Mesh>*, MeshData*>> completedMesh_;
+    std::mutex completedMeshMutex_;
 
     ResourceStorage<Texture> textures_;
     ResourceStorage<Mesh> meshes_;
