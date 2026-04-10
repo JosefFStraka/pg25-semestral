@@ -273,6 +273,7 @@ void App::init_assets(void) {
         ModelInstance teapot = createModelInstance(teapotHandle);
         teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
         teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        teapot.is_transparent = true;
         scene.models.emplace("teapot", teapot);
     }
 
@@ -282,6 +283,7 @@ void App::init_assets(void) {
         bunny.setPosition(glm::vec3(4.2f, -0.5f, 0.f));
         bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
         bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+        bunny.is_transparent = true;
         scene.models.emplace("bunny", bunny);
     }
 
@@ -326,8 +328,6 @@ void App::init_assets(void) {
 // MARK: RUN
 int App::run() {
     try {
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
 
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -448,6 +448,7 @@ int App::run() {
 
             auto shader_phong = resources.getShader(phongShaderHandle);
             if (shader_phong) {
+                shader_phong->setUniform("uAplha", 0.5f);
                 shader_phong->setUniform("active_lights", scene.active_lights);
                 shader_phong->setUniform("debugMode", debugMode);
                 for (size_t i = 0; i < scene.active_lights; i++) {

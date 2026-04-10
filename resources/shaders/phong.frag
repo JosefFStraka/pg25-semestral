@@ -23,6 +23,7 @@ uniform float specular_shinines = 18.0;
 uniform vec3 radiation = vec3(0.0);
 
 uniform int debugMode = 0;
+uniform float uAplha = 1.0;
 
 uniform sampler2D tex_diffuse;
 
@@ -99,6 +100,10 @@ void main()
     vec3 N = normalize(fs_in.N);
     vec3 V = normalize(-fs_in.V);
 
+    if(!gl_FrontFacing) {  // transparent, backface culling is OFF => backface is rasterized 
+        N = -N;
+    }
+
     vec4 accumulator = vec4(0.0);    
     for (int i = 0; i < active_lights; i++) {        
         if (lights.position[i].w == 0.0)
@@ -111,7 +116,7 @@ void main()
 
     vec4 finalColor = vec4(0.7);
     if (debugMode == 0)
-        finalColor = vec4(radiation + accumulator.rgb * albedo, 1.0);
+        finalColor = vec4(radiation + accumulator.rgb * albedo, uAplha);
     else if (debugMode == 1)
         finalColor = vec4(N * 0.5 + 0.5, 1.0);
     else if (debugMode == 2)

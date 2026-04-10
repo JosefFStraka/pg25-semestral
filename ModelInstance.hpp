@@ -30,6 +30,9 @@ public:
     bool parameters_modified{ true };
     glm::mat4 local_model_matrix{ 1.0 }; //cache, and for complex transformations (default = identity) 
 
+    bool is_transparent {false};
+    bool enabled {true};
+
     glm::mat4 createMM(const glm::vec3& origin, const glm::vec3& eAng, const glm::vec3& scale) {
         // keep angles in proper range
         glm::vec3 eA{ wrapAngle(eAng.x), wrapAngle(eAng.y), wrapAngle(eAng.z) };
@@ -92,6 +95,11 @@ public:
         scale *= scale_offs;
         parameters_modified = true;
     }
+
+    glm::vec3 getPosition() { 
+        // get 3 values from last column of cached model matrix = translation
+        return glm::vec3(local_model_matrix[3]);
+    }  
 
     void force_mm_update() {
         local_model_matrix = createMM(pivot_position, eulerAngles, scale);

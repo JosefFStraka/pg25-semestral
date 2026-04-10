@@ -91,6 +91,9 @@ AppImGui::~AppImGui() {
 
 void AppImGui::model_controls(ModelInstance* const model) {
     bool modified = false;
+
+    ImGui::Checkbox("Enabled", &model->enabled);
+
     ImGui::Text("Position:");
     ImGui::PushID(0);
     modified |= ImGui::SliderFloat("x", &model->pivot_position.x, -10.f, 10.f);

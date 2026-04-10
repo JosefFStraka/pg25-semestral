@@ -10,49 +10,75 @@
 #include <glm/glm.hpp>
 
 class Renderer {
+    std::vector<ModelInstance*> transparent;
+    std::unordered_set<ResourceHandle<ShaderProgram>> shaders;
+    
 public:
     bool should_update_vp = true;
     int mesh_count = 0;
 
+    bool depth_test{ true };
+    bool cull_face{ true };
+
     void render(ResourceManager* resourceManager, Scene* scene) {
         mesh_count = 0;
-        std::unordered_set<ResourceHandle<ShaderProgram>> shaders;
+        shaders.clear();
+        shaders.reserve(scene->models.size());
+        transparent.clear();
+        transparent.reserve(scene->models.size());
+
+        if (depth_test)
+            glEnable(GL_DEPTH_TEST);
+        else
+            glDisable(GL_DEPTH_TEST);
+
+        if (cull_face)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
+
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         for (auto& [name, modelInst] : scene->models) {
+            if (!modelInst.enabled) continue;
             modelInst.prepare();
+
+            if (modelInst.is_transparent) {
+                transparent.push_back(&modelInst);
+                continue;
+            }
 
             auto modelRes = resourceManager->getModel(modelInst.model);
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                auto mesh = resourceManager->getMesh(meshPkg.mesh);
-                if (!mesh) continue;
-                auto shader = resourceManager->getShader(meshPkg.shader);
-                if (!shader) continue;
-
-                if (scene->camera && !shaders.contains(meshPkg.shader)) {
-                    shaders.insert(meshPkg.shader);
-
-                    shader->setUniform("uV_m", scene->camera->GetViewMatrix());
-                    shader->setUniform("uP_m", scene->camera->GetProjMatrix());
-                }
-
-                auto tex = resourceManager->getTexture(meshPkg.texture);
-                if (!tex) continue;
-
-                shader->use();
-                glm::mat4 mesh_model_matrix = modelInst.createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
-                glm::mat4 mm = mesh_model_matrix * modelInst.local_model_matrix;
-                shader->setUniform("uM_m", mm);
-
-                tex->bind();
-                //shader->setUniform("tex0", 0);
-
-                drawMesh(mesh, scene->camera.get(), &mm);
+                drawMeshPkg(resourceManager, scene, &modelInst, meshPkg);
             }
         }
 
+        std::sort(transparent.begin(), transparent.end(), [&](ModelInstance* const a, ModelInstance* const b) {
+            return glm::distance(scene->camera->Position, a->getPosition()) < glm::distance(scene->camera->Position, b->getPosition());
+            });
+
         drawSkybox(resourceManager, scene->skybox.get(), scene->camera.get());
+
+        glEnable(GL_BLEND);
+        glDepthMask(GL_FALSE);
+        glDisable(GL_CULL_FACE);
+
+        for (auto p : transparent) {
+            auto modelRes = resourceManager->getModel(p->model);
+            if (!modelRes) continue;
+
+            for (auto const& meshPkg : modelRes->meshes) {
+                drawMeshPkg(resourceManager, scene, p, meshPkg);
+            }
+        }
+
+        glDepthMask(GL_TRUE);
     }
 
     void drawSkybox(ResourceManager* resourceManager, Skybox* skybox, Camera* cam) {
@@ -71,6 +97,33 @@ public:
         glDepthFunc(GL_LEQUAL);
         drawMesh(mesh, cam, nullptr);
         glDepthFunc(GL_LESS);
+    }
+
+    void drawMeshPkg(ResourceManager* resourceManager, Scene* scene, ModelInstance* modelInst, const ModelResource::MeshPackage& meshPkg) {
+        auto mesh = resourceManager->getMesh(meshPkg.mesh);
+        if (!mesh) return;
+        auto shader = resourceManager->getShader(meshPkg.shader);
+        if (!shader) return;
+
+        if (scene->camera && !shaders.contains(meshPkg.shader)) {
+            shaders.insert(meshPkg.shader);
+
+            shader->setUniform("uV_m", scene->camera->GetViewMatrix());
+            shader->setUniform("uP_m", scene->camera->GetProjMatrix());
+        }
+
+        auto tex = resourceManager->getTexture(meshPkg.texture);
+        if (!tex) return;
+
+        shader->use();
+        glm::mat4 mesh_model_matrix = modelInst->createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
+        glm::mat4 mm = mesh_model_matrix * modelInst->local_model_matrix;
+        shader->setUniform("uM_m", mm);
+
+        tex->bind();
+        //shader->setUniform("tex0", 0);
+
+        drawMesh(mesh, scene->camera.get(), &mm);
     }
 
     void drawMesh(Mesh* mesh, Camera* cam, glm::mat4* mm) {
