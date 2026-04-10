@@ -74,16 +74,13 @@ private:
 
     // projection related variables    
     int fb_width{0}, fb_height{0}; //fb size
-    float fov = 60.0f;
-    // store projection matrix here, update only on callbacks
-    glm::mat4 projection_matrix = glm::identity<glm::mat4>();
 
     GLFWwindow* window;
     AppImGui* imgui;
     settings::app_settings::AppSettings app_settings;
 
     // camera related 
-    Camera camera;
+    std::shared_ptr<Camera> main_camera;
     // remember last cursor position, move relative to that in the next frame
     double cursorLastX{ 0 };
     double cursorLastY{ 0 };

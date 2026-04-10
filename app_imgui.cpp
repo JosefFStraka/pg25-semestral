@@ -52,7 +52,7 @@ void AppImGui::gui_begin() {
         ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoResize |
         ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoBackground |
+        // ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoTitleBar;
 
     ImGui::Begin("Main Menu", nullptr, flags);

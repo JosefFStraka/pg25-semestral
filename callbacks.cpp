@@ -105,7 +105,7 @@ void App::cursor_position_callback(double xpos, double ypos) {
         return;
     }
 
-    camera.ProcessMouseMovement(xpos - last_cursor_pos_x, (ypos - last_cursor_pos_y) * -1.0);
+    main_camera->ProcessMouseMovement(xpos - last_cursor_pos_x, (ypos - last_cursor_pos_y) * -1.0);
 
     last_cursor_pos_x = xpos;
     last_cursor_pos_y = ypos;
@@ -114,8 +114,8 @@ void App::cursor_position_callback(double xpos, double ypos) {
 void App::scroll_callback(double xoffset, double yoffset) {
     if (imgui->capture_mouse()) return;
 
-    this->fov += 10 * yoffset; // yoffset is mostly +1 or -1; one degree difference in fov is not visible
-    this->fov = std::clamp(this->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
+    main_camera->fov += 10 * yoffset; // yoffset is mostly +1 or -1; one degree difference in fov is not visible
+    main_camera->fov = std::clamp(main_camera->fov, 20.0f, 170.0f); // limit FOV to reasonable values...
 
     this->update_projection_matrix();
 }

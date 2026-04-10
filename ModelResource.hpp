@@ -21,7 +21,7 @@ struct ModelResource {
 
     std::vector<MeshPackage> meshes;
 
-    
+
     void addMesh(
         ResourceHandle<Mesh> mesh,
         ResourceHandle<Texture> texture,

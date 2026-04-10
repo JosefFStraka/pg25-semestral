@@ -174,11 +174,13 @@ void load_mesh(std::unordered_map<std::string, std::shared_ptr<Mesh>>& library, 
     } else {
         std::vector<Vertex> vertices;
         std::vector<GLuint> indices;
-        if (!loadOBJ(filename, vertices, indices)) {
+        glm::vec4 bs;
+        if (!loadOBJ(filename, vertices, indices, bs)) {
             throw std::runtime_error("Loading failed: " + filename);
         }
-
-        library.emplace(modelname, std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES));
+        auto m = std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES);
+        m->bounding_sphere = bs;
+        library.emplace(modelname, m);
     }
 }
 
@@ -309,7 +311,13 @@ void App::init_assets(void) {
         base_path + "_nz.png",
         });
 
-    scene.skybox = new Skybox(mesh_library.at("skybox_triangle"), cm, shader_library.at("skybox"));
+    scene.skybox = std::make_shared<Skybox>(mesh_library.at("skybox_triangle"), cm, shader_library.at("skybox"));
+
+    main_camera = std::make_shared<Camera>();
+    main_camera->Position = glm::vec3(-10.0f, 6.0f, 1.2f);
+    main_camera->Yaw = 90.f;
+    main_camera->ProcessMouseMovement(0, 0);
+    scene.camera = main_camera;
 
     axis_display.init();
     axis_display.set_viewport(0, 0, 64, 64);
@@ -323,16 +331,10 @@ int App::run() {
 
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-        glViewport(0, 0, fb_width, fb_height);
-        update_projection_matrix();
-
-
         glfwGetCursorPos(window, &last_cursor_pos_x, &last_cursor_pos_y);
 
-        camera.Position = glm::vec3(-10.0f, 6.0f, 1.2f);
-        camera.Yaw = 90.f;
-        camera.ProcessMouseMovement(0, 0);
-        scene.camera = &camera;
+        glViewport(0, 0, fb_width, fb_height);
+        update_projection_matrix();
 
         scene.set_light(0, glm::vec4(-0.75f, -1.f, -0.333f, 0.f), glm::vec4(0.45f, 0.45f, 0.45f, 1.f), 1.f, 0.f); // sun
         scene.set_light(1, glm::vec4(-1.f, 2.f, -2.f, 1.f), glm::vec4(1.f, 0.f, 0.f, 1.f), 0.15f, 180.f);
@@ -376,7 +378,7 @@ int App::run() {
                     ImGui::Separator();
 
                     // ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
-                    if (ImGui::SliderFloat("FoV", &this->fov, 20.f, 180.f)) {
+                    if (ImGui::SliderFloat("FoV", &scene.camera->fov, 20.f, 180.f)) {
                         update_projection_matrix();
                     }
                     ImGui::SliderFloat("Camera speed", &scene.camera->MovementSpeed, 0.f, 10.f);
@@ -387,8 +389,10 @@ int App::run() {
                     ImGui::SliderInt("DebugMode", &debugMode, 0, 10);
 
                     ImGui::Text("Camera:");
-                    ImGui::Text("x: %.2f | y: %.2f | z: %.2f", camera.Position.x, camera.Position.y, camera.Position.z);
-                    ImGui::Text("pitch: %.1f | yaw: %.1f", camera.Pitch, camera.Yaw);
+                    ImGui::Text("x: %.2f | y: %.2f | z: %.2f", main_camera->Position.x, main_camera->Position.y, main_camera->Position.z);
+                    ImGui::Text("pitch: %.1f | yaw: %.1f", main_camera->Pitch, main_camera->Yaw);
+
+                    ImGui::Text("meshes: %d", renderer.mesh_count);
 
                     if (ImGui::TreeNode("Scene")) {
                         size_t i = 0;
@@ -432,7 +436,7 @@ int App::run() {
             last_time = now;
 
             //########## react to user  ##########
-            camera.Position += camera.ProcessInput(window, delta_time); // process keys etc.
+            main_camera->Position += main_camera->ProcessInput(window, delta_time); // process keys etc.
 
             // HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
             // RGB value = HSLToRGB(data);
@@ -441,12 +445,6 @@ int App::run() {
             // resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
 
             //########## create and set View Matrix according to camera settings  ##########
-            for (auto& [_, shaderHandle] : shader_library) {
-                auto shader = resources.getShader(shaderHandle);
-                if (!shader) continue;
-                shader->setUniform("uV_m", camera.GetViewMatrix());
-                shader->setUniform("uP_m", projection_matrix);
-            }
 
             auto shader_phong = resources.getShader(phongShaderHandle);
             if (shader_phong) {
@@ -468,7 +466,7 @@ int App::run() {
             renderer.render(&resources, &scene);
 
             if (app_settings.gui_axis_display_enabled)
-                axis_display.draw(camera);
+                axis_display.draw(main_camera);
 
             if (should_draw_gui) {
                 imgui->render();
@@ -633,12 +631,7 @@ void App::update_projection_matrix(void) {
 
     float ratio = static_cast<float>(fb_width) / fb_height;
 
-    projection_matrix = glm::perspective(
-        glm::radians(fov),   // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90� (extra wide) and 30� (quite zoomed in)
-        ratio,               // Aspect Ratio. Depends on the size of your window.
-        0.1f,                // Near clipping plane. Keep as big as possible, or you'll get precision issues.
-        20000.0f             // Far clipping plane. Keep as little as possible.
-    );
+    main_camera->update_projection_matrix(ratio);
 
     axis_display.viewport[2] = (GLsizei)std::floorf(fb_width / 15.f);
     axis_display.viewport[3] = (GLsizei)std::floorf(fb_width / 15.f);
@@ -646,8 +639,6 @@ void App::update_projection_matrix(void) {
 
 App::~App() {
     settings::save("settings.json", app_settings);
-
-    if (scene.skybox) delete scene.skybox;
 
     delete imgui;
 }

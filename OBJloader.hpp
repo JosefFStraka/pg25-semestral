@@ -8,5 +8,6 @@
 
 bool loadOBJ(const std::filesystem::path& filename,
 	         std::vector <Vertex> & vertices,
-	         std::vector <GLuint>& indices);
+	         std::vector <GLuint>& indices,
+			 glm::vec4& bs);
 

@@ -1,4 +1,5 @@
 
+
 #include "engine/resources/ResourceManager.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "ModelInstance.hpp"
@@ -58,6 +59,13 @@ class AxisDisplay {
         scene.models.emplace(name, modelInstance);
     }
 
+    void update_camera(std::shared_ptr<Camera> other) {
+        auto cam = scene.camera;
+
+        cam->Position = other->Position;
+        cam->Front = other->Front;
+        cam->Up = other->Up;
+    }
 public:
     GLint viewport[4];
 
@@ -94,7 +102,7 @@ public:
         viewport[3] = height;
     }
 
-    void draw(Camera camera) {
+    void draw(std::shared_ptr<Camera> camera) {
         glClear(GL_DEPTH_BUFFER_BIT);
         GLint backup_viewport[4];
         glGetIntegerv(GL_VIEWPORT, backup_viewport);
@@ -105,7 +113,7 @@ public:
         glDisable(GL_CULL_FACE);
 
         auto s = resources.getShader(shader_);
-        s->setUniform("uV_m", glm::lookAt(-camera.Front, glm::vec3(0.f, 0.f, 0.f), camera.Up));
+        s->setUniform("uV_m", glm::lookAt(-camera->Front, glm::vec3(0.f, 0.f, 0.f), camera->Up));
         s->setUniform("uP_m", glm::ortho(-1.2f, 1.2f, -1.2f, 1.2f, -0.2f, 2.2f));
 
         glLineWidth(1); // line widt greater than 1 is depracated

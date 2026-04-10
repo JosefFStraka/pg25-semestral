@@ -21,6 +21,10 @@ public:
     GLfloat MovementSpeed = 2.0f;
     GLfloat MouseSensitivity = 0.25f;
 
+    float fov = 60.0f;
+    // store projection matrix here, update only on callbacks
+    glm::mat4 projection_matrix = glm::identity<glm::mat4>();
+
     Camera() {
         // Default constructor initializes camera's position and orientation
         this->updateCameraVectors();
@@ -34,6 +38,19 @@ public:
 
     glm::mat4 GetViewMatrix() {
         return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
+    }
+
+    glm::mat4 GetProjMatrix() {
+        return projection_matrix;
+    }
+
+    void update_projection_matrix(float ratio) {
+        projection_matrix = glm::perspective(
+            glm::radians(fov),   // The vertical Field of View, in radians: the amount of "zoom". Think "camera lens". Usually between 90� (extra wide) and 30� (quite zoomed in)
+            ratio,               // Aspect Ratio. Depends on the size of your window.
+            0.1f,                // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+            2000.0f             // Far clipping plane. Keep as little as possible.
+        );
     }
 
     glm::vec3 ProcessInput(GLFWwindow* window, GLfloat deltaTime) {

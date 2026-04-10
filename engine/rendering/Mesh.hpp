@@ -79,7 +79,7 @@ public:
         return ebo_ != 0;
     }
 
-    GLenum  getPrimitiveType(){ return primitive_type_; }
+    GLenum  getPrimitiveType() { return primitive_type_; }
     GLsizei getVertexCount() { return vertex_count_; }
     GLsizei getIndexCount() { return index_count_; }
 
@@ -88,6 +88,8 @@ public:
         glDeleteBuffers(1, &vbo_);
         glDeleteVertexArrays(1, &vao_);
     };
+
+    glm::vec4 bounding_sphere{ 0.f, 0.f, 0.f, -1.f };
 private:
     // safe defaults
     GLenum  primitive_type_{ GL_POINTS };

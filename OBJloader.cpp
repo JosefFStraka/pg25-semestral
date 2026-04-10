@@ -4,12 +4,14 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include <unordered_map>
-
+#include <algorithm>
 #include "OBJloader.hpp"
 
 #define MAX_LINE_SIZE 256 //should not be longer
 #define MAX_VERTICES 4
 #define NO_INDEX 0
+
+#undef max
 
 long resolve_position(long number, long max) {
 	long idx = (number > 0) ? number - 1 : max + number;
@@ -31,12 +33,14 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
 	return tokens;
 }
 
-bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertices, std::vector<GLuint>& indices) {
+bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, glm::vec4& bs) {
 	//std::cout << "Loading model: " << filename.string() << std::endl;
 
 	std::vector< glm::vec3 > temp_vertices;
 	std::vector< glm::vec2 > temp_uvs;
 	std::vector< glm::vec3 > temp_normals;
+
+	glm::vec3 total{ 0.f, 0.f, 0.f };
 
 	vertices.clear();
 	indices.clear();
@@ -112,6 +116,7 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 					long idx = resolve_position(vi, (long)temp_vertices.size());
 					if (idx >= 0 && idx < (long)temp_vertices.size()) {
 						v.position = temp_vertices[idx];
+						total += v.position;
 					} else {
 						std::cerr << "Invalid vertex index at line " << line_number << std::endl;
 						continue;
@@ -161,6 +166,17 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 	}
 
 	//std::cout << "Model loaded: " << filename.string() << std::endl;
+
+	glm::vec3 center = total / glm::vec3(vertices.size());
+	float radius = 0.f;
+	for (auto ver : vertices) {
+		radius = std::max(radius, glm::distance(center, ver.position));
+	}
+
+	bs.x = center.x;
+	bs.y = center.y;
+	bs.z = center.z;
+	bs.w = radius;
 
 	fclose(file);
 	return true;

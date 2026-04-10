@@ -19,8 +19,8 @@ struct s_lights {
 struct Scene
 {
     std::unordered_map<std::string, ModelInstance> models;
-    Camera* camera;
-    Skybox* skybox;
+    std::shared_ptr<Camera> camera;
+    std::shared_ptr<Skybox> skybox;
     s_lights lights;
     int active_lights{0};
 

@@ -4,6 +4,7 @@
 #include <memory>
 #include <future>
 #include <queue>
+#include <numeric>
 
 #include "ResourceHandle.hpp"
 #include "ResourceEntry.hpp"
@@ -17,6 +18,7 @@
 struct MeshData {
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
+    glm::vec4 bounding_sphere;
 };
 
 class ResourceManager {
@@ -32,9 +34,9 @@ public:
                 jobs_.push_back(std::async(std::launch::async, [this, data, path]() {
                     MeshData* md = new MeshData();
 
-                    if (!loadOBJ(path, md->vertices, md->indices)) {
+                    if (!loadOBJ(path, md->vertices, md->indices, md->bounding_sphere)) {
                         std::cout << "Failed: " << path << std::endl;
-                        return;
+                        return; 
                     }
 
                     std::unique_lock<std::mutex> lock(completedMeshMutex_);
@@ -95,7 +97,9 @@ public:
             auto x = completedMesh_.front();
 
             x.first->data = std::make_unique<Mesh>(x.second->vertices, x.second->indices, GL_TRIANGLES);
+            x.first->data->bounding_sphere = x.second->bounding_sphere;
             x.first->state = ResourceEntry<Mesh>::state::Ready;
+
             delete x.second;
             completedMesh_.pop();
         }
