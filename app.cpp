@@ -351,6 +351,12 @@ int App::run() {
         double last_time = -1 / 60.0;
         double last_fps_time = 0.0;
 
+        // Uložení výchozích pozic (přidat před while smyčku)
+        std::vector<glm::vec4> initial_light_positions;
+        for (int i = 0; i < scene.active_lights; i++) {
+            initial_light_positions.push_back(scene.lights.position[i]);
+        }
+
         while (!glfwWindowShouldClose(window)) {
 
             bool should_draw_gui = app_settings.gui_enabled || app_settings.gui_always_enabled;
@@ -445,6 +451,21 @@ int App::run() {
             // resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
 
             //########## create and set View Matrix according to camera settings  ##########
+
+            // Rotating lights
+            float light_rotation_speed = 0.5f;
+
+            // Vytvoření matice rotace podle času (okolo osy Y: 0, 1, 0)
+            glm::mat4 light_rot_matrix = glm::rotate(
+                glm::mat4(1.0f),
+                (float)now * light_rotation_speed,
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+
+            // Přeuložení pozic aplikováním rotační matice
+            for (size_t i = 0; i < scene.active_lights; i++) {
+                scene.lights.position[i] = light_rot_matrix * initial_light_positions[i];
+            }
 
             auto shader_phong = resources.getShader(phongShaderHandle);
             if (shader_phong) {
