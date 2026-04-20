@@ -22,6 +22,10 @@ namespace settings {
             bool gui_enabled = false;
             bool vsync = true;
             bool msaa_enabled = true;
+
+            //not saved
+            bool debug_draw_aabb = false;
+            bool debug_freeze_frustum = false;
         };
 
         void to_json(json& j, const AppSettings& as);

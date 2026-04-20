@@ -46,6 +46,8 @@ private:
     Storage<ShaderProgram> shaders_;
     Storage<ModelResource> models_;
 
+    std::string config_path;
+
     void queue_gpu_job(std::function<void()>&& job) {
         std::lock_guard<std::mutex> lock(gpu_queue_mutex_);
         gpu_queue_.push_back({std::move(job)});
@@ -55,6 +57,8 @@ public:
     AssetManager() = default;
 
     int load(const std::string& path) {
+        config_path = path;
+
         if (!std::filesystem::exists(path)) {
             std::cerr << "AssetManager::load - File does not exist: " << path << std::endl;
             return 1;
@@ -78,6 +82,13 @@ public:
                 meshes_.name_to_id[name] = id;
                 meshes_.entries[id].path = desc["path"].get<std::string>();
                 meshes_.entries[id].state = ResourceEntry<Mesh>::None;
+                
+                if (desc.contains("aabb_min") && desc.contains("aabb_max")) {
+                    AABB parsed_aabb;
+                    parsed_aabb.min = glm::vec3(desc["aabb_min"][0], desc["aabb_min"][1], desc["aabb_min"][2]);
+                    parsed_aabb.max = glm::vec3(desc["aabb_max"][0], desc["aabb_max"][1], desc["aabb_max"][2]);
+                    meshes_.entries[id].aabb = parsed_aabb;
+                }
             }
         }
         if (j.contains("shaders")) {
@@ -90,6 +101,35 @@ public:
         }
 
         return 0;
+    }
+
+    void save_assets() {
+        if (config_path.empty()) return;
+        
+        std::ifstream in_file(config_path);
+        json j;
+        if (in_file.is_open()) {
+            in_file >> j;
+            in_file.close();
+        }
+
+        if (j.contains("meshes")) {
+            for (auto& [name, desc] : j["meshes"].items()) {
+                if (meshes_.name_to_id.contains(name)) {
+                    auto id = meshes_.name_to_id[name];
+                    if (meshes_.entries[id].aabb.has_value()) {
+                        auto& aabb = meshes_.entries[id].aabb.value();
+                        desc["aabb_min"] = { aabb.min.x, aabb.min.y, aabb.min.z };
+                        desc["aabb_max"] = { aabb.max.x, aabb.max.y, aabb.max.z };
+                    }
+                }
+            }
+        }
+
+        std::ofstream out_file(config_path);
+        if (out_file.is_open()) {
+            out_file << j.dump(2);
+        }
     }
 
     void update() {
@@ -179,13 +219,14 @@ public:
             if constexpr (std::is_same_v<T, Mesh>) {
                 std::string path = entry.path;
                 auto id = handle.get_id();
+                std::optional<AABB> predefined_aabb = entry.aabb;
                 
-                std::thread([this, path, id]() {
+                std::thread([this, path, id, predefined_aabb]() {
                     std::vector<Vertex> vertices;
                     std::vector<GLuint> indices;
-                    glm::vec4 bs;
+                    AABB obj_aabb;
                     
-                    if (!loadOBJ(path, vertices, indices, bs)) {
+                    if (!loadOBJ(path, vertices, indices, obj_aabb)) {
                         std::cerr << "Failed to load mesh: " << path << std::endl;
                         queue_gpu_job([this, id]() {
                             meshes_.entries[id].state = ResourceEntry<Mesh>::Error;
@@ -193,14 +234,23 @@ public:
                         return;
                     }
 
-                    auto md = std::make_shared<std::tuple<std::vector<Vertex>, std::vector<GLuint>, glm::vec4>>(
-                        std::move(vertices), std::move(indices), bs
+                    AABB final_aabb = predefined_aabb.has_value() ? predefined_aabb.value() : obj_aabb;
+
+                    if (!predefined_aabb.has_value()) {
+                        queue_gpu_job([this, id, final_aabb]() {
+                            this->meshes_.entries[id].aabb = final_aabb;
+                            this->save_assets();
+                        });
+                    }
+
+                    auto md = std::make_shared<std::tuple<std::vector<Vertex>, std::vector<GLuint>, AABB>>(
+                        std::move(vertices), std::move(indices), final_aabb
                     );
 
                     queue_gpu_job([this, id, md]() {
                         auto& entry = meshes_.entries[id];
                         entry.data = std::make_unique<Mesh>(std::get<0>(*md), std::get<1>(*md), GL_TRIANGLES);
-                        entry.data->bounding_sphere = std::get<2>(*md);
+                        entry.data->aabb_ = std::get<2>(*md);
                         entry.state = ResourceEntry<Mesh>::Ready;
                     });
                 }).detach();

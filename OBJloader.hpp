@@ -5,9 +5,10 @@
 #include <GL/glew.h>
 
 #include "assets.hpp"
+#include "aabb.hpp"
 
 bool loadOBJ(const std::filesystem::path& filename,
 	         std::vector <Vertex> & vertices,
 	         std::vector <GLuint>& indices,
-			 glm::vec4& bs);
+			 AABB& aabb);
 

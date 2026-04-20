@@ -1,31 +1,135 @@
 {
-  "textures": {
-    "default": { "path": "../engine/assets/textures/default.png" },
-    "wood_box": { "path": "../resources/textures/box_rgb888.png" },
-    "TextureDouble_A": { "path": "../resources/textures/TextureDouble_A.png" },
-    "vlada": { "path": "../resources/pepa/IMG_20231228_021715.jpg" },
-    "widevojta": { "path": "../resources/pepa/widevojta.jpg" },
-    "argus1": { "path": "../resources/pepa/argus/tex/tex_argus.png" }
-  },
   "meshes": {
-    "plane": { "path": "../engine/assets/meshes/plane.obj" },
-    "cube": { "path": "../engine/assets/meshes/cube.obj" },
-    "sphere_tri_vnt": { "path": "../resources/assets/obj_samples/sphere_tri_vnt.obj" },
-    "triangle": { "path": "../resources/04/2d_obj_samples/triangle.obj" },
-    "argus1": { "path": "../resources/pepa/argus/argus1.obj" },
-    "teapot_tri_vnt": { "path": "../resources/assets/obj_samples/teapot_tri_vnt.obj" },
-    "bunny": { "path": "../resources/pepa/bunny/bunny.obj" },
-    "dragon": { "path": "../resources/pepa/dragon/dragon.obj" },
-    "sponza": { "path": "../resources/pepa/sponza/sponza.obj" }
+    "argus1": {
+      "aabb_max": [
+        0.12676499783992767,
+        0.27000200748443604,
+        0.12206999957561493
+      ],
+      "aabb_min": [
+        -0.11261100322008133,
+        7.000000186963007e-05,
+        -0.20461499691009521
+      ],
+      "path": "../resources/pepa/argus/argus1.obj"
+    },
+    "bunny": {
+      "aabb_max": [
+        0.6578999757766724,
+        1.641800045967102,
+        0.6894999742507935
+      ],
+      "aabb_min": [
+        -0.9559000134468079,
+        0.020999999716877937,
+        -0.5429999828338623
+      ],
+      "path": "../resources/pepa/bunny/bunny.obj"
+    },
+    "cube": {
+      "aabb_max": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "aabb_min": [
+        -0.5,
+        -0.5,
+        -0.5
+      ],
+      "path": "../engine/assets/meshes/cube.obj"
+    },
+    "dragon": {
+      "aabb_max": [
+        0.20739500224590302,
+        0.4220220148563385,
+        0.5277529954910278
+      ],
+      "aabb_min": [
+        -0.239779993891716,
+        -0.2829580008983612,
+        -0.47224700450897217
+      ],
+      "path": "../resources/pepa/dragon/dragon.obj"
+    },
+    "plane": {
+      "path": "../engine/assets/meshes/plane.obj"
+    },
+    "sphere_tri_vnt": {
+      "aabb_max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "aabb_min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "path": "../resources/assets/obj_samples/sphere_tri_vnt.obj"
+    },
+    "sponza": {
+      "aabb_max": [
+        1799.9080810546875,
+        1429.4332275390625,
+        1105.426025390625
+      ],
+      "aabb_min": [
+        -1920.9459228515625,
+        -126.44249725341797,
+        -1182.80712890625
+      ],
+      "path": "../resources/pepa/sponza/sponza.obj"
+    },
+    "teapot_tri_vnt": {
+      "aabb_max": [
+        8.585000038146973,
+        7.875,
+        5.0
+      ],
+      "aabb_min": [
+        -7.5,
+        -5.029260063026969e-20,
+        -5.0
+      ],
+      "path": "../resources/assets/obj_samples/teapot_tri_vnt.obj"
+    },
+    "triangle": {
+      "path": "../resources/04/2d_obj_samples/triangle.obj"
+    }
   },
   "shaders": {
-    "skybox": { 
-      "vs": "../engine/assets/shaders/skybox.vert", 
-      "fs": "../engine/assets/shaders/skybox.frag" 
+    "phong": {
+      "fs": "../resources/shaders/phong.frag",
+      "vs": "../resources/shaders/phong.vert"
     },
-    "phong": { 
-        "vs": "../resources/shaders/phong.vert", 
-        "fs": "../resources/shaders/phong.frag" 
+    "rainbow": {
+      "fs": "../engine/assets/shaders/rainbow.frag",
+      "vs": "../engine/assets/shaders/tex.vert"
+    },
+    "skybox": {
+      "fs": "../engine/assets/shaders/skybox.frag",
+      "vs": "../engine/assets/shaders/skybox.vert"
+    }
+  },
+  "textures": {
+    "TextureDouble_A": {
+      "path": "../resources/textures/TextureDouble_A.png"
+    },
+    "argus1": {
+      "path": "../resources/pepa/argus/tex/tex_argus.png"
+    },
+    "default": {
+      "path": "../engine/assets/textures/default.png"
+    },
+    "vlada": {
+      "path": "../resources/pepa/IMG_20231228_021715.jpg"
+    },
+    "widevojta": {
+      "path": "../resources/pepa/widevojta.jpg"
+    },
+    "wood_box": {
+      "path": "../resources/textures/box_rgb888.png"
     }
   }
 }

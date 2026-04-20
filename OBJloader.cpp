@@ -33,14 +33,12 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
 	return tokens;
 }
 
-bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, glm::vec4& bs) {
+bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertices, std::vector<GLuint>& indices, AABB& aabb) {
 	//std::cout << "Loading model: " << filename.string() << std::endl;
 
 	std::vector< glm::vec3 > temp_vertices;
 	std::vector< glm::vec2 > temp_uvs;
 	std::vector< glm::vec3 > temp_normals;
-
-	glm::vec3 total{ 0.f, 0.f, 0.f };
 
 	vertices.clear();
 	indices.clear();
@@ -116,7 +114,6 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 					long idx = resolve_position(vi, (long)temp_vertices.size());
 					if (idx >= 0 && idx < (long)temp_vertices.size()) {
 						v.position = temp_vertices[idx];
-						total += v.position;
 					} else {
 						std::cerr << "Invalid vertex index at line " << line_number << std::endl;
 						continue;
@@ -167,16 +164,11 @@ bool loadOBJ(const std::filesystem::path& filename, std::vector<Vertex>& vertice
 
 	//std::cout << "Model loaded: " << filename.string() << std::endl;
 
-	glm::vec3 center = total / glm::vec3(vertices.size());
-	float radius = 0.f;
+	aabb.min = glm::vec3(1e30f);
+	aabb.max = glm::vec3(-1e30f);
 	for (auto ver : vertices) {
-		radius = std::max(radius, glm::distance(center, ver.position));
+		aabb.expand(ver.position);
 	}
-
-	bs.x = center.x;
-	bs.y = center.y;
-	bs.z = center.z;
-	bs.w = radius;
 
 	fclose(file);
 	return true;

@@ -2,12 +2,15 @@
 
 #include <memory>
 #include <unordered_set>
+#include <algorithm>
 
 #include "../../Scene.hpp"
 #include "../resources/AssetManager.hpp"
+#include "../../frustum.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 class Renderer {
     std::vector<ModelInstance*> transparent;
@@ -20,7 +23,7 @@ public:
     bool depth_test{ true };
     bool cull_face{ true };
 
-    void render(AssetManager* assetManager, Scene* scene) {
+    void render(AssetManager* assetManager, Scene* scene, const Frustum& frustum, bool debug_aabb, bool debug_frustum, const glm::mat4& cached_vp) {
         mesh_count = 0;
         shaders.clear();
         shaders.reserve(scene->models.size());
@@ -55,7 +58,22 @@ public:
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                drawMeshPkg(assetManager, scene, &modelInst, meshPkg);
+                auto mesh = assetManager->getResource(meshPkg.mesh);
+                if (!mesh) continue;
+
+                glm::mat4 mesh_model_matrix = modelInst.createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
+                glm::mat4 mm = mesh_model_matrix * modelInst.local_model_matrix;
+                
+                AABB world_aabb = mesh->aabb_.transform(mm);
+                if (!frustum.isAABBInFrustum(world_aabb)) {
+                    continue;
+                }
+
+                drawMeshPkg(assetManager, scene, &modelInst, meshPkg, mm);
+                
+                if (debug_aabb) {
+                    drawAABB(assetManager, scene, world_aabb);
+                }
             }
         }
 
@@ -74,11 +92,68 @@ public:
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                drawMeshPkg(assetManager, scene, p, meshPkg);
+                auto mesh = assetManager->getResource(meshPkg.mesh);
+                if (!mesh) continue;
+
+                glm::mat4 mesh_model_matrix = p->createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
+                glm::mat4 mm = mesh_model_matrix * p->local_model_matrix;
+                
+                AABB world_aabb = mesh->aabb_.transform(mm);
+                if (!frustum.isAABBInFrustum(world_aabb)) {
+                    continue;
+                }
+
+                drawMeshPkg(assetManager, scene, p, meshPkg, mm);
+                if (debug_aabb) {
+                    drawAABB(assetManager, scene, world_aabb);
+                }
             }
         }
 
+        if (debug_frustum) {
+            drawFrustumObj(assetManager, scene, cached_vp);
+        }
+
         glDepthMask(GL_TRUE);
+    }
+
+    void drawAABB(AssetManager* assetManager, Scene* scene, AABB aabb) {
+        auto mesh = assetManager->getResource(assetManager->getHandle<Mesh>("aabb_lines"));
+        auto shader = assetManager->getResource(assetManager->getHandle<ShaderProgram>("color_shader"));
+        if (!mesh || !shader) return;
+
+        shader->use();
+        shader->setUniform("uV_m", scene->camera->GetViewMatrix());
+        shader->setUniform("uP_m", scene->camera->GetProjMatrix());
+
+        glm::vec3 scale = aabb.max - aabb.min;
+        glm::vec3 center = (aabb.min + aabb.max) * 0.5f;
+
+        glm::mat4 mm = glm::translate(glm::mat4(1.0f), center) * glm::scale(glm::mat4(1.0f), scale);
+        shader->setUniform("uM_m", mm);
+
+        shader->setUniform("uColor", glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+
+        mesh->bind();
+        glDrawArrays(mesh->getPrimitiveType(), 0, mesh->getVertexCount());
+    }
+
+    void drawFrustumObj(AssetManager* assetManager, Scene* scene, const glm::mat4& cached_vp) {
+        auto mesh = assetManager->getResource(assetManager->getHandle<Mesh>("ndc_lines"));
+        auto shader = assetManager->getResource(assetManager->getHandle<ShaderProgram>("color_shader"));
+        if (!mesh || !shader) return;
+
+        shader->use();
+        shader->setUniform("uV_m", scene->camera->GetViewMatrix());
+        shader->setUniform("uP_m", scene->camera->GetProjMatrix());
+
+        glm::mat4 mm = glm::inverse(cached_vp);
+        shader->setUniform("uM_m", mm);
+
+        shader->setUniform("uColor", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+        mesh->bind();
+        glDrawArrays(mesh->getPrimitiveType(), 0, mesh->getVertexCount());
     }
 
     void drawSkybox(AssetManager* assetManager, Skybox* skybox, Camera* cam) {
@@ -101,7 +176,7 @@ public:
         glDepthFunc(GL_LESS);
     }
 
-    void drawMeshPkg(AssetManager* assetManager, Scene* scene, ModelInstance* modelInst, const ModelResource::MeshPackage& meshPkg) {
+    void drawMeshPkg(AssetManager* assetManager, Scene* scene, ModelInstance* modelInst, const ModelResource::MeshPackage& meshPkg, const glm::mat4& mm) {
         auto mesh = assetManager->getResource(meshPkg.mesh);
         if (!mesh) return;
         auto shader = assetManager->getResource(meshPkg.shader);
@@ -119,27 +194,16 @@ public:
         if (!tex) return;
 
         shader->use();
-        glm::mat4 mesh_model_matrix = modelInst->createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
-        glm::mat4 mm = mesh_model_matrix * modelInst->local_model_matrix;
         shader->setUniform("uM_m", mm);
 
         tex->bind();
-        //shader->setUniform("tex0", 0);
 
-        drawMesh(mesh, scene->camera.get(), &mm);
+        drawMesh(mesh, scene->camera.get(), nullptr);
     }
 
     void drawMesh(Mesh* mesh, Camera* cam, glm::mat4* mm) {
         if (!mesh)
             return;
-
-        // if (cam && mm) {
-        //     auto mat = (*mm) * cam->GetViewMatrix() * cam->GetProjMatrix();
-        //     glm::vec4 pos = mat * mesh->bounding_sphere;
-        //     if (std::abs(pos.x) > 1 && std::abs(pos.y) > 1 && std::abs(pos.z > 1)) 
-        //         return;
-        // }
-
 
         mesh->bind();
         if (mesh->hasEbo()) {

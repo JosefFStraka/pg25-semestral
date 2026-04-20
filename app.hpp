@@ -91,5 +91,8 @@ private:
     AssetManager assets;
     Renderer renderer;
 
-    Scene scene;
+    std::shared_ptr<Scene> current_scene;
+    std::vector<std::shared_ptr<Scene>> scenes;
+
+    std::vector<std::shared_ptr<Skybox>> skyboxes;
 };

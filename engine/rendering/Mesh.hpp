@@ -10,6 +10,7 @@
 
 #include "assets.hpp"
 #include "NonCopyable.hpp"
+#include "../../aabb.hpp"
 
 class Mesh : private NonCopyable
 {
@@ -102,7 +103,7 @@ public:
         glDeleteBuffers(1, &ebo_);
     };
 
-    glm::vec4 bounding_sphere{ 0.f, 0.f, 0.f, -1.f };
+    AABB aabb_;
 private:
     struct vao_vbo {
         GLuint vao_{ 0 };
