@@ -48,10 +48,14 @@ Texture::Texture(GLMat const& image, Interpolation interpolation) {
     if (image.empty()) {
         throw std::runtime_error{ "the input image is empty" };
     }
-    
+
     glCreateTextures(GL_TEXTURE_2D, 1, &name_);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    GLubyte* data;
+    //const GLubyte* id = image.data();
+
     switch (image.type()) {
     case GL_8UC1: // single channel image - greyscale
         // upload only one channel
@@ -67,16 +71,36 @@ Texture::Texture(GLMat const& image, Interpolation interpolation) {
         break;
     case GL_8UC4:  // RGBA
         glTextureStorage2D(name_, 2, GL_RGBA8, image.width, image.height);
-        glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_BYTE, image.data());
+        // data = new GLubyte[image.width * image.height * 4];
+
+        // //RGBA -> ARGB so its BGRA
+        // for (size_t i = 0; i < image.width * image.height; i++) {
+        //     switch (i % 4) {
+        //     case 0:
+        //         data[i + 1] = id[i];
+        //         break;
+        //     case 1:
+        //         data[i + 1] = id[i];
+        //         break;
+        //     case 2:
+        //         data[i + 1] = id[i];
+        //         break;
+        //     case 3:
+        //         data[i - 3] = id[i];
+        //         break;
+        //     }
+        // }
+        glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+        //delete data;
         break;
     case GL_16UC1:  // 16-bit R
-        glTextureStorage2D(name_, 1, GL_RGBA8, image.width, image.height);
+        glTextureStorage2D(name_, 1, GL_R16, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_SHORT, image.data());
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_G, GL_RED);
         glTextureParameteri(name_, GL_TEXTURE_SWIZZLE_B, GL_RED);
         break;
     case GL_16UC3:  // 16-bit RGB
-        glTextureStorage2D(name_, 2, GL_RGBA8, image.width, image.height);
+        glTextureStorage2D(name_, 2, GL_RGB16, image.width, image.height);
         glTextureSubImage2D(name_, 0, 0, 0, image.width, image.height, GL_BGR, GL_UNSIGNED_SHORT, image.data());
         break;
     case GL_16UC4:  // 16-bit RGBA

@@ -7,7 +7,6 @@
 #include <optional> 
 
 #include "assets.hpp"
-#include "engine/resources/ResourceManager.hpp"
 #include "engine/resources/ResourceHandle.hpp"
 #include "engine/rendering/Mesh.hpp"
 #include "engine/rendering/Texture.hpp"
@@ -30,7 +29,10 @@ public:
     bool parameters_modified{ true };
     glm::mat4 local_model_matrix{ 1.0 }; //cache, and for complex transformations (default = identity) 
 
+    //enable for transparent models
     bool is_transparent {false};
+    float opacity {1.f};
+
     bool enabled {true};
 
     glm::mat4 createMM(const glm::vec3& origin, const glm::vec3& eAng, const glm::vec3& scale) {

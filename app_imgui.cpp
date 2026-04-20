@@ -93,6 +93,7 @@ void AppImGui::model_controls(ModelInstance* const model) {
     bool modified = false;
 
     ImGui::Checkbox("Enabled", &model->enabled);
+    ImGui::Checkbox("Transparent", &model->is_transparent);
 
     ImGui::Text("Position:");
     ImGui::PushID(0);

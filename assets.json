@@ -1,0 +1,31 @@
+{
+  "textures": {
+    "default": { "path": "../engine/assets/textures/default.png" },
+    "wood_box": { "path": "../resources/textures/box_rgb888.png" },
+    "TextureDouble_A": { "path": "../resources/textures/TextureDouble_A.png" },
+    "vlada": { "path": "../resources/pepa/IMG_20231228_021715.jpg" },
+    "widevojta": { "path": "../resources/pepa/widevojta.jpg" },
+    "argus1": { "path": "../resources/pepa/argus/tex/tex_argus.png" }
+  },
+  "meshes": {
+    "plane": { "path": "../engine/assets/meshes/plane.obj" },
+    "cube": { "path": "../engine/assets/meshes/cube.obj" },
+    "sphere_tri_vnt": { "path": "../resources/assets/obj_samples/sphere_tri_vnt.obj" },
+    "triangle": { "path": "../resources/04/2d_obj_samples/triangle.obj" },
+    "argus1": { "path": "../resources/pepa/argus/argus1.obj" },
+    "teapot_tri_vnt": { "path": "../resources/assets/obj_samples/teapot_tri_vnt.obj" },
+    "bunny": { "path": "../resources/pepa/bunny/bunny.obj" },
+    "dragon": { "path": "../resources/pepa/dragon/dragon.obj" },
+    "sponza": { "path": "../resources/pepa/sponza/sponza.obj" }
+  },
+  "shaders": {
+    "skybox": { 
+      "vs": "../engine/assets/shaders/skybox.vert", 
+      "fs": "../engine/assets/shaders/skybox.frag" 
+    },
+    "phong": { 
+        "vs": "../resources/shaders/phong.vert", 
+        "fs": "../resources/shaders/phong.frag" 
+    }
+  }
+}

@@ -18,6 +18,18 @@
 #include "imgui.h"
 #include "meshgen.hpp"
 
+#undef min
+
+const char* ShaderDebugOptions[]{
+    "None",
+    "NormalsVS",
+    "Something",
+    "Ambient",
+    "Diffuse",
+    "Specular",
+    "Light"
+};
+
 //---------------------------------------------------------------------
 
 App::App() {
@@ -168,39 +180,15 @@ void App::init_gl_debug(void) {
     }
 }
 
-void load_mesh(std::unordered_map<std::string, std::shared_ptr<Mesh>>& library, std::string filename, std::string modelname) {
-    if (!std::filesystem::exists(filename)) {
-        throw std::runtime_error("File does not exist: " + filename);
-    } else {
-        std::vector<Vertex> vertices;
-        std::vector<GLuint> indices;
-        glm::vec4 bs;
-        if (!loadOBJ(filename, vertices, indices, bs)) {
-            throw std::runtime_error("Loading failed: " + filename);
-        }
-        auto m = std::make_shared<Mesh>(vertices, indices, GL_TRIANGLES);
-        m->bounding_sphere = bs;
-        library.emplace(modelname, m);
-    }
-}
-
 ResourceHandle<ModelResource> createSimpleModel(
-    ResourceManager& rm,
+    AssetManager& am,
+    const std::string& name,
     ResourceHandle<Mesh> mesh,
     ResourceHandle<Texture> texture,
     ResourceHandle<ShaderProgram> shader) {
     ModelResource res;
-
-    res.meshes.push_back({
-        mesh,
-        texture,
-        shader,
-        glm::vec3(0.0f),
-        glm::vec3(0.0f),
-        glm::vec3(1.0f)
-        });
-
-    return rm.createModelResource(std::move(res));
+    res.addMesh(mesh, texture, shader);
+    return am.emplaceModel(name, std::move(res));
 }
 ModelInstance createModelInstance(ResourceHandle<ModelResource> mR) {
     ModelInstance mI;
@@ -210,40 +198,39 @@ ModelInstance createModelInstance(ResourceHandle<ModelResource> mR) {
 
 //MARK: App::init_assets
 void App::init_assets(void) {
+    assets.load("../assets.json");
 
-    // all shaders: load, compile, link, initialize params, place to library
-    shader_library.emplace("skybox", resources.emplaceShader("../engine/assets/shaders/skybox.vert", "../engine/assets/shaders/skybox.frag", false));
-    shader_library.emplace("phong", resources.emplaceShader("../resources/shaders/phong.vert", "../resources/shaders/phong.frag", false));
-
-    //mesh library: meshes, that can be shared by multiple models
     std::vector<Vertex> line = { Vertex{.position = {0.f,0.f,0.f}},Vertex{.position = {1.f,0.f,0.f}} };
-    mesh_library.emplace("line", resources.emplaceMesh(line, GL_LINES));
+    assets.addProgrammatic("line", std::make_unique<Mesh>(line, GL_TRIANGLES));
+
     std::vector<Vertex> triangle = { Vertex{.position = {-1.f, -1.f, 0.f}}, Vertex{.position = {3.f, -1.f, 0.f}}, Vertex{.position = {-1.f, 3.f, 0.f}} };
-    mesh_library.emplace("skybox_triangle", resources.emplaceMesh(triangle, GL_TRIANGLES));
+    assets.addProgrammatic("skybox_triangle", std::make_unique<Mesh>(triangle, GL_TRIANGLES));
 
-    mesh_library.emplace("plane", resources.registerMesh("../engine/assets/meshes/plane.obj"));
-    mesh_library.emplace("cube", resources.registerMesh("../engine/assets/meshes/cube.obj"));
-    mesh_library.emplace("sphere_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/sphere_tri_vnt.obj"));
-    mesh_library.emplace("triangle", resources.registerMesh("../resources/04/2d_obj_samples/triangle.obj"));
-    mesh_library.emplace("teapot_tri_vnt", resources.registerMesh("../resources/assets/obj_samples/teapot_tri_vnt.obj"));
-    mesh_library.emplace("bunny", resources.registerMesh("../resources/pepa/bunny/bunny.obj"));
-    mesh_library.emplace("dragon", resources.registerMesh("../resources/pepa/dragon/dragon.obj"));
-    mesh_library.emplace("sponza", resources.registerMesh("../resources/pepa/sponza/sponza.obj"));
+    assets.addProgrammatic("white", std::make_unique<Texture>(glm::vec3(1.f, 1.f, 1.f)));
 
-    texture_library.emplace("white", resources.emplaceTexture(glm::vec3(1.f, 1.f, 1.f)));
-    texture_library.emplace("default", resources.registerTexture("../engine/assets/textures/default.png"));
-    texture_library.emplace("wood_box", resources.registerTexture("../resources/textures/box_rgb888.png"));
-    texture_library.emplace("TextureDouble_A", resources.registerTexture("../resources/textures/TextureDouble_A.png"));
-    texture_library.emplace("vlada", resources.registerTexture("../resources/pepa/IMG_20231228_021715.jpg"));
-    texture_library.emplace("widevojta", resources.registerTexture("../resources/pepa/widevojta.jpg"));
+    auto argus1Handle = createSimpleModel(assets, "argus1_model", assets.getHandle<Mesh>("argus1"), assets.getHandle<Texture>("argus1"), assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance argus1 = createModelInstance(argus1Handle);
+        argus1.setPosition(glm::vec3(-6.f, 0.f, 0.f));
+        scene.models.emplace("argus1", argus1);
+    }
 
-    auto vladaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("vlada"), shader_library.at("phong"));
+    auto teapotHandle = createSimpleModel(assets, "teapot_model", assets.getHandle<Mesh>("teapot_tri_vnt"), assets.getHandle<Texture>("TextureDouble_A"), assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance teapot = createModelInstance(teapotHandle);
+        teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
+        teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        teapot.opacity = 0.7f;
+        scene.models.emplace("teapot", teapot);
+    }
+
+    auto vladaBallHandle = createSimpleModel(assets, "vladaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"), assets.getHandle<Texture>("argus1"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance vladaBall = createModelInstance(vladaBallHandle);
         vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
         scene.models.emplace("vlada_ball", vladaBall);
     }
-    auto vojtaBallHandle = createSimpleModel(resources, mesh_library.at("sphere_tri_vnt"), texture_library.at("widevojta"), shader_library.at("phong"));
+    auto vojtaBallHandle = createSimpleModel(assets, "vojtaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"), assets.getHandle<Texture>("widevojta"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance slunce_nase_jasne = createModelInstance(vojtaBallHandle);
         slunce_nase_jasne.setPosition(glm::vec3(1.f, 2.f, 0.f));
@@ -255,39 +242,24 @@ void App::init_assets(void) {
         vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
         scene.models.emplace("vojta_ball", vojtaBall);
     }
-    auto boxHandle = createSimpleModel(resources, mesh_library.at("cube"), texture_library.at("wood_box"), shader_library.at("phong"));
+    auto boxHandle = createSimpleModel(assets, "box_model", assets.getHandle<Mesh>("cube"), assets.getHandle<Texture>("wood_box"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance m_box_texture = createModelInstance(boxHandle);
         m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
         scene.models.emplace("m_box_texture", m_box_texture);
     }
 
-
-    // Model m_teapot;
-    // m_teapot.addMesh(mesh_library.at("teapot_tri_vnt"), texture_library.at("default"), shader_library.at("tex"));
-    // m_teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    // //scene.models.emplace("m_teapot", m_teapot);
-
-    auto teapotHandle = createSimpleModel(resources, mesh_library.at("teapot_tri_vnt"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
-    {
-        ModelInstance teapot = createModelInstance(teapotHandle);
-        teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
-        teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-        teapot.is_transparent = true;
-        scene.models.emplace("teapot", teapot);
-    }
-
-    auto bunnyHandle = createSimpleModel(resources, mesh_library.at("bunny"), texture_library.at("TextureDouble_A"), shader_library.at("phong"));
+    auto bunnyHandle = createSimpleModel(assets, "bunny_model", assets.getHandle<Mesh>("bunny"), assets.getHandle<Texture>("TextureDouble_A"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance bunny = createModelInstance(bunnyHandle);
         bunny.setPosition(glm::vec3(4.2f, -0.5f, 0.f));
         bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
         bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-        bunny.is_transparent = true;
+        bunny.opacity = 0.5f;
         scene.models.emplace("bunny", bunny);
     }
 
-    auto dragonHandle = createSimpleModel(resources, mesh_library.at("dragon"), texture_library.at("default"), shader_library.at("phong"));
+    auto dragonHandle = createSimpleModel(assets, "dragon_model", assets.getHandle<Mesh>("dragon"), assets.getHandle<Texture>("default"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance dragon = createModelInstance(dragonHandle);
         dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
@@ -295,7 +267,7 @@ void App::init_assets(void) {
         scene.models.emplace("dragon", dragon);
     }
 
-    auto sponzaHandle = createSimpleModel(resources, mesh_library.at("sponza"), texture_library.at("default"), shader_library.at("phong"));
+    auto sponzaHandle = createSimpleModel(assets, "sponza_model", assets.getHandle<Mesh>("sponza"), assets.getHandle<Texture>("default"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance sponza = createModelInstance(sponzaHandle);
         sponza.setScale(glm::vec3(0.02f, 0.02f, 0.02f));
@@ -313,7 +285,7 @@ void App::init_assets(void) {
         base_path + "_nz.png",
         });
 
-    scene.skybox = std::make_shared<Skybox>(mesh_library.at("skybox_triangle"), cm, shader_library.at("skybox"));
+    scene.skybox = std::make_shared<Skybox>(assets.getHandle<Mesh>("skybox_triangle"), cm, assets.getHandle<ShaderProgram>("skybox"));
 
     main_camera = std::make_shared<Camera>();
     main_camera->Position = glm::vec3(-10.0f, 6.0f, 1.2f);
@@ -321,7 +293,7 @@ void App::init_assets(void) {
     main_camera->ProcessMouseMovement(0, 0);
     scene.camera = main_camera;
 
-    axis_display.init();
+    axis_display.init(&assets);
     axis_display.set_viewport(0, 0, 64, 64);
 }
 
@@ -338,11 +310,11 @@ int App::run() {
 
         scene.set_light(0, glm::vec4(-0.75f, -1.f, -0.333f, 0.f), glm::vec4(0.45f, 0.45f, 0.45f, 1.f), 1.f, 0.f); // sun
         scene.set_light(1, glm::vec4(-1.f, 2.f, -2.f, 1.f), glm::vec4(1.f, 0.f, 0.f, 1.f), 0.15f, 180.f);
-        scene.set_light(2, glm::vec4(-5.5f, 2.6f, 0.f, 1.f), glm::vec4(0.f, 1.f, 0.f, 1.f), 0.10f, 180.f);
+        scene.set_light(2, glm::vec4(-3.5f, 2.6f, 0.f, 1.f), glm::vec4(0.f, 1.f, 0.f, 1.f), 0.10f, 180.f);
         scene.set_light(3, glm::vec4(0.f, 2.f, 3.f, 1.f), glm::vec4(0.f, 0.f, 1.f, 1.f), 0.07f, 180.f);
         scene.active_lights = 4;
 
-        auto phongShaderHandle = shader_library.at("phong");
+        auto phongShaderHandle = assets.getHandle<ShaderProgram>("phong");
 
         float rotation_speed = 0.f;
         int debugMode = 0;
@@ -391,8 +363,7 @@ int App::run() {
 
                     ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
 
-
-                    ImGui::SliderInt("DebugMode", &debugMode, 0, 10);
+                    ImGui::Combo("Shader debug", &debugMode, ShaderDebugOptions, sizeof(ShaderDebugOptions) / sizeof(const char*));
 
                     ImGui::Text("Camera:");
                     ImGui::Text("x: %.2f | y: %.2f | z: %.2f", main_camera->Position.x, main_camera->Position.y, main_camera->Position.z);
@@ -463,13 +434,12 @@ int App::run() {
             );
 
             // Přeuložení pozic aplikováním rotační matice
-            for (size_t i = 0; i < scene.active_lights; i++) {
+            for (size_t i = 0; i < std::min(scene.active_lights, (int)initial_light_positions.size()); i++) {
                 scene.lights.position[i] = light_rot_matrix * initial_light_positions[i];
             }
 
-            auto shader_phong = resources.getShader(phongShaderHandle);
+            auto shader_phong = assets.getResource(phongShaderHandle);
             if (shader_phong) {
-                shader_phong->setUniform("uAplha", 0.5f);
                 shader_phong->setUniform("active_lights", scene.active_lights);
                 shader_phong->setUniform("debugMode", debugMode);
                 for (size_t i = 0; i < scene.active_lights; i++) {
@@ -485,7 +455,8 @@ int App::run() {
                 model.update(delta_time);
             }
 
-            renderer.render(&resources, &scene);
+            assets.update();
+            renderer.render(&assets, &scene);
 
             if (app_settings.gui_axis_display_enabled)
                 axis_display.draw(main_camera);

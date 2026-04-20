@@ -1,5 +1,5 @@
 #pragma once
-#include <numeric>
+#include <cstdint>
 #include <functional>
 
 using ResourceId = uint32_t;
@@ -12,8 +12,12 @@ public:
 
     ResourceId get_id() const { return id_; }
 
-    bool operator==(const ResourceHandle& other) const {
+    bool operator==(const ResourceHandle<T>& other) const {
         return id_ == other.id_;
+    }
+
+    bool is_valid() const {
+        return id_ != 0;
     }
 private:
     ResourceId id_ = 0;

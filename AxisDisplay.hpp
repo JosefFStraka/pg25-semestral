@@ -1,6 +1,6 @@
+#pragma once
 
-
-#include "engine/resources/ResourceManager.hpp"
+#include "engine/resources/AssetManager.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "ModelInstance.hpp"
 #include "ModelResource.hpp"
@@ -8,7 +8,6 @@
 #include "meshgen.hpp"
 
 class AxisDisplay {
-    ResourceHandle<Mesh> line_;
     ResourceHandle<Mesh> mesh_;
 
     ResourceHandle<ShaderProgram> shader_;
@@ -18,34 +17,26 @@ class AxisDisplay {
     ResourceHandle<Texture> texBlue;
     ResourceHandle<Texture> texWhite;
 
-    ResourceHandle<ModelResource> lineModel;
-    ResourceHandle<ModelResource> meshModel;
-
-    ResourceManager resources;
+    AssetManager* assets;
     Renderer renderer;
     Scene scene;
 
     ResourceHandle<ModelResource> createSimpleModel(
-        ResourceManager& rm,
+        AssetManager* rm,
+        const std::string& name,
         ResourceHandle<Mesh> mesh,
         ResourceHandle<Texture> texture,
         ResourceHandle<ShaderProgram> shader) {
         ModelResource res;
 
-        res.meshes.push_back({
-            mesh,
-            texture,
-            shader,
-            glm::vec3(0.0f),
-            glm::vec3(0.0f),
-            glm::vec3(1.0f)
-            });
+        res.addMesh(mesh, texture, shader);
 
-        return rm.createModelResource(std::move(res));
+        return rm->emplaceModel(name, std::move(res));
     }
     void init_model(std::string name, ResourceHandle<Texture> texture, glm::vec3 trans, glm::vec3 scale) {
         auto modelHandle = createSimpleModel(
-            resources,
+            assets,
+            name,
             mesh_,
             texture,
             shader_
@@ -69,14 +60,14 @@ class AxisDisplay {
 public:
     GLint viewport[4];
 
-    void init() {
-        mesh_ = resources.registerMesh("../engine/assets/meshes/cube.obj");
-        texRed = resources.emplaceTexture(glm::vec3(1.f, 0.f, 0.f));
-        texGreen = resources.emplaceTexture(glm::vec3(0.f, 1.f, 0.f));
-        texBlue = resources.emplaceTexture(glm::vec3(0.f, 0.f, 1.f));
-        texWhite = resources.emplaceTexture(glm::vec3(1.f, 1.f, 1.f));
-        shader_ = resources.emplaceShader("../engine/assets/shaders/tex.vert", "../engine/assets/shaders/tex.frag", false);
-
+    void init(AssetManager* am) {
+        assets = am;
+        mesh_ = assets->getHandle<Mesh>("cube");
+        texRed = assets->addProgrammatic("axis_red", std::make_unique<Texture>(glm::vec3(1.f, 0.f, 0.f)));
+        texGreen = assets->addProgrammatic("axis_green", std::make_unique<Texture>(glm::vec3(0.f, 1.f, 0.f)));
+        texBlue = assets->addProgrammatic("axis_blue", std::make_unique<Texture>(glm::vec3(0.f, 0.f, 1.f)));
+        texWhite = assets->getHandle<Texture>("white");
+        shader_ = assets->addProgrammatic("axis_shader", std::make_unique<ShaderProgram>("../engine/assets/shaders/tex.vert", "../engine/assets/shaders/tex.frag", false));
         
         // OpenGL uses a right-handed coordinate system where
         // the positive x-axis points to the right, 
@@ -112,13 +103,15 @@ public:
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         glDisable(GL_CULL_FACE);
 
-        auto s = resources.getShader(shader_);
-        s->setUniform("uV_m", glm::lookAt(-camera->Front, glm::vec3(0.f, 0.f, 0.f), camera->Up));
-        s->setUniform("uP_m", glm::ortho(-1.2f, 1.2f, -1.2f, 1.2f, -0.2f, 2.2f));
+        auto s = assets->getResource(shader_);
+        if (s) {
+            s->setUniform("uV_m", glm::lookAt(-camera->Front, glm::vec3(0.f, 0.f, 0.f), camera->Up));
+            s->setUniform("uP_m", glm::ortho(-1.2f, 1.2f, -1.2f, 1.2f, -0.2f, 2.2f));
+        }
 
         glLineWidth(1); // line widt greater than 1 is depracated
 
-        renderer.render(&resources, &scene);
+        renderer.render(assets, &scene);
 
         glViewport(backup_viewport[0], backup_viewport[1], backup_viewport[2], backup_viewport[3]);
         if (backup_cullface) {

@@ -5,7 +5,7 @@
 
 #include "fps_meter.hpp"
 
-#include "engine/resources/ResourceManager.hpp"
+#include "engine/resources/AssetManager.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/ShaderProgram.hpp"
 #include "engine/rendering/Mesh.hpp"
@@ -88,12 +88,8 @@ private:
     AxisDisplay axis_display;
     fps_meter FPS;
 
-    ResourceManager resources;
+    AssetManager assets;
     Renderer renderer;
-
-    std::unordered_map<std::string, ResourceHandle<Texture>> texture_library;
-    std::unordered_map<std::string, ResourceHandle<Mesh>> mesh_library;
-    std::unordered_map<std::string, ResourceHandle<ShaderProgram>> shader_library;
 
     Scene scene;
 };

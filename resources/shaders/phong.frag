@@ -23,7 +23,7 @@ uniform float specular_shinines = 18.0;
 uniform vec3 radiation = vec3(0.0);
 
 uniform int debugMode = 0;
-uniform float uAplha = 1.0;
+uniform float uAlpha = 1.0;
 
 uniform sampler2D tex_diffuse;
 
@@ -95,7 +95,9 @@ vec4 SpotLight(int i, vec3 N, vec3 V) {
 
 void main()
 {
-    vec3 albedo = texture(tex_diffuse, fs_in.T).rgb;
+    vec4 albedo = texture(tex_diffuse, fs_in.T);
+
+    if (uAlpha == 1.0 && albedo.a < 0.5) discard;
 
     vec3 N = normalize(fs_in.N);
     vec3 V = normalize(-fs_in.V);
@@ -116,7 +118,7 @@ void main()
 
     vec4 finalColor = vec4(0.7);
     if (debugMode == 0)
-        finalColor = vec4(radiation + accumulator.rgb * albedo, uAplha);
+        finalColor = vec4(radiation + accumulator.rgb * albedo.rgb, albedo.a * uAlpha);
     else if (debugMode == 1)
         finalColor = vec4(N * 0.5 + 0.5, 1.0);
     else if (debugMode == 2)

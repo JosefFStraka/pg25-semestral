@@ -4,7 +4,7 @@
 #include <unordered_set>
 
 #include "../../Scene.hpp"
-#include "../resources/ResourceManager.hpp"
+#include "../resources/AssetManager.hpp"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -12,7 +12,7 @@
 class Renderer {
     std::vector<ModelInstance*> transparent;
     std::unordered_set<ResourceHandle<ShaderProgram>> shaders;
-    
+
 public:
     bool should_update_vp = true;
     int mesh_count = 0;
@@ -20,7 +20,7 @@ public:
     bool depth_test{ true };
     bool cull_face{ true };
 
-    void render(ResourceManager* resourceManager, Scene* scene) {
+    void render(AssetManager* assetManager, Scene* scene) {
         mesh_count = 0;
         shaders.clear();
         shaders.reserve(scene->models.size());
@@ -51,42 +51,44 @@ public:
                 continue;
             }
 
-            auto modelRes = resourceManager->getModel(modelInst.model);
+            auto modelRes = assetManager->getResource(modelInst.model);
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                drawMeshPkg(resourceManager, scene, &modelInst, meshPkg);
+                drawMeshPkg(assetManager, scene, &modelInst, meshPkg);
             }
         }
 
         std::sort(transparent.begin(), transparent.end(), [&](ModelInstance* const a, ModelInstance* const b) {
-            return glm::distance(scene->camera->Position, a->getPosition()) < glm::distance(scene->camera->Position, b->getPosition());
+            return glm::distance(scene->camera->Position, a->getPosition()) > glm::distance(scene->camera->Position, b->getPosition());
             });
 
-        drawSkybox(resourceManager, scene->skybox.get(), scene->camera.get());
+        drawSkybox(assetManager, scene->skybox.get(), scene->camera.get());
 
         glEnable(GL_BLEND);
         glDepthMask(GL_FALSE);
         glDisable(GL_CULL_FACE);
 
         for (auto p : transparent) {
-            auto modelRes = resourceManager->getModel(p->model);
+            auto modelRes = assetManager->getResource(p->model);
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                drawMeshPkg(resourceManager, scene, p, meshPkg);
+                drawMeshPkg(assetManager, scene, p, meshPkg);
             }
         }
 
         glDepthMask(GL_TRUE);
     }
 
-    void drawSkybox(ResourceManager* resourceManager, Skybox* skybox, Camera* cam) {
+    void drawSkybox(AssetManager* assetManager, Skybox* skybox, Camera* cam) {
         if (!skybox || !cam)
             return;
 
-        auto mesh = resourceManager->getMesh(skybox->mesh_);
-        auto shader = resourceManager->getShader(skybox->shader_);
+        auto mesh = assetManager->getResource(skybox->mesh_);
+        auto shader = assetManager->getResource(skybox->shader_);
+
+        if (!mesh || !shader) return;
 
         shader->use();
         glBindTextureUnit(7, skybox->cubemap_->getName());
@@ -99,10 +101,10 @@ public:
         glDepthFunc(GL_LESS);
     }
 
-    void drawMeshPkg(ResourceManager* resourceManager, Scene* scene, ModelInstance* modelInst, const ModelResource::MeshPackage& meshPkg) {
-        auto mesh = resourceManager->getMesh(meshPkg.mesh);
+    void drawMeshPkg(AssetManager* assetManager, Scene* scene, ModelInstance* modelInst, const ModelResource::MeshPackage& meshPkg) {
+        auto mesh = assetManager->getResource(meshPkg.mesh);
         if (!mesh) return;
-        auto shader = resourceManager->getShader(meshPkg.shader);
+        auto shader = assetManager->getResource(meshPkg.shader);
         if (!shader) return;
 
         if (scene->camera && !shaders.contains(meshPkg.shader)) {
@@ -110,9 +112,10 @@ public:
 
             shader->setUniform("uV_m", scene->camera->GetViewMatrix());
             shader->setUniform("uP_m", scene->camera->GetProjMatrix());
+            shader->setUniform("uAlpha", modelInst->opacity);
         }
 
-        auto tex = resourceManager->getTexture(meshPkg.texture);
+        auto tex = assetManager->getResource(meshPkg.texture);
         if (!tex) return;
 
         shader->use();
