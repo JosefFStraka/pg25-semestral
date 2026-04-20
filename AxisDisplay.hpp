@@ -115,7 +115,7 @@ public:
         for (int i = 0; i < 6; i++) {
             dummy_frustum.planes[i] = Plane{glm::vec3(0.f, 1.f, 0.f), 100000.f};
         }
-        renderer.render(assets, &scene, dummy_frustum, false, false, glm::mat4(1.f));
+        renderer.render(assets, &scene, dummy_frustum, glm::mat4(1.f));
 
         glViewport(backup_viewport[0], backup_viewport[1], backup_viewport[2], backup_viewport[3]);
         if (backup_cullface) {

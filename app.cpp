@@ -243,8 +243,12 @@ void App::init_assets(void) {
         Vertex{.position = {-1.f, 1.f, -1.f}}, Vertex{.position = {-1.f, 1.f, 1.f}},
     };
     assets.addProgrammatic("ndc_lines", std::make_unique<Mesh>(ndc_cube_vertices, GL_LINES));
+
+    assets.addProgrammatic("white", std::make_unique<Texture>(glm::vec3(1.f, 1.f, 1.f)));
+
     assets.addProgrammatic("debug_shader", std::make_unique<ShaderProgram>("../engine/assets/shaders/tex.vert", "../engine/assets/shaders/tex.frag", false));
     assets.addProgrammatic("color_shader", std::make_unique<ShaderProgram>("../engine/assets/shaders/color.vert", "../engine/assets/shaders/color.frag", false));
+
 
     auto argus1Handle = createSimpleModel(assets, "argus1_model", assets.getHandle<Mesh>("argus1"), assets.getHandle<Texture>("argus1"), assets.getHandle<ShaderProgram>("phong"));
     {
@@ -262,7 +266,7 @@ void App::init_assets(void) {
         current_scene->models.emplace("teapot", teapot);
     }
 
-    auto vladaBallHandle = createSimpleModel(assets, "vladaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"), assets.getHandle<Texture>("argus1"), assets.getHandle<ShaderProgram>("phong"));
+    auto vladaBallHandle = createSimpleModel(assets, "vladaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"), assets.getHandle<Texture>("vlada"), assets.getHandle<ShaderProgram>("chaos"));
     {
         ModelInstance vladaBall = createModelInstance(vladaBallHandle);
         vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
@@ -302,7 +306,7 @@ void App::init_assets(void) {
         ModelInstance dragon = createModelInstance(dragonHandle);
         dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
         dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-        dragon.enabled = false;
+        //dragon.enabled = false;
         current_scene->models.emplace("dragon", dragon);
     }
 
@@ -325,9 +329,9 @@ void App::init_assets(void) {
         base_path + "_nz.png",
         });
 
-    current_scene->skybox = std::make_shared<Skybox>(assets.getHandle<Mesh>("skybox_triangle"), cm, assets.getHandle<ShaderProgram>("skybox"));
-
-    skyboxes.push_back(current_scene->skybox);
+    auto skybox = std::make_shared<Skybox>(assets.getHandle<Mesh>("skybox_triangle"), cm, assets.getHandle<ShaderProgram>("skybox"));
+    skyboxes.push_back(skybox);
+    //current_scene->skybox = skybox;
 
     main_camera = std::make_shared<Camera>();
     main_camera->Position = glm::vec3(-10.0f, 6.0f, 1.2f);
@@ -359,6 +363,9 @@ int App::run() {
         current_scene->active_lights = 4;
 
         auto phongShaderHandle = assets.getHandle<ShaderProgram>("phong");
+        auto chaosShaderHandle = assets.getHandle<ShaderProgram>("chaos");
+        float chaosOff = 0.01f;
+        float chaosExp = -1.9f;
 
         float rotation_speed = 0.f;
         int debugMode = 0;
@@ -406,6 +413,8 @@ int App::run() {
                         update_projection_matrix();
                     }
                     ImGui::SliderFloat("Camera speed", &current_scene->camera->MovementSpeed, 0.f, 10.f);
+                    ImGui::SliderFloat("Chaos Offset", &chaosOff, 0.f, 2.f);
+                    ImGui::SliderFloat("Chaos Exp", &chaosExp, -2.f, 2.f);
 
                     ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
 
@@ -446,7 +455,7 @@ int App::run() {
                     }
 
                     if (ImGui::TreeNode("Skybox")) {
-                        static int current_skybox_index = 1;
+                        static int current_skybox_index = 0;
                         if (ImGui::SliderInt("Skybox", &current_skybox_index, 0, skyboxes.size())) {
                             if (current_skybox_index - 1 >= 0 && current_skybox_index - 1 < skyboxes.size())
                                 current_scene->skybox = skyboxes.at(current_skybox_index - 1);
@@ -497,15 +506,14 @@ int App::run() {
             }
 
             auto shader_phong = assets.getResource(phongShaderHandle);
-            if (shader_phong) {
-                shader_phong->setUniform("active_lights", current_scene->active_lights);
-                shader_phong->setUniform("debugMode", debugMode);
-                for (size_t i = 0; i < current_scene->active_lights; i++) {
-                    shader_phong->setUniform(std::format("lights.position[{}]", i), current_scene->lights.position[i]);
-                    shader_phong->setUniform(std::format("lights.color[{}]", i), current_scene->lights.color[i]);
-                    shader_phong->setUniform(std::format("lights.attenuation[{}]", i), current_scene->lights.attenuation[i]);
-                    shader_phong->setUniform(std::format("lights.spotCutoff[{}]", i), current_scene->lights.spotCutoff[i]);
-                }
+            current_scene->update_shader_lights(shader_phong);
+
+            auto chaos_shader = assets.getResource(chaosShaderHandle);
+            if (chaos_shader) {
+                current_scene->update_shader_lights(chaos_shader);
+                chaos_shader->setUniform("uTime", (float)now);
+                chaos_shader->setUniform("uChaosOffset", chaosOff);
+                chaos_shader->setUniform("uChaosExp", chaosExp);
             }
 
             for (auto&& [_, model] : current_scene->models) {
@@ -526,7 +534,9 @@ int App::run() {
             }
 
             assets.update();
-            renderer.render(&assets, current_scene.get(), cached_frustum, app_settings.debug_draw_aabb, app_settings.debug_freeze_frustum, cached_vp);
+            renderer.debug_aabb = app_settings.debug_draw_aabb;
+            renderer.debug_frustum = app_settings.debug_freeze_frustum;
+            renderer.render(&assets, current_scene.get(), cached_frustum, cached_vp);
 
             if (app_settings.gui_axis_display_enabled)
                 axis_display.draw(main_camera);

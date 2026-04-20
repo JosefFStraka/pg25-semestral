@@ -23,7 +23,11 @@ public:
     bool depth_test{ true };
     bool cull_face{ true };
 
-    void render(AssetManager* assetManager, Scene* scene, const Frustum& frustum, bool debug_aabb, bool debug_frustum, const glm::mat4& cached_vp) {
+    bool frustum_culling{ true };
+    bool debug_aabb{ false };
+    bool debug_frustum{ false };
+
+    void render(AssetManager* assetManager, Scene* scene, const Frustum& frustum, const glm::mat4& cached_vp) {
         mesh_count = 0;
         shaders.clear();
         shaders.reserve(scene->models.size());
@@ -63,14 +67,14 @@ public:
 
                 glm::mat4 mesh_model_matrix = modelInst.createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
                 glm::mat4 mm = mesh_model_matrix * modelInst.local_model_matrix;
-                
+
                 AABB world_aabb = mesh->aabb_.transform(mm);
-                if (!frustum.isAABBInFrustum(world_aabb)) {
+                if (frustum_culling && !frustum.isAABBInFrustum(world_aabb)) {
                     continue;
                 }
 
                 drawMeshPkg(assetManager, scene, &modelInst, meshPkg, mm);
-                
+
                 if (debug_aabb) {
                     drawAABB(assetManager, scene, world_aabb);
                 }
@@ -97,9 +101,10 @@ public:
 
                 glm::mat4 mesh_model_matrix = p->createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
                 glm::mat4 mm = mesh_model_matrix * p->local_model_matrix;
-                
+
                 AABB world_aabb = mesh->aabb_.transform(mm);
-                if (!frustum.isAABBInFrustum(world_aabb)) {
+
+                if (frustum_culling && !frustum.isAABBInFrustum(world_aabb)) {
                     continue;
                 }
 

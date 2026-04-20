@@ -110,6 +110,10 @@
     "skybox": {
       "fs": "../engine/assets/shaders/skybox.frag",
       "vs": "../engine/assets/shaders/skybox.vert"
+    },
+    "chaos": {
+      "fs": "../resources/shaders/chaos.frag",
+      "vs": "../resources/shaders/phong.vert"
     }
   },
   "textures": {
