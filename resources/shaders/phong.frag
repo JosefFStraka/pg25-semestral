@@ -84,7 +84,7 @@ vec4 PointLight(int i, vec3 N, vec3 V) {
     else if (debugMode == 5)
         finalColor = vec4(specular, 1.0);
     else
-        finalColor = vec4((ambient + diffuse + specular) * att, 1.0);
+        finalColor = vec4((ambient + diffuse * att + specular) , 1.0);
 
     return finalColor;
 }

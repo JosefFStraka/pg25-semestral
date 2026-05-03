@@ -6,8 +6,7 @@
 #include "Camera.hpp"
 #include "Skybox.hpp"
 
-// C++
-// SoA = Structure of Arrays (C++ like, compile time allocated)
+// SoA 
 constexpr int MAX_LIGHTS = 16;
 struct s_lights {
     std::array<glm::vec4, MAX_LIGHTS> position;
@@ -34,12 +33,18 @@ struct Scene
     void update_shader_lights(ShaderProgram* shader) {
         if (shader) {
             shader->setUniform("active_lights", this->active_lights);
-            for (size_t i = 0; i < this->active_lights; i++) {
-                shader->setUniform(std::format("lights.position[{}]", i), this->lights.position[i]);
-                shader->setUniform(std::format("lights.color[{}]", i), this->lights.color[i]);
-                shader->setUniform(std::format("lights.attenuation[{}]", i), this->lights.attenuation[i]);
-                shader->setUniform(std::format("lights.spotCutoff[{}]", i), this->lights.spotCutoff[i]);
-            }
+
+            GLint loc = shader->getUniformLocation("lights.position");
+            glUniform4fv(loc, MAX_LIGHTS, glm::value_ptr(lights.position[0]));
+
+            loc = shader->getUniformLocation("lights.color");
+            glUniform4fv(loc, MAX_LIGHTS, glm::value_ptr(lights.color[0]));
+
+            loc = shader->getUniformLocation("lights.attenuation");
+            glUniform4fv(loc, MAX_LIGHTS, &lights.attenuation[0]);
+
+            loc = shader->getUniformLocation("lights.spotCutoff");
+            glUniform4fv(loc, MAX_LIGHTS, &lights.spotCutoff[0]);
         }
     }
 };

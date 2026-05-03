@@ -44,7 +44,8 @@ public:
     }
     
     GLuint getID(void) { return ID; }
-    GLint  getAttribLocation(const std::string & name);
+    GLint  getAttribLocation(const std::string & name);\
+    GLuint getUniformLocation(const std::string & name);
     
     // set uniform according to name 
     // https://docs.gl/gl4/glUniform
@@ -63,8 +64,6 @@ private:
     GLuint ID{0}; // default = 0, empty shader
     inline static GLuint currently_used_ID{0};
     std::unordered_map<std::string, GLuint> uniform_location_cache;
-
-    GLuint getUniformLocation(const std::string & name);
 
     std::string textFileRead(const std::filesystem::path & filename); // load text file
 

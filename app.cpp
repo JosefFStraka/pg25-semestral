@@ -408,7 +408,7 @@ int App::run() {
                     ImGui::Checkbox("Debug Draw AABBs", &this->app_settings.debug_draw_aabb);
                     ImGui::Checkbox("Debug Freeze Frustum", &this->app_settings.debug_freeze_frustum);
 
-                    // ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
+                    ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
                     if (ImGui::SliderFloat("FoV", &current_scene->camera->fov, 20.f, 180.f)) {
                         update_projection_matrix();
                     }
@@ -479,16 +479,7 @@ int App::run() {
             double delta_time = now - last_time;
             last_time = now;
 
-            //########## react to user  ##########
-            main_camera->Position += main_camera->ProcessInput(window, delta_time); // process keys etc.
-
-            // HSL data = HSL((int)(now * (360 / 5)) % 360, 1.f, 0.5f);
-            // RGB value = HSLToRGB(data);
-            // resources.getShader(simple_uniform_shader)->setUniform("ucolor", glm::vec4(value.R / 255.0, value.G / 255.0, value.B / 255.0, 1.f));
-
-            // resources.getShader(rainbow_shader)->setUniform("iTime", (float)now);
-
-            //########## create and set View Matrix according to camera settings  ##########
+            main_camera->Position += main_camera->ProcessInput(window, delta_time);
 
             // Rotating lights
             float light_rotation_speed = 0.5f;
@@ -506,7 +497,10 @@ int App::run() {
             }
 
             auto shader_phong = assets.getResource(phongShaderHandle);
-            current_scene->update_shader_lights(shader_phong);
+            if (shader_phong) {
+                current_scene->update_shader_lights(shader_phong);
+                shader_phong->setUniform("debugMode", debugMode);
+            }
 
             auto chaos_shader = assets.getResource(chaosShaderHandle);
             if (chaos_shader) {
