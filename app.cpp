@@ -254,7 +254,7 @@ void App::init_assets(void) {
     {
         ModelInstance argus1 = createModelInstance(argus1Handle);
         argus1.setPosition(glm::vec3(-6.f, 0.f, 0.f));
-        current_scene->models.emplace("argus1", argus1);
+        current_scene->add_static_model("argus1", std::move(argus1), assets);
     }
 
     auto teapotHandle = createSimpleModel(assets, "teapot_model", assets.getHandle<Mesh>("teapot_tri_vnt"), assets.getHandle<Texture>("TextureDouble_A"), assets.getHandle<ShaderProgram>("phong"));
@@ -263,32 +263,32 @@ void App::init_assets(void) {
         teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
         teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
         teapot.opacity = 0.7f;
-        current_scene->models.emplace("teapot", teapot);
+        current_scene->add_static_model("teapot", std::move(teapot), assets);
     }
 
     auto vladaBallHandle = createSimpleModel(assets, "vladaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"), assets.getHandle<Texture>("vlada"), assets.getHandle<ShaderProgram>("chaos"));
     {
         ModelInstance vladaBall = createModelInstance(vladaBallHandle);
         vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
-        current_scene->models.emplace("vlada_ball", vladaBall);
+        current_scene->add_model("vlada_ball", std::move(vladaBall));
     }
     auto vojtaBallHandle = createSimpleModel(assets, "vojtaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"), assets.getHandle<Texture>("widevojta"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance slunce_nase_jasne = createModelInstance(vojtaBallHandle);
         slunce_nase_jasne.setPosition(glm::vec3(1.f, 2.f, 0.f));
         slunce_nase_jasne.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-        current_scene->models.emplace("slunce_nase_jasne", slunce_nase_jasne);
+        current_scene->add_model("slunce_nase_jasne", std::move(slunce_nase_jasne));
     }
     {
         ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
         vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
-        current_scene->models.emplace("vojta_ball", vojtaBall);
+        current_scene->add_model("vojta_ball", std::move(vojtaBall));
     }
     auto boxHandle = createSimpleModel(assets, "box_model", assets.getHandle<Mesh>("cube"), assets.getHandle<Texture>("wood_box"), assets.getHandle<ShaderProgram>("phong"));
     {
         ModelInstance m_box_texture = createModelInstance(boxHandle);
         m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
-        current_scene->models.emplace("m_box_texture", m_box_texture);
+        current_scene->add_static_model("m_box_texture", std::move(m_box_texture), assets);
     }
 
     auto bunnyHandle = createSimpleModel(assets, "bunny_model", assets.getHandle<Mesh>("bunny"), assets.getHandle<Texture>("TextureDouble_A"), assets.getHandle<ShaderProgram>("phong"));
@@ -298,7 +298,7 @@ void App::init_assets(void) {
         bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
         bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
         bunny.opacity = 0.5f;
-        current_scene->models.emplace("bunny", bunny);
+        current_scene->add_static_model("bunny", std::move(bunny), assets);
     }
 
     auto dragonHandle = createSimpleModel(assets, "dragon_model", assets.getHandle<Mesh>("dragon"), assets.getHandle<Texture>("default"), assets.getHandle<ShaderProgram>("phong"));
@@ -307,7 +307,7 @@ void App::init_assets(void) {
         dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
         dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
         //dragon.enabled = false;
-        current_scene->models.emplace("dragon", dragon);
+        current_scene->add_static_model("dragon", std::move(dragon), assets);
     }
 
     auto sponzaHandle = createSimpleModel(assets, "sponza_model", assets.getHandle<Mesh>("sponza"), assets.getHandle<Texture>("default"), assets.getHandle<ShaderProgram>("phong"));
@@ -315,8 +315,16 @@ void App::init_assets(void) {
         ModelInstance sponza = createModelInstance(sponzaHandle);
         sponza.setScale(glm::vec3(0.02f, 0.02f, 0.02f));
         sponza.setPosition(glm::vec3(0.0f, -1.f, 0.0f));
-        sponza.enabled = false;
-        current_scene->models.emplace("sponza", sponza);
+        current_scene->add_static_model("sponza", std::move(sponza), assets, false);
+    }
+
+    auto planeHandle = createSimpleModel(assets, "plane_model", assets.getHandle<Mesh>("plane"), assets.getHandle<Texture>("default"), assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance floor_plane = createModelInstance(planeHandle);
+        floor_plane.setPosition(glm::vec3(0.f, -1.0f, 0.f));
+        floor_plane.setScale(glm::vec3(50.f, 1.f, 50.f));
+        floor_plane.setEulerAngles(glm::vec3(180.f, 0.f, 0.f));
+        current_scene->add_static_model("floor_plane", std::move(floor_plane), assets);
     }
 
     std::string base_path = "../resources/textures/skyboxes/vylety_20260403_cubemap/";
@@ -428,11 +436,17 @@ int App::run() {
 
                     if (ImGui::TreeNode("current_scene")) {
                         size_t i = 0;
-                        for (auto& [name, model] : current_scene->models) {
+                        for (auto& [name, model] : current_scene->get_all_models()) {
                             {
                                 ImGui::PushID(i);
                                 if (ImGui::TreeNode("", name.c_str())) {
-                                    AppImGui::model_controls(&model);
+                                    bool is_enabled = current_scene->is_model_enabled(name);
+                                    bool was_enabled = is_enabled;
+                                    bool is_static = current_scene->is_model_static(name);
+                                    AppImGui::model_controls(&model, &is_enabled, is_static);
+                                    if (is_enabled != was_enabled) {
+                                        current_scene->set_model_enabled(name, is_enabled);
+                                    }
                                     ImGui::TreePop();
                                 }
                                 ImGui::PopID();
@@ -479,7 +493,32 @@ int App::run() {
             double delta_time = now - last_time;
             last_time = now;
 
-            main_camera->Position += main_camera->ProcessInput(window, delta_time);
+            glm::vec3 velocity = main_camera->ProcessInput(window, delta_time);
+            
+            auto get_camera_aabb = [](glm::vec3 pos) {
+                float size = 0.5f; // half size
+                return AABB{ pos - glm::vec3(size), pos + glm::vec3(size) };
+            };
+
+            if (glm::length(velocity) > 0.0f) {
+                // X axis
+                main_camera->Position.x += velocity.x;
+                if (current_scene->check_collision(get_camera_aabb(main_camera->Position), assets)) {
+                    main_camera->Position.x -= velocity.x;
+                }
+
+                // Y axis
+                main_camera->Position.y += velocity.y;
+                if (current_scene->check_collision(get_camera_aabb(main_camera->Position), assets)) {
+                    main_camera->Position.y -= velocity.y;
+                }
+
+                // Z axis
+                main_camera->Position.z += velocity.z;
+                if (current_scene->check_collision(get_camera_aabb(main_camera->Position), assets)) {
+                    main_camera->Position.z -= velocity.z;
+                }
+            }
 
             // Rotating lights
             float light_rotation_speed = 0.5f;
@@ -496,13 +535,13 @@ int App::run() {
                 current_scene->lights.position[i] = light_rot_matrix * initial_light_positions[i];
             }
 
-            auto shader_phong = assets.getResource(phongShaderHandle);
+            auto shader_phong = assets.getResourceMaybe(phongShaderHandle);
             if (shader_phong) {
                 current_scene->update_shader_lights(shader_phong);
                 shader_phong->setUniform("debugMode", debugMode);
             }
 
-            auto chaos_shader = assets.getResource(chaosShaderHandle);
+            auto chaos_shader = assets.getResourceMaybe(chaosShaderHandle);
             if (chaos_shader) {
                 current_scene->update_shader_lights(chaos_shader);
                 chaos_shader->setUniform("uTime", (float)now);
@@ -510,9 +549,11 @@ int App::run() {
                 chaos_shader->setUniform("uChaosExp", chaosExp);
             }
 
-            for (auto&& [_, model] : current_scene->models) {
-                model.rotate(glm::vec3(17.f * rotation_speed * delta_time, 31.f * rotation_speed * delta_time, 11.f * rotation_speed * delta_time));
-                model.update(delta_time);
+            for (auto&& [name, model_ptr] : current_scene->get_models()) {
+                if (!current_scene->is_model_static(name)) {
+                    model_ptr->rotate(glm::vec3(17.f * rotation_speed * delta_time, 31.f * rotation_speed * delta_time, 11.f * rotation_speed * delta_time));
+                }
+                model_ptr->update(delta_time);
             }
 
             auto proj = main_camera->GetProjMatrix();

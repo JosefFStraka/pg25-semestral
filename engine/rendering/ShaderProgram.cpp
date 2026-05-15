@@ -89,6 +89,14 @@ void ShaderProgram::setUniform(const std::string& name, const std::vector<glm::v
     auto loc = getUniformLocation(name);
     glProgramUniform3fv(ID, loc, val.size(), glm::value_ptr(val[0]));
 }
+void ShaderProgram::setUniform(const std::string& name, GLsizei count, const GLfloat* val) {
+    auto loc = getUniformLocation(name);
+    glProgramUniform1fv(ID, loc, count, val);
+}
+void ShaderProgram::setUniform(const std::string& name, GLsizei count, const glm::vec4* val) {
+    auto loc = getUniformLocation(name);
+    glProgramUniform4fv(ID, loc, count, glm::value_ptr(val[0]));
+}
 
 std::string ShaderProgram::getShaderInfoLog(const GLuint obj) {
     int log_length = 0;

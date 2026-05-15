@@ -53,6 +53,16 @@
       "path": "../resources/pepa/dragon/dragon.obj"
     },
     "plane": {
+      "aabb_max": [
+        1.0,
+        0.0,
+        1.0
+      ],
+      "aabb_min": [
+        -1.0,
+        0.0,
+        -1.0
+      ],
       "path": "../engine/assets/meshes/plane.obj"
     },
     "sphere_tri_vnt": {
@@ -99,6 +109,10 @@
     }
   },
   "shaders": {
+    "chaos": {
+      "fs": "../resources/shaders/chaos.frag",
+      "vs": "../resources/shaders/phong.vert"
+    },
     "phong": {
       "fs": "../resources/shaders/phong.frag",
       "vs": "../resources/shaders/phong.vert"
@@ -110,10 +124,6 @@
     "skybox": {
       "fs": "../engine/assets/shaders/skybox.frag",
       "vs": "../engine/assets/shaders/skybox.vert"
-    },
-    "chaos": {
-      "fs": "../resources/shaders/chaos.frag",
-      "vs": "../resources/shaders/phong.vert"
     }
   },
   "textures": {

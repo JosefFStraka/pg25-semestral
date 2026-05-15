@@ -193,7 +193,7 @@ public:
     }
 
     template<typename T>
-    T* getResource(ResourceHandle<T> handle) {
+    T* getResourceMaybe(ResourceHandle<T> handle) {
         if (handle.get_id() == 0) return nullptr;
 
         Storage<T>* storage = nullptr;

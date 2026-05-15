@@ -30,9 +30,9 @@ public:
     void render(AssetManager* assetManager, Scene* scene, const Frustum& frustum, const glm::mat4& cached_vp) {
         mesh_count = 0;
         shaders.clear();
-        shaders.reserve(scene->models.size());
+        shaders.reserve(scene->get_models().size());
         transparent.clear();
-        transparent.reserve(scene->models.size());
+        transparent.reserve(scene->get_models().size());
 
         if (depth_test)
             glEnable(GL_DEPTH_TEST);
@@ -49,31 +49,30 @@ public:
 
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for (auto& [name, modelInst] : scene->models) {
-            if (!modelInst.enabled) continue;
-            modelInst.prepare();
+        for (auto& [name, modelInst] : scene->get_models()) {
+            modelInst->prepare();
 
-            if (modelInst.is_transparent) {
-                transparent.push_back(&modelInst);
+            if (modelInst->is_transparent) {
+                transparent.push_back(modelInst);
                 continue;
             }
 
-            auto modelRes = assetManager->getResource(modelInst.model);
+            auto modelRes = assetManager->getResourceMaybe(modelInst->model);
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                auto mesh = assetManager->getResource(meshPkg.mesh);
+                auto mesh = assetManager->getResourceMaybe(meshPkg.mesh);
                 if (!mesh) continue;
 
-                glm::mat4 mesh_model_matrix = modelInst.createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
-                glm::mat4 mm = mesh_model_matrix * modelInst.local_model_matrix;
+                glm::mat4 mesh_model_matrix = modelInst->createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
+                glm::mat4 mm = mesh_model_matrix * modelInst->local_model_matrix;
 
                 AABB world_aabb = mesh->aabb_.transform(mm);
                 if (frustum_culling && !frustum.isAABBInFrustum(world_aabb)) {
                     continue;
                 }
 
-                drawMeshPkg(assetManager, scene, &modelInst, meshPkg, mm);
+                drawMeshPkg(assetManager, scene, modelInst, meshPkg, mm);
 
                 if (debug_aabb) {
                     drawAABB(assetManager, scene, world_aabb);
@@ -92,11 +91,11 @@ public:
         glDisable(GL_CULL_FACE);
 
         for (auto p : transparent) {
-            auto modelRes = assetManager->getResource(p->model);
+            auto modelRes = assetManager->getResourceMaybe(p->model);
             if (!modelRes) continue;
 
             for (auto const& meshPkg : modelRes->meshes) {
-                auto mesh = assetManager->getResource(meshPkg.mesh);
+                auto mesh = assetManager->getResourceMaybe(meshPkg.mesh);
                 if (!mesh) continue;
 
                 glm::mat4 mesh_model_matrix = p->createMM(meshPkg.origin, meshPkg.eulerAngles, meshPkg.scale);
@@ -123,8 +122,8 @@ public:
     }
 
     void drawAABB(AssetManager* assetManager, Scene* scene, AABB aabb) {
-        auto mesh = assetManager->getResource(assetManager->getHandle<Mesh>("aabb_lines"));
-        auto shader = assetManager->getResource(assetManager->getHandle<ShaderProgram>("color_shader"));
+        auto mesh = assetManager->getResourceMaybe(assetManager->getHandle<Mesh>("aabb_lines"));
+        auto shader = assetManager->getResourceMaybe(assetManager->getHandle<ShaderProgram>("color_shader"));
         if (!mesh || !shader) return;
 
         shader->use();
@@ -144,8 +143,8 @@ public:
     }
 
     void drawFrustumObj(AssetManager* assetManager, Scene* scene, const glm::mat4& cached_vp) {
-        auto mesh = assetManager->getResource(assetManager->getHandle<Mesh>("ndc_lines"));
-        auto shader = assetManager->getResource(assetManager->getHandle<ShaderProgram>("color_shader"));
+        auto mesh = assetManager->getResourceMaybe(assetManager->getHandle<Mesh>("ndc_lines"));
+        auto shader = assetManager->getResourceMaybe(assetManager->getHandle<ShaderProgram>("color_shader"));
         if (!mesh || !shader) return;
 
         shader->use();
@@ -165,8 +164,8 @@ public:
         if (!skybox || !cam)
             return;
 
-        auto mesh = assetManager->getResource(skybox->mesh_);
-        auto shader = assetManager->getResource(skybox->shader_);
+        auto mesh = assetManager->getResourceMaybe(skybox->mesh_);
+        auto shader = assetManager->getResourceMaybe(skybox->shader_);
 
         if (!mesh || !shader) return;
 
@@ -182,9 +181,9 @@ public:
     }
 
     void drawMeshPkg(AssetManager* assetManager, Scene* scene, ModelInstance* modelInst, const ModelResource::MeshPackage& meshPkg, const glm::mat4& mm) {
-        auto mesh = assetManager->getResource(meshPkg.mesh);
+        auto mesh = assetManager->getResourceMaybe(meshPkg.mesh);
         if (!mesh) return;
-        auto shader = assetManager->getResource(meshPkg.shader);
+        auto shader = assetManager->getResourceMaybe(meshPkg.shader);
         if (!shader) return;
 
         if (scene->camera && !shaders.contains(meshPkg.shader)) {
@@ -195,7 +194,7 @@ public:
             shader->setUniform("uAlpha", modelInst->opacity);
         }
 
-        auto tex = assetManager->getResource(meshPkg.texture);
+        auto tex = assetManager->getResourceMaybe(meshPkg.texture);
         if (!tex) return;
 
         shader->use();

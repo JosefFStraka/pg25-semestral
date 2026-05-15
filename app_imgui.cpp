@@ -89,11 +89,15 @@ AppImGui::~AppImGui() {
     ImGui::DestroyContext();
 }
 
-void AppImGui::model_controls(ModelInstance* const model) {
+void AppImGui::model_controls(ModelInstance* const model, bool* enabled, bool is_static) {
     bool modified = false;
 
-    ImGui::Checkbox("Enabled", &model->enabled);
+    ImGui::Checkbox("Enabled", enabled);
     ImGui::Checkbox("Transparent", &model->is_transparent);
+
+    if (is_static) {
+        ImGui::BeginDisabled();
+    }
 
     ImGui::Text("Position:");
     ImGui::PushID(0);
@@ -115,6 +119,10 @@ void AppImGui::model_controls(ModelInstance* const model) {
     modified |= ImGui::SliderFloat("y", &model->scale.y, -2.f, 2.f);
     modified |= ImGui::SliderFloat("z", &model->scale.z, -2.f, 2.f);
     ImGui::PopID();
+
+    if (is_static) {
+        ImGui::EndDisabled();
+    }
 
     if (modified) {
         model->parameters_modified = true;

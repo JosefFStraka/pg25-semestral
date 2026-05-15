@@ -33,8 +33,6 @@ public:
     bool is_transparent {false};
     float opacity {1.f};
 
-    bool enabled {true};
-
     glm::mat4 createMM(const glm::vec3& origin, const glm::vec3& eAng, const glm::vec3& scale) {
         // keep angles in proper range
         glm::vec3 eA{ wrapAngle(eAng.x), wrapAngle(eAng.y), wrapAngle(eAng.z) };

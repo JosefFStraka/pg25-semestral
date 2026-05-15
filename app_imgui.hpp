@@ -22,7 +22,7 @@ public:
 
     bool debug_window_open = false;
 
-    static void model_controls(ModelInstance * const model);
+    static void model_controls(ModelInstance * const model, bool* enabled, bool is_static);
     static void light_controls(s_lights * lights, int i);
 private:
     GLFWwindow* window = nullptr;

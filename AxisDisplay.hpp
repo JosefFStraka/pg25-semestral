@@ -47,7 +47,7 @@ class AxisDisplay {
         modelInstance.setPosition(trans);
         modelInstance.setScale(scale);
 
-        scene.models.emplace(name, modelInstance);
+        scene.add_model(name, std::move(modelInstance));
     }
 
     void update_camera(std::shared_ptr<Camera> other) {
@@ -103,7 +103,7 @@ public:
         glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         glDisable(GL_CULL_FACE);
 
-        auto s = assets->getResource(shader_);
+        auto s = assets->getResourceMaybe(shader_);
         if (s) {
             s->setUniform("uV_m", glm::lookAt(-camera->Front, glm::vec3(0.f, 0.f, 0.f), camera->Up));
             s->setUniform("uP_m", glm::ortho(-1.2f, 1.2f, -1.2f, 1.2f, -0.2f, 2.2f));

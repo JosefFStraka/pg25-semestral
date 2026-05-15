@@ -59,6 +59,9 @@ public:
     void setUniform(const std::string & name, const std::vector<GLfloat> & val);
     void setUniform(const std::string & name, const std::vector<glm::vec3> & val);
 
+    void setUniform(const std::string & name, GLsizei count, const GLfloat* val);
+    void setUniform(const std::string & name, GLsizei count, const glm::vec4* val);
+
 
 private:
     GLuint ID{0}; // default = 0, empty shader
