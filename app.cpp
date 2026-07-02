@@ -341,6 +341,16 @@ void App::init_assets(void) {
                                     assets);
   }
 
+  {
+    ModelInstance glass = createModelInstance(boxHandle);
+    glass.setPosition(glm::vec3(2.f, 0.5f, 2.f));
+    glass.setScale(glm::vec3(2.0f, 2.0f, 0.05f));
+    glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
+    glass.is_transparent = true;
+    glass.opacity = 0.3f;
+    current_scene->add_static_model("glass_pane", std::move(glass), assets);
+  }
+
   auto bunnyHandle =
       createSimpleModel(assets, "bunny_model", assets.getHandle<Mesh>("bunny"),
                         assets.getHandle<Texture>("TextureDouble_A"),
@@ -677,6 +687,33 @@ int App::run() {
                   player_score += 10;
                   current_scene->set_model_enabled(hit_model, false);
                   respawn_queue.push_back({hit_model, now + 5.0});
+              } else if (hit_model.find("glass") != std::string::npos) {
+                  // Ricochet logic
+                  auto aabbs = current_scene->get_model_aabbs(hit_model, assets);
+                  if (!aabbs.empty()) {
+                      AABB glass_aabb = aabbs[0];
+                      glm::vec3 center = (glass_aabb.min + glass_aabb.max) * 0.5f;
+                      glm::vec3 extents = (glass_aabb.max - glass_aabb.min) * 0.5f;
+                      glm::vec3 d = it->position - center;
+                      
+                      glm::vec3 ratio = glm::abs(d) / extents;
+                      glm::vec3 normal;
+                      if (ratio.x > ratio.y && ratio.x > ratio.z) {
+                          normal = glm::vec3(glm::sign(d.x), 0, 0);
+                      } else if (ratio.y > ratio.x && ratio.y > ratio.z) {
+                          normal = glm::vec3(0, glm::sign(d.y), 0);
+                      } else {
+                          normal = glm::vec3(0, 0, glm::sign(d.z));
+                      }
+                      
+                      it->direction = glm::reflect(it->direction, normal);
+                      it->position += normal * 0.2f; // Push out to avoid getting stuck
+                      
+                      float pitch_x = glm::degrees(atan2(-it->direction.y, it->direction.z));
+                      float yaw_y   = glm::degrees(asin(glm::clamp(it->direction.x, -1.0f, 1.0f)));
+                      current_scene->get_all_models().at(it->name).eulerAngles = glm::vec3(pitch_x, yaw_y, 0.0f);
+                  }
+                  continue;
               }
 
               current_scene->remove_model(it->name);

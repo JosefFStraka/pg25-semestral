@@ -171,6 +171,16 @@ public:
     return "";
   }
 
+  std::vector<AABB> get_model_aabbs(const std::string& name, AssetManager& assets) {
+    if (static_aabbs.contains(name)) {
+        if (static_aabbs[name].empty()) {
+            load_static_aabbs(&models.at(name), static_aabbs[name], assets);
+        }
+        return static_aabbs[name];
+    }
+    return {};
+  }
+
   void set_light(int i, glm::vec4 position, glm::vec4 direction,
                  glm::vec4 color, float attenuation, float spotCutoff) {
     lights.position[i] = position;
