@@ -199,6 +199,7 @@ public:
         shader->use();
         shader->setUniform("uM_m", mm);
         shader->setUniform("uAlpha", modelInst->opacity);
+        shader->setUniform("color_override", modelInst->color_override);
 
         tex->bind();
 

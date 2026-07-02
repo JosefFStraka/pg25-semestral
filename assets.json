@@ -106,6 +106,19 @@
     },
     "triangle": {
       "path": "../resources/04/2d_obj_samples/triangle.obj"
+    },
+    "wall": {
+      "aabb_max": [
+        0.05000001937150955,
+        2.4000003337860107,
+        1.0000003576278687
+      ],
+      "aabb_min": [
+        -0.05000001937150955,
+        -1.6292067073209182e-07,
+        -1.0
+      ],
+      "path": "../resources/pepa/Wall/model.obj"
     }
   },
   "shaders": {
@@ -132,6 +145,12 @@
     },
     "argus1": {
       "path": "../resources/pepa/argus/tex/tex_argus.png"
+    },
+    "brick": {
+      "path": "../resources/textures/brick_texture.png"
+    },
+    "wall_tex": {
+      "path": "../resources/pepa/Wall/Binary_0.png"
     },
     "default": {
       "path": "../engine/assets/textures/default.png"

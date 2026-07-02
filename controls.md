@@ -9,6 +9,8 @@ Tento dokument slouží jako rychlý přehled pro ovládání 3D aplikace.
 - **Q / E:** Pohyb dolů a nahoru (po lokální ose)
 - **Pohyb myší:** Rozhlížení se (změna orientace kamery). *Funguje pouze tehdy, když není aktivní GUI (ImGui).*
 - **Kolečko myši:** Změna úhlu záběru (FOV – Field of View). Používá se pro přiblížení a oddálení obrazu.
+- **T:** Baterka z pohledu kamery
+- **C:** Vypnutí kolizí
 
 ## Systémové zkratky
 

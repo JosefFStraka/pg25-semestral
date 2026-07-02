@@ -17,7 +17,7 @@ public:
   GLfloat Roll = 0.0f;
 
   // Camera options
-  GLfloat MovementSpeed = 2.0f;
+  GLfloat MovementSpeed = 6.0f;
   GLfloat MouseSensitivity = 0.25f;
 
   float fov = 60.0f;

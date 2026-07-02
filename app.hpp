@@ -83,6 +83,23 @@ private:
     std::shared_ptr<Camera> main_camera;
     bool flashlight_enabled = true; // NEW: toggle flashlight
     bool camera_collisions_enabled = true; // toggle camera collisions
+    struct Projectile {
+        std::string name;
+        glm::vec3 position;
+        glm::vec3 direction;
+        float lifetime;
+    };
+    std::vector<Projectile> projectiles;
+    double last_shot_time = 0.0;
+    int projectile_counter = 0;
+    int player_score = 0;
+
+    struct RespawnTask {
+        std::string model_name;
+        double respawn_time;
+    };
+    std::vector<RespawnTask> respawn_queue;
+
     // remember last cursor position, move relative to that in the next frame
     double cursorLastX{ 0 };
     double cursorLastY{ 0 };

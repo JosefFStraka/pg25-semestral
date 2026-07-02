@@ -143,6 +143,10 @@ public:
   }
 
   bool check_collision(const AABB &bounds, AssetManager &assets) {
+    return !get_collided_model_name(bounds, assets).empty();
+  }
+
+  std::string get_collided_model_name(const AABB &bounds, AssetManager &assets) {
     // Check static models
     for (auto &[name, aabbs_ptr] : enabled_static_aabbs) {
       if (aabbs_ptr->empty()) {
@@ -151,7 +155,7 @@ public:
 
       for (const auto &aabb : *aabbs_ptr) {
         if (bounds.intersects(aabb)) {
-          return true;
+          return name;
         }
       }
     }
@@ -161,10 +165,20 @@ public:
       if (!model_inst_ptr->collision_enabled)
         continue;
       if (check_dynamic_collision(model_inst_ptr, bounds, assets)) {
-        return true;
+        return name;
       }
     }
-    return false;
+    return "";
+  }
+
+  std::vector<AABB> get_model_aabbs(const std::string& name, AssetManager& assets) {
+    if (static_aabbs.contains(name)) {
+        if (static_aabbs[name].empty()) {
+            load_static_aabbs(&models.at(name), static_aabbs[name], assets);
+        }
+        return static_aabbs[name];
+    }
+    return {};
   }
 
   void set_light(int i, glm::vec4 position, glm::vec4 direction,
@@ -174,6 +188,12 @@ public:
     lights.color[i] = color;
     lights.attenuation[i] = attenuation;
     lights.spotCutoff[i] = spotCutoff;
+  }
+
+  void remove_model(const std::string &name) {
+    set_model_enabled(name, false);
+    models.erase(name);
+    static_aabbs.erase(name);
   }
 
   void update_shader_lights(ShaderProgram *shader) {
