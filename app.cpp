@@ -381,43 +381,218 @@ void App::init_assets(void) {
       assets.getHandle<Texture>("wall_tex"),
       assets.getHandle<ShaderProgram>("phong"));
   
-  // Base wall
-  {
-    ModelInstance wall = createModelInstance(wallHandle);
-    wall.setPosition(glm::vec3(-6.f, -1.0f, -4.f));
-    wall.setScale(glm::vec3(1.f, 1.f, 1.f));
-    current_scene->add_static_model("wall_brick", std::move(wall), assets);
-  }
-
-  // 4 extra walls at random positions
-  glm::vec3 wall_positions[4] = {
-      glm::vec3(8.f, -1.0f, -6.f),
-      glm::vec3(-5.f, -1.0f, 9.f),
-      glm::vec3(10.f, -1.0f, 5.f),
-      glm::vec3(-12.f, -1.0f, -2.f)
+  // === SHOOTING RANGE LAYOUT ===
+  
+  // 1. 20 Static Walls (forming L-corners near edges, some L-corners near center, and some straight blockers, y = -1.0f)
+  struct WallSpawn {
+      glm::vec3 pos;
+      float yaw;
   };
-  for (int i = 0; i < 4; ++i) {
+  WallSpawn walls[20] = {
+      // L-Corner 1 (Outer Bottom Left)
+      { {-25.f, -1.0f, -12.f}, 0.f },
+      { {-24.f, -1.0f, -11.f}, 90.f },
+
+      // L-Corner 2 (Inner Bottom Left)
+      { {-10.f, -1.0f, -6.f}, 0.f },
+      { {-9.f, -1.0f, -5.f}, 90.f },
+
+      // L-Corner 3 (Outer Top Left)
+      { {-25.f, -1.0f, 12.f}, 0.f },
+      { {-24.f, -1.0f, 11.f}, 90.f },
+
+      // L-Corner 4 (Inner Top Right)
+      { {10.f, -1.0f, 6.f}, 0.f },
+      { {9.f, -1.0f, 5.f}, 90.f },
+
+      // L-Corner 5 (Outer Bottom Right)
+      { {25.f, -1.0f, -12.f}, 0.f },
+      { {24.f, -1.0f, -11.f}, 90.f },
+
+      // L-Corner 6 (Outer Top Right)
+      { {25.f, -1.0f, 12.f}, 0.f },
+      { {24.f, -1.0f, 11.f}, 90.f },
+
+      // Straight walls inside the scene (widely spaced)
+      { {-18.f, -1.0f, -2.f}, 90.f },
+      { {-15.f, -1.0f, 4.f}, 0.f },
+      { {-5.f, -1.0f, 10.f}, 90.f },
+      { {0.f, -1.0f, -8.f}, 0.f },
+      { {5.f, -1.0f, -2.f}, 90.f },
+      { {15.f, -1.0f, -9.f}, 0.f },
+      { {18.f, -1.0f, 2.f}, 90.f },
+      { {0.f, -1.0f, 14.f}, 90.f }
+  };
+  for (int i = 0; i < 20; ++i) {
       ModelInstance wall = createModelInstance(wallHandle);
-      wall.setPosition(wall_positions[i]);
+      wall.setPosition(walls[i].pos);
+      wall.setEulerAngles(glm::vec3(0.f, walls[i].yaw, 0.f));
       wall.setScale(glm::vec3(1.f, 1.f, 1.f));
-      // Rotate some of them for variety
-      if (i % 2 == 0) wall.setEulerAngles(glm::vec3(0.f, 90.f, 0.f));
       current_scene->add_static_model("wall_brick_" + std::to_string(i), std::move(wall), assets);
   }
 
-  // 2 glass panes using the wall model
-  glm::vec3 glass_positions[2] = {
-      glm::vec3(0.f, -1.0f, -10.f),
-      glm::vec3(5.f, -1.0f, 12.f)
+  // 2. 10 Glass Walls (y = -1.0f, same wall model, but transparent & ricochet)
+  WallSpawn glass_panes[10] = {
+      { {-20.f, -1.0f, -8.f}, 90.f },
+      { {-18.f, -1.0f, 8.f}, 0.f },
+      { {-12.f, -1.0f, 0.f}, 90.f },
+      { {-5.f, -1.0f, -12.f}, 0.f },
+      { {0.f, -1.0f, 10.f}, 90.f },
+      { {5.f, -1.0f, -10.f}, 0.f },
+      { {12.f, -1.0f, 0.f}, 90.f },
+      { {18.f, -1.0f, -8.f}, 0.f },
+      { {20.f, -1.0f, 8.f}, 90.f },
+      { {0.f, -1.0f, -2.f}, 0.f }
   };
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 10; ++i) {
       ModelInstance glass = createModelInstance(wallHandle);
-      glass.setPosition(glass_positions[i]);
+      glass.setPosition(glass_panes[i].pos);
+      glass.setEulerAngles(glm::vec3(0.f, glass_panes[i].yaw, 0.f));
       glass.setScale(glm::vec3(1.f, 1.f, 1.f));
       glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
       glass.is_transparent = true;
       glass.opacity = 0.3f;
       current_scene->add_static_model("glass_" + std::to_string(i), std::move(glass), assets);
+  }
+
+  // 3. 30 Boxes in designated configurations + Targets
+  int box_counter = 0;
+  int teapot_counter = 0;
+  int dragon_counter_idx = 0;
+  int bunny_counter = 0;
+
+  // Helper to spawn a box
+  auto spawnBox = [&](const glm::vec3& pos, float rotation) {
+      std::string name = "box_range_" + std::to_string(box_counter++);
+      ModelInstance box = createModelInstance(boxHandle);
+      box.setPosition(pos);
+      box.setEulerAngles(glm::vec3(0.f, rotation, 0.f));
+      box.setScale(glm::vec3(1.f, 1.f, 1.f));
+      current_scene->add_static_model(name, std::move(box), assets);
+  };
+
+  // Helper to spawn a Teapot Target (on a box)
+  auto spawnTeapotTarget = [&](const glm::vec3& pos) {
+      std::string name = "teapot_target_" + std::to_string(teapot_counter++);
+      ModelInstance teapot = createModelInstance(teapotHandle);
+      teapot.setPosition(pos);
+      teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+      teapot.opacity = 1.0f;
+      current_scene->add_static_model(name, std::move(teapot), assets);
+  };
+
+  // Helper to spawn a Dragon Target (top of 2 stacked boxes)
+  auto spawnDragonTarget = [&](const glm::vec3& pos) {
+      std::string name = "dragon_target_" + std::to_string(dragon_counter_idx++);
+      ModelInstance dragon = createModelInstance(dragonHandle);
+      dragon.setPosition(pos + glm::vec3(0.f, 0.5f, 0.f)); 
+      dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+      current_scene->add_static_model(name, std::move(dragon), assets);
+  };
+
+  // Helper to spawn a Bunny Target (on the ground)
+  auto spawnBunnyTarget = [&](const glm::vec3& pos) {
+      std::string name = "bunny_target_" + std::to_string(bunny_counter++);
+      ModelInstance bunny = createModelInstance(bunnyHandle);
+      bunny.setPosition(pos);
+      bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+      bunny.opacity = 1.0f;
+      current_scene->add_static_model(name, std::move(bunny), assets);
+  };
+
+  // Config A: 6 Standalone boxes (Y = -0.5f) -> Teapots on ONLY SOME of them (Y = 0.0f)
+  glm::vec3 standalone_positions[6] = {
+      {-28.f, -0.5f, -13.f},
+      {-14.f, -0.5f, 10.f},
+      {-6.f, -0.5f, -4.f},
+      {6.f, -0.5f, -9.f},
+      {14.f, -0.5f, 3.f},
+      {28.f, -0.5f, 13.f}
+  };
+  float standalone_rotations[6] = { 15.f, 45.f, 70.f, -30.f, 110.f, -15.f };
+  for (int i = 0; i < 6; ++i) {
+      spawnBox(standalone_positions[i], standalone_rotations[i]);
+      // Spawn teapot on only 3 of the standalone boxes (e.g. indices 0, 2, 4)
+      if (i % 2 == 0) {
+          spawnTeapotTarget(standalone_positions[i] + glm::vec3(0.f, 0.5f, 0.f));
+      }
+  }
+
+  // Config B: 6 Stacked box pairs (12 boxes total) -> Dragons on top box of first 2 pairs, Teapots on some of the rest
+  glm::vec3 stacked_positions[6] = {
+      {-22.f, 0.0f, -4.f},  // Pair 0 -> Dragon 1
+      {-9.f, 0.0f, 9.f},    // Pair 1 -> Dragon 2
+      {-3.f, 0.0f, -13.f},  // Pair 2 -> Empty
+      {8.f, 0.0f, 13.f},    // Pair 3 -> Teapot
+      {20.f, 0.0f, -9.f},   // Pair 4 -> Empty
+      {26.f, 0.0f, -2.f}    // Pair 5 -> Teapot
+  };
+  float stacked_rotations[6] = { 12.f, -40.f, 5.f, 25.f, -80.f, 45.f };
+  for (int i = 0; i < 6; ++i) {
+      // Bottom box (Y = -0.5)
+      spawnBox(stacked_positions[i] + glm::vec3(0.f, -0.5f, 0.f), stacked_rotations[i]);
+      // Top box (Y = 0.5)
+      spawnBox(stacked_positions[i] + glm::vec3(0.f, 0.5f, 0.f), stacked_rotations[i] + 15.f);
+      
+      // Spawn targets: Only max 2 dragons, and teapots only on some (Pair 3 and 5)
+      if (i < 2) {
+          spawnDragonTarget(stacked_positions[i] + glm::vec3(0.f, 1.0f, 0.f));
+      } else if (i == 3 || i == 5) {
+          spawnTeapotTarget(stacked_positions[i] + glm::vec3(0.f, 1.0f, 0.f));
+      }
+  }
+
+  // Config C: 3 groups of "2-stacked + 2 adjacent" (12 boxes total)
+  // Adjacent on ground: Y = -0.5f
+  struct GroupC {
+      glm::vec3 center; // Center of the stacked pair
+      float rot;
+      glm::vec3 adj1_offset;
+      glm::vec3 adj2_offset;
+  };
+  GroupC groups[3] = {
+      { {-16.f, 0.0f, -9.f}, 0.f, {-1.0f, 0.f, 0.f}, {0.f, 0.f, -1.0f} },
+      { {-1.f, 0.0f, 6.f}, 30.f, {0.f, 0.f, -1.0f}, {1.0f, 0.f, 0.f} },
+      { {16.f, 0.0f, -13.f}, -15.f, {-1.0f, 0.f, 0.f}, {0.f, 0.f, 1.0f} }
+  };
+  for (int i = 0; i < 3; ++i) {
+      glm::vec3 c = groups[i].center;
+      float r = groups[i].rot;
+      // Stacked bottom (Y = -0.5)
+      spawnBox(c + glm::vec3(0.f, -0.5f, 0.f), r);
+      // Stacked top (Y = 0.5)
+      spawnBox(c + glm::vec3(0.f, 0.5f, 0.f), r + 20.f);
+      
+      // Spawn teapot target only on the top box of group 0
+      if (i == 0) {
+          spawnTeapotTarget(c + glm::vec3(0.f, 1.0f, 0.f));
+      }
+
+      // Adjacent 1 on ground (Y = -0.5)
+      spawnBox(c + glm::vec3(groups[i].adj1_offset.x, -0.5f, groups[i].adj1_offset.z), r - 10.f);
+      // Spawn teapot target only on adjacent 1 of group 0 and group 1
+      if (i == 0 || i == 1) {
+          spawnTeapotTarget(c + glm::vec3(groups[i].adj1_offset.x, 0.0f, groups[i].adj1_offset.z));
+      }
+
+      // Adjacent 2 on ground (Y = -0.5)
+      spawnBox(c + glm::vec3(groups[i].adj2_offset.x, -0.5f, groups[i].adj2_offset.z), r + 25.f);
+      // Spawn teapot target only on adjacent 2 of group 2
+      if (i == 2) {
+          spawnTeapotTarget(c + glm::vec3(groups[i].adj2_offset.x, 0.0f, groups[i].adj2_offset.z));
+      }
+  }
+
+  // 4. Max 5 Bunnies on the ground (Y = -1.0f)
+  glm::vec3 bunny_positions[5] = {
+      {-27.f, -1.0f, -5.f},
+      {-12.f, -1.0f, 13.f},
+      {0.f, -1.0f, -7.f},
+      {15.f, -1.0f, 8.f},
+      {27.f, -1.0f, -3.f}
+  };
+  for (int i = 0; i < 5; ++i) {
+      spawnBunnyTarget(bunny_positions[i]);
   }
 
   auto sponzaHandle = createSimpleModel(
@@ -673,7 +848,7 @@ int App::run() {
         }
       }
 
-      // Shooting logic
+      // MARK: Shooting logic
       if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !imgui->capture_mouse()) {
           if (now - last_shot_time > 0.2) {
               last_shot_time = now;
