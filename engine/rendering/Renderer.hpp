@@ -191,14 +191,14 @@ public:
 
             shader->setUniform("uV_m", scene->camera->GetViewMatrix());
             shader->setUniform("uP_m", scene->camera->GetProjMatrix());
-            shader->setUniform("uAlpha", modelInst->opacity);
         }
-
+        
         auto tex = assetManager->getResourceMaybe(meshPkg.texture);
         if (!tex) return;
-
+        
         shader->use();
         shader->setUniform("uM_m", mm);
+        shader->setUniform("uAlpha", modelInst->opacity);
 
         tex->bind();
 
