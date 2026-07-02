@@ -594,7 +594,7 @@ void App::init_assets(void) {
     glm::vec3 bunny_positions[5] = {
         {-27.f, -1.0f, -5.f},
         {-12.f, -1.0f, 13.f},
-        {0.f, -1.0f, -7.f},
+        {-1.f, -1.0f, -7.f},
         {15.f, -1.0f, 8.f},
         {27.f, -1.0f, -3.f}
     };
