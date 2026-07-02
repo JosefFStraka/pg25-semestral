@@ -45,11 +45,10 @@ vec4 DirectionalLight(int i, vec3 N, vec3 V) {
     // Calculate R by reflecting -L around the plane defined by N
     vec3 R = reflect(-L, N);
 
-    vec3 ambient = ambient_material * ambient_intensity;
     vec3 diffuse = lightColor * diffuse_intensity * max(0.0, dot(N, L));
     vec3 specular = lightColor * specular_material * specular_intensity * pow(max(0.0, dot(R, V)), specular_shinines);
 
-    return vec4(ambient + diffuse + specular, 1.0);
+    return vec4(diffuse + specular, 1.0);
 }
 
 vec4 PointLight(int i, vec3 N, vec3 V) {
@@ -61,17 +60,40 @@ vec4 PointLight(int i, vec3 N, vec3 V) {
     // Calculate R by reflecting -L around the plane defined by N
     vec3 R = reflect(-L, N);
 
-    vec3 ambient = ambient_material * ambient_intensity;
     vec3 diffuse = lightColor * diffuse_intensity * max(0.0, dot(N, L));
     vec3 specular = lightColor * specular_material * specular_intensity * pow(max(0.0, dot(R, V)), specular_shinines);
     
     float dist = length(Lnn);
     float att = 1.0 / (1.0 + lights.attenuation[i] * dist * dist);
 
-    return vec4((ambient + diffuse + specular) * att, 1.0);
+    return vec4((diffuse + specular) * att, 1.0);
 }
 
 vec4 SpotLight(int i, vec3 N, vec3 V) { 
+    vec3 lightPos = (uV_m * vec4(lights.position[i].xyz, 1.0)).xyz;
+    vec3 spotDir = normalize((uV_m * vec4(lights.direction[i].xyz, 0.0)).xyz);
+    vec3 lightColor = lights.color[i].rgb;
+
+    vec3 Lnn = lightPos - fs_in.V;
+    vec3 L = normalize(Lnn);
+    
+    float theta = dot(-L, spotDir);
+    float cutoff = cos(radians(lights.spotCutoff[i]));
+    float epsilon = 0.05; // soft edges
+    
+    if(theta > cutoff - epsilon) {       
+        vec3 R = reflect(-L, N);
+
+        vec3 diffuse = lightColor * diffuse_intensity * max(0.0, dot(N, L));
+        vec3 specular = lightColor * specular_material * specular_intensity * pow(max(0.0, dot(R, V)), specular_shinines);
+        
+        float dist = length(Lnn);
+        float att = 1.0 / (1.0 + lights.attenuation[i] * dist * dist);
+        
+        float intensity = smoothstep(cutoff - epsilon, cutoff + epsilon, theta);
+
+        return vec4((diffuse + specular) * att * intensity, 1.0);
+    }
     return vec4(0.0);
 }
 
