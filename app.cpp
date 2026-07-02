@@ -289,306 +289,306 @@ void App::init_assets(void) {
         current_scene->add_static_model("argus1", std::move(argus1), assets);
     }
 
-  auto teapotHandle = createSimpleModel(
-      assets, "teapot_model", assets.getHandle<Mesh>("teapot_tri_vnt"),
-      assets.getHandle<Texture>("TextureDouble_A"),
-      assets.getHandle<ShaderProgram>("phong"));
-  {
-    ModelInstance teapot = createModelInstance(teapotHandle);
-    teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
-    teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    teapot.opacity = 0.7f;
-    current_scene->add_static_model("teapot", std::move(teapot), assets);
-  }
+    auto teapotHandle = createSimpleModel(
+        assets, "teapot_model", assets.getHandle<Mesh>("teapot_tri_vnt"),
+        assets.getHandle<Texture>("TextureDouble_A"),
+        assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance teapot = createModelInstance(teapotHandle);
+        teapot.setPosition(glm::vec3(-4.f, 0.f, 0.f));
+        teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        teapot.opacity = 0.7f;
+        current_scene->add_static_model("teapot", std::move(teapot), assets);
+    }
 
-  auto vladaBallHandle = createSimpleModel(
-      assets, "vladaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"),
-      assets.getHandle<Texture>("vlada"),
-      assets.getHandle<ShaderProgram>("chaos"));
-  {
-    ModelInstance vladaBall = createModelInstance(vladaBallHandle);
-    vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
-    current_scene->add_model("vlada_ball", std::move(vladaBall));
-  }
-  auto vojtaBallHandle = createSimpleModel(
-      assets, "vojtaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"),
-      assets.getHandle<Texture>("widevojta"),
-      assets.getHandle<ShaderProgram>("phong"));
-  {
-    ModelInstance slunce_nase_jasne = createModelInstance(vojtaBallHandle);
-    slunce_nase_jasne.setPosition(glm::vec3(1.f, 2.f, 0.f));
-    slunce_nase_jasne.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    current_scene->add_model("slunce_nase_jasne", std::move(slunce_nase_jasne));
-  }
-  {
-    ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
-    vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
-    current_scene->add_model("vojta_ball", std::move(vojtaBall));
-  }
-  auto boxHandle =
-      createSimpleModel(assets, "box_model", assets.getHandle<Mesh>("cube"),
-                        assets.getHandle<Texture>("wood_box"),
-                        assets.getHandle<ShaderProgram>("phong"));
-  {
-    ModelInstance m_box_texture = createModelInstance(boxHandle);
-    m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
-    current_scene->add_static_model("m_box_texture", std::move(m_box_texture),
-                                    assets);
-  }
+    auto vladaBallHandle = createSimpleModel(
+        assets, "vladaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"),
+        assets.getHandle<Texture>("vlada"),
+        assets.getHandle<ShaderProgram>("chaos"));
+    {
+        ModelInstance vladaBall = createModelInstance(vladaBallHandle);
+        vladaBall.setPosition(glm::vec3(-2.f, 0.f, 0.f));
+        current_scene->add_model("vlada_ball", std::move(vladaBall));
+    }
+    auto vojtaBallHandle = createSimpleModel(
+        assets, "vojtaBall_model", assets.getHandle<Mesh>("sphere_tri_vnt"),
+        assets.getHandle<Texture>("widevojta"),
+        assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance slunce_nase_jasne = createModelInstance(vojtaBallHandle);
+        slunce_nase_jasne.setPosition(glm::vec3(1.f, 2.f, 0.f));
+        slunce_nase_jasne.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        current_scene->add_model("slunce_nase_jasne", std::move(slunce_nase_jasne));
+    }
+    {
+        ModelInstance vojtaBall = createModelInstance(vojtaBallHandle);
+        vojtaBall.setPosition(glm::vec3(0.f, 0.f, 0.f));
+        current_scene->add_model("vojta_ball", std::move(vojtaBall));
+    }
+    auto boxHandle =
+        createSimpleModel(assets, "box_model", assets.getHandle<Mesh>("cube"),
+            assets.getHandle<Texture>("wood_box"),
+            assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance m_box_texture = createModelInstance(boxHandle);
+        m_box_texture.setPosition(glm::vec3(2.f, 0.f, 0.f));
+        current_scene->add_static_model("m_box_texture", std::move(m_box_texture),
+            assets);
+    }
 
-  {
-    ModelInstance glass = createModelInstance(boxHandle);
-    glass.setPosition(glm::vec3(2.f, 0.5f, 2.f));
-    glass.setScale(glm::vec3(2.0f, 2.0f, 0.05f));
-    glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
-    glass.is_transparent = true;
-    glass.opacity = 0.3f;
-    current_scene->add_static_model("glass_pane", std::move(glass), assets);
-  }
+    {
+        ModelInstance glass = createModelInstance(boxHandle);
+        glass.setPosition(glm::vec3(2.f, 0.5f, 2.f));
+        glass.setScale(glm::vec3(2.0f, 2.0f, 0.05f));
+        glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
+        glass.is_transparent = true;
+        glass.opacity = 0.3f;
+        current_scene->add_static_model("glass_pane", std::move(glass), assets);
+    }
 
-  auto bunnyHandle =
-      createSimpleModel(assets, "bunny_model", assets.getHandle<Mesh>("bunny"),
-                        assets.getHandle<Texture>("TextureDouble_A"),
-                        assets.getHandle<ShaderProgram>("phong"));
-  {
-    ModelInstance bunny = createModelInstance(bunnyHandle);
-    bunny.setPosition(glm::vec3(4.2f, -0.5f, 0.f));
-    bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
-    bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-    bunny.opacity = 0.5f;
-    current_scene->add_static_model("bunny", std::move(bunny), assets);
-  }
+    auto bunnyHandle =
+        createSimpleModel(assets, "bunny_model", assets.getHandle<Mesh>("bunny"),
+            assets.getHandle<Texture>("TextureDouble_A"),
+            assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance bunny = createModelInstance(bunnyHandle);
+        bunny.setPosition(glm::vec3(4.2f, -0.5f, 0.f));
+        bunny.setEulerAngles(glm::vec3(0.f, 335.f, 0.f));
+        bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+        bunny.opacity = 0.5f;
+        current_scene->add_static_model("bunny", std::move(bunny), assets);
+    }
 
-  auto dragonHandle = createSimpleModel(
-      assets, "dragon_model", assets.getHandle<Mesh>("dragon"),
-      assets.getHandle<Texture>("default"),
-      assets.getHandle<ShaderProgram>("phong"));
-  {
-    ModelInstance dragon = createModelInstance(dragonHandle);
-    dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
-    dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-    // dragon.enabled = false;
-    current_scene->add_static_model("dragon", std::move(dragon), assets);
-  }
+    auto dragonHandle = createSimpleModel(
+        assets, "dragon_model", assets.getHandle<Mesh>("dragon"),
+        assets.getHandle<Texture>("default"),
+        assets.getHandle<ShaderProgram>("phong"));
+    {
+        ModelInstance dragon = createModelInstance(dragonHandle);
+        dragon.setPosition(glm::vec3(6.f, 0.f, 0.f));
+        dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+        // dragon.enabled = false;
+        current_scene->add_static_model("dragon", std::move(dragon), assets);
+    }
 
-  auto wallHandle = createSimpleModel(
-      assets, "wall_model", assets.getHandle<Mesh>("wall"),
-      assets.getHandle<Texture>("wall_tex"),
-      assets.getHandle<ShaderProgram>("phong"));
-  
-  // === SHOOTING RANGE LAYOUT ===
-  
-  // 1. 20 Static Walls (forming L-corners near edges, some L-corners near center, and some straight blockers, y = -1.0f)
-  struct WallSpawn {
-      glm::vec3 pos;
-      float yaw;
-  };
-  WallSpawn walls[20] = {
-      // L-Corner 1 (Outer Bottom Left)
-      { {-25.f, -1.0f, -12.f}, 0.f },
-      { {-24.f, -1.0f, -11.f}, 90.f },
+    auto wallHandle = createSimpleModel(
+        assets, "wall_model", assets.getHandle<Mesh>("wall"),
+        assets.getHandle<Texture>("wall_tex"),
+        assets.getHandle<ShaderProgram>("phong"));
 
-      // L-Corner 2 (Inner Bottom Left)
-      { {-10.f, -1.0f, -6.f}, 0.f },
-      { {-9.f, -1.0f, -5.f}, 90.f },
+    // === SHOOTING RANGE LAYOUT ===
 
-      // L-Corner 3 (Outer Top Left)
-      { {-25.f, -1.0f, 12.f}, 0.f },
-      { {-24.f, -1.0f, 11.f}, 90.f },
+    // 1. 20 Static Walls (forming L-corners near edges, some L-corners near center, and some straight blockers, y = -1.0f)
+    struct WallSpawn {
+        glm::vec3 pos;
+        float yaw;
+    };
+    WallSpawn walls[20] = {
+        // L-Corner 1 (Outer Bottom Left)
+        { {-25.f, -1.0f, -12.f}, 0.f },
+        { {-24.f, -1.0f, -11.f}, 90.f },
 
-      // L-Corner 4 (Inner Top Right)
-      { {10.f, -1.0f, 6.f}, 0.f },
-      { {9.f, -1.0f, 5.f}, 90.f },
+        // L-Corner 2 (Inner Bottom Left)
+        { {-10.f, -1.0f, -6.f}, 0.f },
+        { {-9.f, -1.0f, -5.f}, 90.f },
 
-      // L-Corner 5 (Outer Bottom Right)
-      { {25.f, -1.0f, -12.f}, 0.f },
-      { {24.f, -1.0f, -11.f}, 90.f },
+        // L-Corner 3 (Outer Top Left)
+        { {-25.f, -1.0f, 12.f}, 0.f },
+        { {-24.f, -1.0f, 11.f}, 90.f },
 
-      // L-Corner 6 (Outer Top Right)
-      { {25.f, -1.0f, 12.f}, 0.f },
-      { {24.f, -1.0f, 11.f}, 90.f },
+        // L-Corner 4 (Inner Top Right)
+        { {10.f, -1.0f, 6.f}, 0.f },
+        { {9.f, -1.0f, 5.f}, 90.f },
 
-      // Straight walls inside the scene (widely spaced)
-      { {-18.f, -1.0f, -2.f}, 90.f },
-      { {-15.f, -1.0f, 4.f}, 0.f },
-      { {-5.f, -1.0f, 10.f}, 90.f },
-      { {0.f, -1.0f, -8.f}, 0.f },
-      { {5.f, -1.0f, -2.f}, 90.f },
-      { {15.f, -1.0f, -9.f}, 0.f },
-      { {18.f, -1.0f, 2.f}, 90.f },
-      { {0.f, -1.0f, 14.f}, 90.f }
-  };
-  for (int i = 0; i < 20; ++i) {
-      ModelInstance wall = createModelInstance(wallHandle);
-      wall.setPosition(walls[i].pos);
-      wall.setEulerAngles(glm::vec3(0.f, walls[i].yaw, 0.f));
-      wall.setScale(glm::vec3(1.f, 1.f, 1.f));
-      current_scene->add_static_model("wall_brick_" + std::to_string(i), std::move(wall), assets);
-  }
+        // L-Corner 5 (Outer Bottom Right)
+        { {25.f, -1.0f, -12.f}, 0.f },
+        { {24.f, -1.0f, -11.f}, 90.f },
 
-  // 2. 10 Glass Walls (y = -1.0f, same wall model, but transparent & ricochet)
-  WallSpawn glass_panes[10] = {
-      { {-20.f, -1.0f, -8.f}, 90.f },
-      { {-18.f, -1.0f, 8.f}, 0.f },
-      { {-12.f, -1.0f, 0.f}, 90.f },
-      { {-5.f, -1.0f, -12.f}, 0.f },
-      { {0.f, -1.0f, 10.f}, 90.f },
-      { {5.f, -1.0f, -10.f}, 0.f },
-      { {12.f, -1.0f, 0.f}, 90.f },
-      { {18.f, -1.0f, -8.f}, 0.f },
-      { {20.f, -1.0f, 8.f}, 90.f },
-      { {0.f, -1.0f, -2.f}, 0.f }
-  };
-  for (int i = 0; i < 10; ++i) {
-      ModelInstance glass = createModelInstance(wallHandle);
-      glass.setPosition(glass_panes[i].pos);
-      glass.setEulerAngles(glm::vec3(0.f, glass_panes[i].yaw, 0.f));
-      glass.setScale(glm::vec3(1.f, 1.f, 1.f));
-      glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
-      glass.is_transparent = true;
-      glass.opacity = 0.3f;
-      current_scene->add_static_model("glass_" + std::to_string(i), std::move(glass), assets);
-  }
+        // L-Corner 6 (Outer Top Right)
+        { {25.f, -1.0f, 12.f}, 0.f },
+        { {24.f, -1.0f, 11.f}, 90.f },
 
-  // 3. 30 Boxes in designated configurations + Targets
-  int box_counter = 0;
-  int teapot_counter = 0;
-  int dragon_counter_idx = 0;
-  int bunny_counter = 0;
+        // Straight walls inside the scene (widely spaced)
+        { {-18.f, -1.0f, -2.f}, 90.f },
+        { {-15.f, -1.0f, 4.f}, 0.f },
+        { {-5.f, -1.0f, 10.f}, 90.f },
+        { {0.f, -1.0f, -8.f}, 0.f },
+        { {5.f, -1.0f, -2.f}, 90.f },
+        { {15.f, -1.0f, -9.f}, 0.f },
+        { {18.f, -1.0f, 2.f}, 90.f },
+        { {0.f, -1.0f, 14.f}, 90.f }
+    };
+    for (int i = 0; i < 20; ++i) {
+        ModelInstance wall = createModelInstance(wallHandle);
+        wall.setPosition(walls[i].pos);
+        wall.setEulerAngles(glm::vec3(0.f, walls[i].yaw, 0.f));
+        wall.setScale(glm::vec3(1.f, 1.f, 1.f));
+        current_scene->add_static_model("wall_brick_" + std::to_string(i), std::move(wall), assets);
+    }
 
-  // Helper to spawn a box
-  auto spawnBox = [&](const glm::vec3& pos, float rotation) {
-      std::string name = "box_range_" + std::to_string(box_counter++);
-      ModelInstance box = createModelInstance(boxHandle);
-      box.setPosition(pos);
-      box.setEulerAngles(glm::vec3(0.f, rotation, 0.f));
-      box.setScale(glm::vec3(1.f, 1.f, 1.f));
-      current_scene->add_static_model(name, std::move(box), assets);
-  };
+    // 2. 10 Glass Walls (y = -1.0f, same wall model, but transparent & ricochet)
+    WallSpawn glass_panes[10] = {
+        { {-20.f, -1.0f, -8.f}, 90.f },
+        { {-18.f, -1.0f, 8.f}, 0.f },
+        { {-12.f, -1.0f, 0.f}, 90.f },
+        { {-5.f, -1.0f, -12.f}, 0.f },
+        { {0.f, -1.0f, 10.f}, 90.f },
+        { {5.f, -1.0f, -10.f}, 0.f },
+        { {12.f, -1.0f, 0.f}, 90.f },
+        { {18.f, -1.0f, -8.f}, 0.f },
+        { {20.f, -1.0f, 8.f}, 90.f },
+        { {0.f, -1.0f, -2.f}, 0.f }
+    };
+    for (int i = 0; i < 10; ++i) {
+        ModelInstance glass = createModelInstance(wallHandle);
+        glass.setPosition(glass_panes[i].pos);
+        glass.setEulerAngles(glm::vec3(0.f, glass_panes[i].yaw, 0.f));
+        glass.setScale(glm::vec3(1.f, 1.f, 1.f));
+        glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
+        glass.is_transparent = true;
+        glass.opacity = 0.3f;
+        current_scene->add_static_model("glass_" + std::to_string(i), std::move(glass), assets);
+    }
 
-  // Helper to spawn a Teapot Target (on a box)
-  auto spawnTeapotTarget = [&](const glm::vec3& pos) {
-      std::string name = "teapot_target_" + std::to_string(teapot_counter++);
-      ModelInstance teapot = createModelInstance(teapotHandle);
-      teapot.setPosition(pos);
-      teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-      teapot.opacity = 1.0f;
-      current_scene->add_static_model(name, std::move(teapot), assets);
-  };
+    // 3. 30 Boxes in designated configurations + Targets
+    int box_counter = 0;
+    int teapot_counter = 0;
+    int dragon_counter_idx = 0;
+    int bunny_counter = 0;
 
-  // Helper to spawn a Dragon Target (top of 2 stacked boxes)
-  auto spawnDragonTarget = [&](const glm::vec3& pos) {
-      std::string name = "dragon_target_" + std::to_string(dragon_counter_idx++);
-      ModelInstance dragon = createModelInstance(dragonHandle);
-      dragon.setPosition(pos + glm::vec3(0.f, 0.5f, 0.f)); 
-      dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
-      current_scene->add_static_model(name, std::move(dragon), assets);
-  };
+    // Helper to spawn a box
+    auto spawnBox = [&](const glm::vec3& pos, float rotation) {
+        std::string name = "box_range_" + std::to_string(box_counter++);
+        ModelInstance box = createModelInstance(boxHandle);
+        box.setPosition(pos);
+        box.setEulerAngles(glm::vec3(0.f, rotation, 0.f));
+        box.setScale(glm::vec3(1.f, 1.f, 1.f));
+        current_scene->add_static_model(name, std::move(box), assets);
+        };
 
-  // Helper to spawn a Bunny Target (on the ground)
-  auto spawnBunnyTarget = [&](const glm::vec3& pos) {
-      std::string name = "bunny_target_" + std::to_string(bunny_counter++);
-      ModelInstance bunny = createModelInstance(bunnyHandle);
-      bunny.setPosition(pos);
-      bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
-      bunny.opacity = 1.0f;
-      current_scene->add_static_model(name, std::move(bunny), assets);
-  };
+    // Helper to spawn a Teapot Target (on a box)
+    auto spawnTeapotTarget = [&](const glm::vec3& pos) {
+        std::string name = "teapot_target_" + std::to_string(teapot_counter++);
+        ModelInstance teapot = createModelInstance(teapotHandle);
+        teapot.setPosition(pos);
+        teapot.setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+        teapot.opacity = 1.0f;
+        current_scene->add_static_model(name, std::move(teapot), assets);
+        };
 
-  // Config A: 6 Standalone boxes (Y = -0.5f) -> Teapots on ONLY SOME of them (Y = 0.0f)
-  glm::vec3 standalone_positions[6] = {
-      {-28.f, -0.5f, -13.f},
-      {-14.f, -0.5f, 10.f},
-      {-6.f, -0.5f, -4.f},
-      {6.f, -0.5f, -9.f},
-      {14.f, -0.5f, 3.f},
-      {28.f, -0.5f, 13.f}
-  };
-  float standalone_rotations[6] = { 15.f, 45.f, 70.f, -30.f, 110.f, -15.f };
-  for (int i = 0; i < 6; ++i) {
-      spawnBox(standalone_positions[i], standalone_rotations[i]);
-      // Spawn teapot on only 3 of the standalone boxes (e.g. indices 0, 2, 4)
-      if (i % 2 == 0) {
-          spawnTeapotTarget(standalone_positions[i] + glm::vec3(0.f, 0.5f, 0.f));
-      }
-  }
+    // Helper to spawn a Dragon Target (top of 2 stacked boxes)
+    auto spawnDragonTarget = [&](const glm::vec3& pos) {
+        std::string name = "dragon_target_" + std::to_string(dragon_counter_idx++);
+        ModelInstance dragon = createModelInstance(dragonHandle);
+        dragon.setPosition(pos + glm::vec3(0.f, 0.5f, 0.f));
+        dragon.setScale(glm::vec3(1.8f, 1.8f, 1.8f));
+        current_scene->add_static_model(name, std::move(dragon), assets);
+        };
 
-  // Config B: 6 Stacked box pairs (12 boxes total) -> Dragons on top box of first 2 pairs, Teapots on some of the rest
-  glm::vec3 stacked_positions[6] = {
-      {-22.f, 0.0f, -4.f},  // Pair 0 -> Dragon 1
-      {-9.f, 0.0f, 9.f},    // Pair 1 -> Dragon 2
-      {-3.f, 0.0f, -13.f},  // Pair 2 -> Empty
-      {8.f, 0.0f, 13.f},    // Pair 3 -> Teapot
-      {20.f, 0.0f, -9.f},   // Pair 4 -> Empty
-      {26.f, 0.0f, -2.f}    // Pair 5 -> Teapot
-  };
-  float stacked_rotations[6] = { 12.f, -40.f, 5.f, 25.f, -80.f, 45.f };
-  for (int i = 0; i < 6; ++i) {
-      // Bottom box (Y = -0.5)
-      spawnBox(stacked_positions[i] + glm::vec3(0.f, -0.5f, 0.f), stacked_rotations[i]);
-      // Top box (Y = 0.5)
-      spawnBox(stacked_positions[i] + glm::vec3(0.f, 0.5f, 0.f), stacked_rotations[i] + 15.f);
-      
-      // Spawn targets: Only max 2 dragons, and teapots only on some (Pair 3 and 5)
-      if (i < 2) {
-          spawnDragonTarget(stacked_positions[i] + glm::vec3(0.f, 1.0f, 0.f));
-      } else if (i == 3 || i == 5) {
-          spawnTeapotTarget(stacked_positions[i] + glm::vec3(0.f, 1.0f, 0.f));
-      }
-  }
+    // Helper to spawn a Bunny Target (on the ground)
+    auto spawnBunnyTarget = [&](const glm::vec3& pos) {
+        std::string name = "bunny_target_" + std::to_string(bunny_counter++);
+        ModelInstance bunny = createModelInstance(bunnyHandle);
+        bunny.setPosition(pos);
+        bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
+        bunny.opacity = 1.0f;
+        current_scene->add_static_model(name, std::move(bunny), assets);
+        };
 
-  // Config C: 3 groups of "2-stacked + 2 adjacent" (12 boxes total)
-  // Adjacent on ground: Y = -0.5f
-  struct GroupC {
-      glm::vec3 center; // Center of the stacked pair
-      float rot;
-      glm::vec3 adj1_offset;
-      glm::vec3 adj2_offset;
-  };
-  GroupC groups[3] = {
-      { {-16.f, 0.0f, -9.f}, 0.f, {-1.0f, 0.f, 0.f}, {0.f, 0.f, -1.0f} },
-      { {-1.f, 0.0f, 6.f}, 30.f, {0.f, 0.f, -1.0f}, {1.0f, 0.f, 0.f} },
-      { {16.f, 0.0f, -13.f}, -15.f, {-1.0f, 0.f, 0.f}, {0.f, 0.f, 1.0f} }
-  };
-  for (int i = 0; i < 3; ++i) {
-      glm::vec3 c = groups[i].center;
-      float r = groups[i].rot;
-      // Stacked bottom (Y = -0.5)
-      spawnBox(c + glm::vec3(0.f, -0.5f, 0.f), r);
-      // Stacked top (Y = 0.5)
-      spawnBox(c + glm::vec3(0.f, 0.5f, 0.f), r + 20.f);
-      
-      // Spawn teapot target only on the top box of group 0
-      if (i == 0) {
-          spawnTeapotTarget(c + glm::vec3(0.f, 1.0f, 0.f));
-      }
+    // Config A: 6 Standalone boxes (Y = -0.5f) -> Teapots on ONLY SOME of them (Y = 0.0f)
+    glm::vec3 standalone_positions[6] = {
+        {-28.f, -0.5f, -13.f},
+        {-14.f, -0.5f, 10.f},
+        {-6.f, -0.5f, -4.f},
+        {6.f, -0.5f, -9.f},
+        {14.f, -0.5f, 3.f},
+        {28.f, -0.5f, 13.f}
+    };
+    float standalone_rotations[6] = { 15.f, 45.f, 70.f, -30.f, 110.f, -15.f };
+    for (int i = 0; i < 6; ++i) {
+        spawnBox(standalone_positions[i], standalone_rotations[i]);
+        // Spawn teapot on only 3 of the standalone boxes (e.g. indices 0, 2, 4)
+        if (i % 2 == 0) {
+            spawnTeapotTarget(standalone_positions[i] + glm::vec3(0.f, 0.5f, 0.f));
+        }
+    }
 
-      // Adjacent 1 on ground (Y = -0.5)
-      spawnBox(c + glm::vec3(groups[i].adj1_offset.x, -0.5f, groups[i].adj1_offset.z), r - 10.f);
-      // Spawn teapot target only on adjacent 1 of group 0 and group 1
-      if (i == 0 || i == 1) {
-          spawnTeapotTarget(c + glm::vec3(groups[i].adj1_offset.x, 0.0f, groups[i].adj1_offset.z));
-      }
+    // Config B: 6 Stacked box pairs (12 boxes total) -> Dragons on top box of first 2 pairs, Teapots on some of the rest
+    glm::vec3 stacked_positions[6] = {
+        {-22.f, 0.0f, -4.f},  // Pair 0 -> Dragon 1
+        {-9.f, 0.0f, 9.f},    // Pair 1 -> Dragon 2
+        {-3.f, 0.0f, -13.f},  // Pair 2 -> Empty
+        {8.f, 0.0f, 13.f},    // Pair 3 -> Teapot
+        {20.f, 0.0f, -9.f},   // Pair 4 -> Empty
+        {26.f, 0.0f, -2.f}    // Pair 5 -> Teapot
+    };
+    float stacked_rotations[6] = { 12.f, -40.f, 5.f, 25.f, -80.f, 45.f };
+    for (int i = 0; i < 6; ++i) {
+        // Bottom box (Y = -0.5)
+        spawnBox(stacked_positions[i] + glm::vec3(0.f, -0.5f, 0.f), stacked_rotations[i]);
+        // Top box (Y = 0.5)
+        spawnBox(stacked_positions[i] + glm::vec3(0.f, 0.5f, 0.f), stacked_rotations[i] + 15.f);
 
-      // Adjacent 2 on ground (Y = -0.5)
-      spawnBox(c + glm::vec3(groups[i].adj2_offset.x, -0.5f, groups[i].adj2_offset.z), r + 25.f);
-      // Spawn teapot target only on adjacent 2 of group 2
-      if (i == 2) {
-          spawnTeapotTarget(c + glm::vec3(groups[i].adj2_offset.x, 0.0f, groups[i].adj2_offset.z));
-      }
-  }
+        // Spawn targets: Only max 2 dragons, and teapots only on some (Pair 3 and 5)
+        if (i < 2) {
+            spawnDragonTarget(stacked_positions[i] + glm::vec3(0.f, 1.0f, 0.f));
+        } else if (i == 3 || i == 5) {
+            spawnTeapotTarget(stacked_positions[i] + glm::vec3(0.f, 1.0f, 0.f));
+        }
+    }
 
-  // 4. Max 5 Bunnies on the ground (Y = -1.0f)
-  glm::vec3 bunny_positions[5] = {
-      {-27.f, -1.0f, -5.f},
-      {-12.f, -1.0f, 13.f},
-      {0.f, -1.0f, -7.f},
-      {15.f, -1.0f, 8.f},
-      {27.f, -1.0f, -3.f}
-  };
-  for (int i = 0; i < 5; ++i) {
-      spawnBunnyTarget(bunny_positions[i]);
-  }
+    // Config C: 3 groups of "2-stacked + 2 adjacent" (12 boxes total)
+    // Adjacent on ground: Y = -0.5f
+    struct GroupC {
+        glm::vec3 center; // Center of the stacked pair
+        float rot;
+        glm::vec3 adj1_offset;
+        glm::vec3 adj2_offset;
+    };
+    GroupC groups[3] = {
+        { {-16.f, 0.0f, -9.f}, 0.f, {-1.0f, 0.f, 0.f}, {0.f, 0.f, -1.0f} },
+        { {-1.f, 0.0f, 6.f}, 30.f, {0.f, 0.f, -1.0f}, {1.0f, 0.f, 0.f} },
+        { {16.f, 0.0f, -13.f}, -15.f, {-1.0f, 0.f, 0.f}, {0.f, 0.f, 1.0f} }
+    };
+    for (int i = 0; i < 3; ++i) {
+        glm::vec3 c = groups[i].center;
+        float r = groups[i].rot;
+        // Stacked bottom (Y = -0.5)
+        spawnBox(c + glm::vec3(0.f, -0.5f, 0.f), r);
+        // Stacked top (Y = 0.5)
+        spawnBox(c + glm::vec3(0.f, 0.5f, 0.f), r + 20.f);
+
+        // Spawn teapot target only on the top box of group 0
+        if (i == 0) {
+            spawnTeapotTarget(c + glm::vec3(0.f, 1.0f, 0.f));
+        }
+
+        // Adjacent 1 on ground (Y = -0.5)
+        spawnBox(c + glm::vec3(groups[i].adj1_offset.x, -0.5f, groups[i].adj1_offset.z), r - 10.f);
+        // Spawn teapot target only on adjacent 1 of group 0 and group 1
+        if (i == 0 || i == 1) {
+            spawnTeapotTarget(c + glm::vec3(groups[i].adj1_offset.x, 0.0f, groups[i].adj1_offset.z));
+        }
+
+        // Adjacent 2 on ground (Y = -0.5)
+        spawnBox(c + glm::vec3(groups[i].adj2_offset.x, -0.5f, groups[i].adj2_offset.z), r + 25.f);
+        // Spawn teapot target only on adjacent 2 of group 2
+        if (i == 2) {
+            spawnTeapotTarget(c + glm::vec3(groups[i].adj2_offset.x, 0.0f, groups[i].adj2_offset.z));
+        }
+    }
+
+    // 4. Max 5 Bunnies on the ground (Y = -1.0f)
+    glm::vec3 bunny_positions[5] = {
+        {-27.f, -1.0f, -5.f},
+        {-12.f, -1.0f, 13.f},
+        {0.f, -1.0f, -7.f},
+        {15.f, -1.0f, 8.f},
+        {27.f, -1.0f, -3.f}
+    };
+    for (int i = 0; i < 5; ++i) {
+        spawnBunnyTarget(bunny_positions[i]);
+    }
 
     auto sponzaHandle = createSimpleModel(assets, "sponza_model", assets.getHandle<Mesh>("sponza"), assets.getHandle<Texture>("default"), assets.getHandle<ShaderProgram>("phong"));
     {
@@ -674,125 +674,123 @@ int App::run() {
 
         while (!glfwWindowShouldClose(window)) {
 
-            bool should_draw_gui =
-                app_settings.gui_enabled || app_settings.gui_always_enabled;
-            // ImGui prepare render (only if required)
-            if (should_draw_gui) {
-                imgui->new_frame();
-                imgui->gui_begin();
+            imgui->new_frame();
+            imgui->gui_begin();
+
+            if (app_settings.gui_enabled || app_settings.gui_always_enabled) {
+
                 if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
                     ImGui::BeginDisabled();
                 }
-                {
-                    ImGui::Text("FPS: %4.1f %4.0f %4.0f ", FPS.get_current(),
-                        FPS.get_1_low(), FPS.get_01_low());
-                    if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
-                        set_vsync(this->app_settings.vsync);
-                    }
-                    if (ImGui::Checkbox("Antialiasing (MSAA 4x)",
-                        &this->app_settings.msaa_enabled)) {
-                        set_msaa(this->app_settings.msaa_enabled);
-                    }
-                    if (ImGui::Checkbox("Fullscreen", &this->app_settings.fullscreen)) {
-                        set_fullscreen(app_settings.fullscreen);
-                    }
-                    ImGui::Checkbox("Axis display",
-                        &this->app_settings.gui_axis_display_enabled);
-                    ImGui::Checkbox("GUI always active",
-                        &this->app_settings.gui_always_enabled);
 
-                    ImGui::Separator();
-                    ImGui::Checkbox("Debug Draw AABBs",
-                        &this->app_settings.debug_draw_aabb);
-                    ImGui::Checkbox("Debug Freeze Frustum",
-                        &this->app_settings.debug_freeze_frustum);
+                ImGui::Text("FPS: %4.1f %4.0f %4.0f ", FPS.get_current(),
+                    FPS.get_1_low(), FPS.get_01_low());
+                if (ImGui::Checkbox("VSync", &this->app_settings.vsync)) {
+                    set_vsync(this->app_settings.vsync);
+                }
+                if (ImGui::Checkbox("Antialiasing (MSAA 4x)",
+                    &this->app_settings.msaa_enabled)) {
+                    set_msaa(this->app_settings.msaa_enabled);
+                }
+                if (ImGui::Checkbox("Fullscreen", &this->app_settings.fullscreen)) {
+                    set_fullscreen(app_settings.fullscreen);
+                }
+                ImGui::Checkbox("Axis display",
+                    &this->app_settings.gui_axis_display_enabled);
+                ImGui::Checkbox("GUI always active",
+                    &this->app_settings.gui_always_enabled);
 
-                    ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
-                    if (ImGui::SliderFloat("FoV", &current_scene->camera->fov, 20.f,
-                        180.f)) {
-                        update_projection_matrix();
-                    }
-                    ImGui::SliderFloat("Camera speed",
-                        &current_scene->camera->MovementSpeed, 0.f, 10.f);
-                    ImGui::SliderFloat("Chaos Offset", &chaosOff, 0.f, 2.f);
-                    ImGui::SliderFloat("Chaos Exp", &chaosExp, -2.f, 2.f);
+                ImGui::Separator();
+                ImGui::Checkbox("Debug Draw AABBs",
+                    &this->app_settings.debug_draw_aabb);
+                ImGui::Checkbox("Debug Freeze Frustum",
+                    &this->app_settings.debug_freeze_frustum);
 
-                    ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
-                    ImGui::Checkbox("Camera Collisions (C)", &camera_collisions_enabled);
+                ImGui::SliderFloat("Rotation speed", &rotation_speed, 0.f, 10.f);
+                if (ImGui::SliderFloat("FoV", &current_scene->camera->fov, 20.f,
+                    180.f)) {
+                    update_projection_matrix();
+                }
+                ImGui::SliderFloat("Camera speed",
+                    &current_scene->camera->MovementSpeed, 0.f, 10.f);
+                ImGui::SliderFloat("Chaos Offset", &chaosOff, 0.f, 2.f);
+                ImGui::SliderFloat("Chaos Exp", &chaosExp, -2.f, 2.f);
 
-                    ImGui::Combo("Shader debug", &debugMode, ShaderDebugOptions,
-                        sizeof(ShaderDebugOptions) / sizeof(const char*));
+                ImGui::Checkbox("Demo Window", &imgui->debug_window_open);
+                ImGui::Checkbox("Camera Collisions (C)", &camera_collisions_enabled);
 
-                    ImGui::Text("Camera:");
-                    ImGui::Text("x: %.2f | y: %.2f | z: %.2f", main_camera->Position.x,
-                        main_camera->Position.y, main_camera->Position.z);
-                    ImGui::Text("pitch: %.1f | yaw: %.1f", main_camera->Pitch,
-                        main_camera->Yaw);
+                ImGui::Combo("Shader debug", &debugMode, ShaderDebugOptions,
+                    sizeof(ShaderDebugOptions) / sizeof(const char*));
 
-                    ImGui::Text("meshes: %d", renderer.mesh_count);
+                ImGui::Text("Camera:");
+                ImGui::Text("x: %.2f | y: %.2f | z: %.2f", main_camera->Position.x,
+                    main_camera->Position.y, main_camera->Position.z);
+                ImGui::Text("pitch: %.1f | yaw: %.1f", main_camera->Pitch,
+                    main_camera->Yaw);
 
-                    if (ImGui::TreeNode("current_scene")) {
-                        size_t i = 0;
-                        for (auto& [name, model] : current_scene->get_all_models()) {
-                            {
-                                ImGui::PushID(i);
-                                if (ImGui::TreeNode("", name.c_str())) {
-                                    bool is_enabled = current_scene->is_model_enabled(name);
-                                    bool was_enabled = is_enabled;
-                                    bool is_static = current_scene->is_model_static(name);
-                                    AppImGui::model_controls(&model, &is_enabled, is_static);
-                                    if (is_enabled != was_enabled) {
-                                        current_scene->set_model_enabled(name, is_enabled);
-                                    }
-                                    ImGui::TreePop();
-                                }
-                                ImGui::PopID();
-                                i++;
-                            }
-                        }
-                        ImGui::TreePop();
-                    }
-                    if (ImGui::TreeNode("Lights")) {
-                        ImGui::SliderInt("Active", &current_scene->active_lights, 0, 16);
-                        for (size_t i = 0; i < MAX_LIGHTS; i++) {
+                ImGui::Text("meshes: %d", renderer.mesh_count);
+
+                if (ImGui::TreeNode("current_scene")) {
+                    size_t i = 0;
+                    for (auto& [name, model] : current_scene->get_all_models()) {
+                        {
                             ImGui::PushID(i);
-                            if (ImGui::TreeNode("", "light[%d]", i)) {
-                                AppImGui::light_controls(&current_scene->lights, i);
+                            if (ImGui::TreeNode("", name.c_str())) {
+                                bool is_enabled = current_scene->is_model_enabled(name);
+                                bool was_enabled = is_enabled;
+                                bool is_static = current_scene->is_model_static(name);
+                                AppImGui::model_controls(&model, &is_enabled, is_static);
+                                if (is_enabled != was_enabled) {
+                                    current_scene->set_model_enabled(name, is_enabled);
+                                }
                                 ImGui::TreePop();
                             }
                             ImGui::PopID();
+                            i++;
                         }
-                        ImGui::TreePop();
                     }
-
-                    if (ImGui::TreeNode("Skybox")) {
-                        static int current_skybox_index = 0;
-                        if (ImGui::SliderInt("Skybox", &current_skybox_index, 0,
-                            skyboxes.size())) {
-                            if (current_skybox_index - 1 >= 0 &&
-                                current_skybox_index - 1 < skyboxes.size())
-                                current_scene->skybox = skyboxes.at(current_skybox_index - 1);
-                            else
-                                current_scene->skybox = nullptr;
+                    ImGui::TreePop();
+                }
+                if (ImGui::TreeNode("Lights")) {
+                    ImGui::SliderInt("Active", &current_scene->active_lights, 0, 16);
+                    for (size_t i = 0; i < MAX_LIGHTS; i++) {
+                        ImGui::PushID(i);
+                        if (ImGui::TreeNode("", "light[%d]", i)) {
+                            AppImGui::light_controls(&current_scene->lights, i);
+                            ImGui::TreePop();
                         }
-
-                        ImGui::TreePop();
+                        ImGui::PopID();
                     }
+                    ImGui::TreePop();
                 }
 
-        if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
-          ImGui::EndDisabled();
-        }
+                if (ImGui::TreeNode("Skybox")) {
+                    static int current_skybox_index = 0;
+                    if (ImGui::SliderInt("Skybox", &current_skybox_index, 0,
+                        skyboxes.size())) {
+                        if (current_skybox_index - 1 >= 0 &&
+                            current_skybox_index - 1 < skyboxes.size())
+                            current_scene->skybox = skyboxes.at(current_skybox_index - 1);
+                        else
+                            current_scene->skybox = nullptr;
+                    }
 
-        // Scoreboard
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 150.f, 24.f), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(126.f, 0.f)); 
-        ImGui::Begin("Scoreboard", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-        ImGui::Text("SCORE: %d", player_score);
-        ImGui::End();
+                    ImGui::TreePop();
+                }
 
-        imgui->gui_end();
-      }
+                if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
+                    ImGui::EndDisabled();
+                }
+            }
+
+            // Scoreboard
+            ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 150.f, 24.f), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(126.f, 0.f));
+            ImGui::Begin("Scoreboard", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+            ImGui::Text("SCORE: %d", player_score);
+            ImGui::End();
+
+            imgui->gui_end();
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -826,121 +824,121 @@ int App::run() {
                     main_camera->Position.y -= velocity.y;
                 }
 
-        // Z axis
-        main_camera->Position.z += velocity.z;
-        if (camera_collisions_enabled && current_scene->check_collision(
-                get_camera_aabb(main_camera->Position), assets)) {
-          main_camera->Position.z -= velocity.z;
-        }
-      }
+                // Z axis
+                main_camera->Position.z += velocity.z;
+                if (camera_collisions_enabled && current_scene->check_collision(
+                    get_camera_aabb(main_camera->Position), assets)) {
+                    main_camera->Position.z -= velocity.z;
+                }
+            }
 
-      // MARK: Shooting logic
-      if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !imgui->capture_mouse()) {
-          if (now - last_shot_time > 0.2) {
-              last_shot_time = now;
-              std::string p_name = "blaster_shot_" + std::to_string(projectile_counter++);
+            // MARK: Shooting logic
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !imgui->capture_mouse()) {
+                if (now - last_shot_time > 0.2) {
+                    last_shot_time = now;
+                    std::string p_name = "blaster_shot_" + std::to_string(projectile_counter++);
 
-              ModelInstance shot = createModelInstance(assets.getHandle<ModelResource>("box_model"));
-              shot.pivot_position = main_camera->Position + main_camera->Front * 0.5f;
-              
-              float pitch_x = glm::degrees(atan2(-main_camera->Front.y, main_camera->Front.z));
-              float yaw_y   = glm::degrees(asin(glm::clamp(main_camera->Front.x, -1.0f, 1.0f)));
-              shot.eulerAngles = glm::vec3(pitch_x, yaw_y, 0.0f);
-              shot.scale = glm::vec3(0.05f, 0.05f, 0.5f);
-              shot.color_override = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-              shot.collision_enabled = false; // The projectile itself shouldn't act as a static wall
-              
-              current_scene->add_model(p_name, std::move(shot));
-              
-              Projectile p;
-              p.name = p_name;
-              p.position = shot.pivot_position;
-              p.direction = main_camera->Front;
-              p.lifetime = 2.0f; // 2 seconds
-              projectiles.push_back(p);
-          }
-      }
+                    ModelInstance shot = createModelInstance(assets.getHandle<ModelResource>("box_model"));
+                    shot.pivot_position = main_camera->Position + main_camera->Front * 0.5f;
 
-      // Update projectiles
-      for (auto it = projectiles.begin(); it != projectiles.end(); ) {
-          it->lifetime -= (float)delta_time;
-          if (it->lifetime <= 0.0f) {
-              current_scene->remove_model(it->name);
-              it = projectiles.erase(it);
-              continue;
-          }
-          
-          float speed = 20.0f;
-          it->position += it->direction * speed * (float)delta_time;
-          
-          // collision check
-          AABB p_aabb;
-          p_aabb.min = it->position - glm::vec3(0.05f);
-          p_aabb.max = it->position + glm::vec3(0.05f);
-          
-          std::string hit_model = current_scene->get_collided_model_name(p_aabb, assets);
-          if (!hit_model.empty()) {
-              if (hit_model.find("teapot") != std::string::npos) {
-                  player_score += 1;
-                  current_scene->set_model_enabled(hit_model, false);
-                  respawn_queue.push_back({hit_model, now + 5.0});
-              } else if (hit_model.find("bunny") != std::string::npos) {
-                  player_score += 5;
-                  current_scene->set_model_enabled(hit_model, false);
-                  respawn_queue.push_back({hit_model, now + 5.0});
-              } else if (hit_model.find("dragon") != std::string::npos) {
-                  player_score += 10;
-                  current_scene->set_model_enabled(hit_model, false);
-                  respawn_queue.push_back({hit_model, now + 5.0});
-              } else if (hit_model.find("glass") != std::string::npos) {
-                  // Ricochet logic
-                  auto aabbs = current_scene->get_model_aabbs(hit_model, assets);
-                  if (!aabbs.empty()) {
-                      AABB glass_aabb = aabbs[0];
-                      glm::vec3 center = (glass_aabb.min + glass_aabb.max) * 0.5f;
-                      glm::vec3 extents = (glass_aabb.max - glass_aabb.min) * 0.5f;
-                      glm::vec3 d = it->position - center;
-                      
-                      glm::vec3 ratio = glm::abs(d) / extents;
-                      glm::vec3 normal;
-                      if (ratio.x > ratio.y && ratio.x > ratio.z) {
-                          normal = glm::vec3(glm::sign(d.x), 0, 0);
-                      } else if (ratio.y > ratio.x && ratio.y > ratio.z) {
-                          normal = glm::vec3(0, glm::sign(d.y), 0);
-                      } else {
-                          normal = glm::vec3(0, 0, glm::sign(d.z));
-                      }
-                      
-                      it->direction = glm::reflect(it->direction, normal);
-                      it->position += normal * 0.2f; // Push out to avoid getting stuck
-                      
-                      float pitch_x = glm::degrees(atan2(-it->direction.y, it->direction.z));
-                      float yaw_y   = glm::degrees(asin(glm::clamp(it->direction.x, -1.0f, 1.0f)));
-                      current_scene->get_all_models().at(it->name).eulerAngles = glm::vec3(pitch_x, yaw_y, 0.0f);
-                  }
-                  continue;
-              }
+                    float pitch_x = glm::degrees(atan2(-main_camera->Front.y, main_camera->Front.z));
+                    float yaw_y = glm::degrees(asin(glm::clamp(main_camera->Front.x, -1.0f, 1.0f)));
+                    shot.eulerAngles = glm::vec3(pitch_x, yaw_y, 0.0f);
+                    shot.scale = glm::vec3(0.05f, 0.05f, 0.5f);
+                    shot.color_override = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+                    shot.collision_enabled = false; // The projectile itself shouldn't act as a static wall
 
-              current_scene->remove_model(it->name);
-              it = projectiles.erase(it);
-              continue;
-          }
-          
-          // update scene model
-          current_scene->get_all_models().at(it->name).pivot_position = it->position;
-          
-          ++it;
-      }
+                    current_scene->add_model(p_name, std::move(shot));
 
-      // Process respawn queue
-      for (auto it = respawn_queue.begin(); it != respawn_queue.end(); ) {
-          if (now >= it->respawn_time) {
-              current_scene->set_model_enabled(it->model_name, true);
-              it = respawn_queue.erase(it);
-          } else {
-              ++it;
-          }
-      }
+                    Projectile p;
+                    p.name = p_name;
+                    p.position = shot.pivot_position;
+                    p.direction = main_camera->Front;
+                    p.lifetime = 2.0f; // 2 seconds
+                    projectiles.push_back(p);
+                }
+            }
+
+            // Update projectiles
+            for (auto it = projectiles.begin(); it != projectiles.end(); ) {
+                it->lifetime -= (float)delta_time;
+                if (it->lifetime <= 0.0f) {
+                    current_scene->remove_model(it->name);
+                    it = projectiles.erase(it);
+                    continue;
+                }
+
+                float speed = 20.0f;
+                it->position += it->direction * speed * (float)delta_time;
+
+                // collision check
+                AABB p_aabb;
+                p_aabb.min = it->position - glm::vec3(0.05f);
+                p_aabb.max = it->position + glm::vec3(0.05f);
+
+                std::string hit_model = current_scene->get_collided_model_name(p_aabb, assets);
+                if (!hit_model.empty()) {
+                    if (hit_model.find("teapot") != std::string::npos) {
+                        player_score += 1;
+                        current_scene->set_model_enabled(hit_model, false);
+                        respawn_queue.push_back({ hit_model, now + 5.0 });
+                    } else if (hit_model.find("bunny") != std::string::npos) {
+                        player_score += 5;
+                        current_scene->set_model_enabled(hit_model, false);
+                        respawn_queue.push_back({ hit_model, now + 5.0 });
+                    } else if (hit_model.find("dragon") != std::string::npos) {
+                        player_score += 10;
+                        current_scene->set_model_enabled(hit_model, false);
+                        respawn_queue.push_back({ hit_model, now + 5.0 });
+                    } else if (hit_model.find("glass") != std::string::npos) {
+                        // Ricochet logic
+                        auto aabbs = current_scene->get_model_aabbs(hit_model, assets);
+                        if (!aabbs.empty()) {
+                            AABB glass_aabb = aabbs[0];
+                            glm::vec3 center = (glass_aabb.min + glass_aabb.max) * 0.5f;
+                            glm::vec3 extents = (glass_aabb.max - glass_aabb.min) * 0.5f;
+                            glm::vec3 d = it->position - center;
+
+                            glm::vec3 ratio = glm::abs(d) / extents;
+                            glm::vec3 normal;
+                            if (ratio.x > ratio.y && ratio.x > ratio.z) {
+                                normal = glm::vec3(glm::sign(d.x), 0, 0);
+                            } else if (ratio.y > ratio.x && ratio.y > ratio.z) {
+                                normal = glm::vec3(0, glm::sign(d.y), 0);
+                            } else {
+                                normal = glm::vec3(0, 0, glm::sign(d.z));
+                            }
+
+                            it->direction = glm::reflect(it->direction, normal);
+                            it->position += normal * 0.2f; // Push out to avoid getting stuck
+
+                            float pitch_x = glm::degrees(atan2(-it->direction.y, it->direction.z));
+                            float yaw_y = glm::degrees(asin(glm::clamp(it->direction.x, -1.0f, 1.0f)));
+                            current_scene->get_all_models().at(it->name).eulerAngles = glm::vec3(pitch_x, yaw_y, 0.0f);
+                        }
+                        continue;
+                    }
+
+                    current_scene->remove_model(it->name);
+                    it = projectiles.erase(it);
+                    continue;
+                }
+
+                // update scene model
+                current_scene->get_all_models().at(it->name).pivot_position = it->position;
+
+                ++it;
+            }
+
+            // Process respawn queue
+            for (auto it = respawn_queue.begin(); it != respawn_queue.end(); ) {
+                if (now >= it->respawn_time) {
+                    current_scene->set_model_enabled(it->model_name, true);
+                    it = respawn_queue.erase(it);
+                } else {
+                    ++it;
+                }
+            }
 
 
             // Rotating lights
@@ -1012,9 +1010,7 @@ int App::run() {
             if (app_settings.gui_axis_display_enabled)
                 axis_display.draw(main_camera);
 
-            if (should_draw_gui) {
-                imgui->render();
-            }
+            imgui->render();
 
             glfwSwapBuffers(window);
 
