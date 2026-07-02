@@ -611,6 +611,62 @@ int App::run() {
         }
       }
 
+      // Shooting logic
+      if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && !imgui->capture_mouse()) {
+          if (now - last_shot_time > 0.2) {
+              last_shot_time = now;
+              std::string p_name = "blaster_shot_" + std::to_string(projectile_counter++);
+
+              ModelInstance shot = createModelInstance(assets.getHandle<ModelResource>("box_model"));
+              shot.pivot_position = main_camera->Position + main_camera->Front * 0.5f;
+              
+              float pitch_x = glm::degrees(atan2(-main_camera->Front.y, main_camera->Front.z));
+              float yaw_y   = glm::degrees(asin(glm::clamp(main_camera->Front.x, -1.0f, 1.0f)));
+              shot.eulerAngles = glm::vec3(pitch_x, yaw_y, 0.0f);
+              shot.scale = glm::vec3(0.05f, 0.05f, 0.5f);
+              shot.color_override = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+              shot.collision_enabled = false; // The projectile itself shouldn't act as a static wall
+              
+              current_scene->add_model(p_name, std::move(shot));
+              
+              Projectile p;
+              p.name = p_name;
+              p.position = shot.pivot_position;
+              p.direction = main_camera->Front;
+              p.lifetime = 2.0f; // 2 seconds
+              projectiles.push_back(p);
+          }
+      }
+
+      // Update projectiles
+      for (auto it = projectiles.begin(); it != projectiles.end(); ) {
+          it->lifetime -= (float)delta_time;
+          if (it->lifetime <= 0.0f) {
+              current_scene->remove_model(it->name);
+              it = projectiles.erase(it);
+              continue;
+          }
+          
+          float speed = 20.0f;
+          it->position += it->direction * speed * (float)delta_time;
+          
+          // collision check
+          AABB p_aabb;
+          p_aabb.min = it->position - glm::vec3(0.05f);
+          p_aabb.max = it->position + glm::vec3(0.05f);
+          
+          if (current_scene->check_collision(p_aabb, assets)) {
+              current_scene->remove_model(it->name);
+              it = projectiles.erase(it);
+              continue;
+          }
+          
+          // update scene model
+          current_scene->get_all_models().at(it->name).pivot_position = it->position;
+          
+          ++it;
+      }
+
       // Rotating lights
       float light_rotation_speed = 0.5f;
 

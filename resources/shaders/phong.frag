@@ -25,6 +25,7 @@ uniform vec3 radiation = vec3(0.0);
 
 uniform int debugMode = 0;
 uniform float uAlpha = 1.0;
+uniform vec4 color_override = vec4(1.0);
 
 uniform sampler2D tex_diffuse;
 
@@ -122,8 +123,7 @@ vec4 SpotLight(int i, vec3 N, vec3 V) {
 
 void main()
 {
-    vec4 albedo = texture(tex_diffuse, fs_in.T);
-
+    vec4 albedo = texture(tex_diffuse, fs_in.T) * color_override;
     if (uAlpha == 1.0 && albedo.a < 0.5) discard;
 
     vec3 N = normalize(fs_in.N);

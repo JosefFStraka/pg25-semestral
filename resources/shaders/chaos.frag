@@ -28,6 +28,7 @@ uniform vec3 radiation = vec3(0.0);
 uniform float uAlpha = 1.0;
 uniform float uChaosOffset = 1.0;
 uniform float uChaosExp = 5.0;
+uniform vec4 color_override = vec4(1.0);
 
 uniform mat4 uV_m = mat4(1.0f);
 
@@ -105,5 +106,5 @@ void main()
     float grayscale = clamp(get_grayscale(accumulator.rgb), 0.0, 1.0);
     float rnd = get_random2d(fs_in.T, mod(uTime, 1.0));
     float chaos = clamp(pow(rnd, pow(fract(grayscale + uChaosOffset), uChaosExp)), 0.0, 1.0);
-    FragColor =  vec4(chaos, chaos, chaos, uAlpha);
+    FragColor = vec4(chaos, chaos, chaos, uAlpha) * color_override;
 }

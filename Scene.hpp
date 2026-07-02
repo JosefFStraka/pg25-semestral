@@ -176,6 +176,12 @@ public:
     lights.spotCutoff[i] = spotCutoff;
   }
 
+  void remove_model(const std::string &name) {
+    set_model_enabled(name, false);
+    models.erase(name);
+    static_aabbs.erase(name);
+  }
+
   void update_shader_lights(ShaderProgram *shader) {
     if (shader) {
       shader->setUniform("active_lights", this->active_lights);
