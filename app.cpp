@@ -568,6 +568,14 @@ int App::run() {
         if (app_settings.gui_always_enabled && !app_settings.gui_enabled) {
           ImGui::EndDisabled();
         }
+
+        // Scoreboard
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 150.f, 24.f), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(126.f, 0.f)); 
+        ImGui::Begin("Scoreboard", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+        ImGui::Text("SCORE: %d", player_score);
+        ImGui::End();
+
         imgui->gui_end();
       }
 
@@ -655,7 +663,22 @@ int App::run() {
           p_aabb.min = it->position - glm::vec3(0.05f);
           p_aabb.max = it->position + glm::vec3(0.05f);
           
-          if (current_scene->check_collision(p_aabb, assets)) {
+          std::string hit_model = current_scene->get_collided_model_name(p_aabb, assets);
+          if (!hit_model.empty()) {
+              if (hit_model.find("teapot") != std::string::npos) {
+                  player_score += 1;
+                  current_scene->set_model_enabled(hit_model, false);
+                  respawn_queue.push_back({hit_model, now + 5.0});
+              } else if (hit_model.find("bunny") != std::string::npos) {
+                  player_score += 5;
+                  current_scene->set_model_enabled(hit_model, false);
+                  respawn_queue.push_back({hit_model, now + 5.0});
+              } else if (hit_model.find("dragon") != std::string::npos) {
+                  player_score += 10;
+                  current_scene->set_model_enabled(hit_model, false);
+                  respawn_queue.push_back({hit_model, now + 5.0});
+              }
+
               current_scene->remove_model(it->name);
               it = projectiles.erase(it);
               continue;
@@ -666,6 +689,17 @@ int App::run() {
           
           ++it;
       }
+
+      // Process respawn queue
+      for (auto it = respawn_queue.begin(); it != respawn_queue.end(); ) {
+          if (now >= it->respawn_time) {
+              current_scene->set_model_enabled(it->model_name, true);
+              it = respawn_queue.erase(it);
+          } else {
+              ++it;
+          }
+      }
+
 
       // Rotating lights
       float light_rotation_speed = 0.5f;

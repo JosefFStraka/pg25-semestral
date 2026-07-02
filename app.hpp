@@ -92,6 +92,13 @@ private:
     std::vector<Projectile> projectiles;
     double last_shot_time = 0.0;
     int projectile_counter = 0;
+    int player_score = 0;
+
+    struct RespawnTask {
+        std::string model_name;
+        double respawn_time;
+    };
+    std::vector<RespawnTask> respawn_queue;
 
     // remember last cursor position, move relative to that in the next frame
     double cursorLastX{ 0 };
