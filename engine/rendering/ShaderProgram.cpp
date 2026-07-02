@@ -46,9 +46,9 @@ GLuint ShaderProgram::getUniformLocation(const std::string & name) {
     auto loc = glGetUniformLocation(ID, name.c_str());
     if (loc == -1) {
         std::cerr << "No uniform with name: " << name << '\n';
-    } else {
-        uniform_location_cache[name] = loc;
     }
+    // Cache the location even if it's -1 to avoid spamming the console
+    uniform_location_cache[name] = loc;
     return loc;
 }
 
