@@ -26,6 +26,12 @@ const char *ShaderDebugOptions[]{"None",    "NormalsVS", "Something", "Ambient",
 
 //---------------------------------------------------------------------
 
+struct BunnyState {
+    glm::vec3 spawn_point;
+    glm::vec3 velocity;
+};
+std::map<std::string, BunnyState> bunny_states;
+
 App::App() {
   // default constructor
   // nothing to do here (so far...)
@@ -497,7 +503,13 @@ void App::init_assets(void) {
       bunny.setPosition(pos);
       bunny.setScale(glm::vec3(0.8f, 0.8f, 0.8f));
       bunny.opacity = 1.0f;
-      current_scene->add_static_model(name, std::move(bunny), assets);
+      current_scene->add_model(name, std::move(bunny));
+
+      BunnyState bs;
+      bs.spawn_point = pos;
+      float angle = static_cast<float>(rand() % 360);
+      bs.velocity = glm::vec3(cos(glm::radians(angle)), 0.0f, sin(glm::radians(angle))) * 2.0f;
+      bunny_states[name] = bs;
   };
 
   // Config A: 6 Standalone boxes (Y = -0.5f) -> Teapots on ONLY SOME of them (Y = 0.0f)
@@ -999,9 +1011,40 @@ int App::run() {
 
       for (auto &&[name, model_ptr] : current_scene->get_models()) {
         if (!current_scene->is_model_static(name)) {
-          model_ptr->rotate(glm::vec3(17.f * rotation_speed * delta_time,
-                                      31.f * rotation_speed * delta_time,
-                                      11.f * rotation_speed * delta_time));
+          if (name.find("bunny_target_") != std::string::npos) {
+              if (bunny_states.find(name) != bunny_states.end()) {
+                  BunnyState& bs = bunny_states[name];
+                  glm::vec3 next_pos = model_ptr->pivot_position + bs.velocity * (float)delta_time;
+                  
+                  AABB b_aabb;
+                  b_aabb.min = next_pos + glm::vec3(-0.4f, 0.0f, -0.4f);
+                  b_aabb.max = next_pos + glm::vec3(0.4f, 0.8f, 0.4f);
+                  
+                  bool collision = false;
+                  std::string hit_model = current_scene->get_collided_model_name(b_aabb, assets);
+                  if (!hit_model.empty() && hit_model != name && (hit_model.find("wall") != std::string::npos || hit_model.find("glass") != std::string::npos || hit_model.find("box") != std::string::npos)) {
+                      collision = true;
+                  }
+                  
+                  if (glm::distance(next_pos, bs.spawn_point) > 5.0f) {
+                      collision = true;
+                  }
+                  
+                  if (collision) {
+                      float angle = static_cast<float>(rand() % 360);
+                      bs.velocity = glm::vec3(cos(glm::radians(angle)), 0.0f, sin(glm::radians(angle))) * 2.0f;
+                  } else {
+                      model_ptr->pivot_position = next_pos;
+                      float yaw = glm::degrees(atan2(-bs.velocity.z, bs.velocity.x));
+                      model_ptr->eulerAngles = glm::vec3(0.f, yaw - 90.f, 0.f); 
+                      model_ptr->parameters_modified = true;
+                  }
+              }
+          } else {
+            model_ptr->rotate(glm::vec3(17.f * rotation_speed * delta_time,
+                                        31.f * rotation_speed * delta_time,
+                                        11.f * rotation_speed * delta_time));
+          }
         }
         model_ptr->update(delta_time);
       }
