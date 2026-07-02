@@ -6,6 +6,7 @@ uniform float uTime;
 #define MAX_LIGHTS 16
 struct s_lights {
     vec4 position[MAX_LIGHTS];
+    vec4 direction[MAX_LIGHTS];
     vec4 color[MAX_LIGHTS];
     float attenuation[MAX_LIGHTS];
     float spotCutoff[MAX_LIGHTS];

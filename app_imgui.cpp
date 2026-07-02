@@ -94,6 +94,7 @@ void AppImGui::model_controls(ModelInstance* const model, bool* enabled, bool is
 
     ImGui::Checkbox("Enabled", enabled);
     ImGui::Checkbox("Transparent", &model->is_transparent);
+    ImGui::Checkbox("Collision", &model->collision_enabled);
 
     if (is_static) {
         ImGui::BeginDisabled();
@@ -135,6 +136,9 @@ void AppImGui::light_controls(s_lights * lights, int i) {
     ImGui::SliderFloat("y", &lights->position[i].y, -10.f, 10.f);
     ImGui::SliderFloat("z", &lights->position[i].z, -10.f, 10.f);
     ImGui::SliderFloat("w", &lights->position[i].w, 0.f, 1.f);
+    ImGui::SliderFloat("dir X", &lights->direction[i].x, -1.f, 1.f);
+    ImGui::SliderFloat("dir Y", &lights->direction[i].y, -1.f, 1.f);
+    ImGui::SliderFloat("dir Z", &lights->direction[i].z, -1.f, 1.f);
     ImGui::ColorPicker3("Color", &lights->color[i].r);
     ImGui::SliderFloat("Attenuation", &lights->attenuation[i], 0.f, 1.f);
     ImGui::SliderFloat("spotCutoff", &lights->spotCutoff[i], 0.f, 180.f);

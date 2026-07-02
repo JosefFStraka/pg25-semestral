@@ -48,6 +48,12 @@ void App::key_callback(int key, int scancode, int action, int mods) {
             if (screenshot != 0) return;
             screenshot = 1;
             break;
+        case GLFW_KEY_T:
+            flashlight_enabled = !flashlight_enabled;
+            break;
+        case GLFW_KEY_C:
+            camera_collisions_enabled = !camera_collisions_enabled;
+            break;
         default:
             break;
         }

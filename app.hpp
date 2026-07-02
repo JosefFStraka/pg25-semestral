@@ -81,6 +81,8 @@ private:
 
     // camera related 
     std::shared_ptr<Camera> main_camera;
+    bool flashlight_enabled = true; // NEW: toggle flashlight
+    bool camera_collisions_enabled = true; // toggle camera collisions
     // remember last cursor position, move relative to that in the next frame
     double cursorLastX{ 0 };
     double cursorLastY{ 0 };
