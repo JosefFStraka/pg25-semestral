@@ -376,6 +376,50 @@ void App::init_assets(void) {
     current_scene->add_static_model("dragon", std::move(dragon), assets);
   }
 
+  auto wallHandle = createSimpleModel(
+      assets, "wall_model", assets.getHandle<Mesh>("wall"),
+      assets.getHandle<Texture>("wall_tex"),
+      assets.getHandle<ShaderProgram>("phong"));
+  
+  // Base wall
+  {
+    ModelInstance wall = createModelInstance(wallHandle);
+    wall.setPosition(glm::vec3(-6.f, -1.0f, -4.f));
+    wall.setScale(glm::vec3(1.f, 1.f, 1.f));
+    current_scene->add_static_model("wall_brick", std::move(wall), assets);
+  }
+
+  // 4 extra walls at random positions
+  glm::vec3 wall_positions[4] = {
+      glm::vec3(8.f, -1.0f, -6.f),
+      glm::vec3(-5.f, -1.0f, 9.f),
+      glm::vec3(10.f, -1.0f, 5.f),
+      glm::vec3(-12.f, -1.0f, -2.f)
+  };
+  for (int i = 0; i < 4; ++i) {
+      ModelInstance wall = createModelInstance(wallHandle);
+      wall.setPosition(wall_positions[i]);
+      wall.setScale(glm::vec3(1.f, 1.f, 1.f));
+      // Rotate some of them for variety
+      if (i % 2 == 0) wall.setEulerAngles(glm::vec3(0.f, 90.f, 0.f));
+      current_scene->add_static_model("wall_brick_" + std::to_string(i), std::move(wall), assets);
+  }
+
+  // 2 glass panes using the wall model
+  glm::vec3 glass_positions[2] = {
+      glm::vec3(0.f, -1.0f, -10.f),
+      glm::vec3(5.f, -1.0f, 12.f)
+  };
+  for (int i = 0; i < 2; ++i) {
+      ModelInstance glass = createModelInstance(wallHandle);
+      glass.setPosition(glass_positions[i]);
+      glass.setScale(glm::vec3(1.f, 1.f, 1.f));
+      glass.color_override = glm::vec4(0.3f, 0.6f, 1.0f, 1.0f);
+      glass.is_transparent = true;
+      glass.opacity = 0.3f;
+      current_scene->add_static_model("glass_" + std::to_string(i), std::move(glass), assets);
+  }
+
   auto sponzaHandle = createSimpleModel(
       assets, "sponza_model", assets.getHandle<Mesh>("sponza"),
       assets.getHandle<Texture>("default"),
